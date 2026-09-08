@@ -8,3 +8,8 @@ build/
 coverage/
 .DS_Store
 Thumbs.db
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Prisma generated client (re-created by `prisma generate`)
+apps/api/src/generated/

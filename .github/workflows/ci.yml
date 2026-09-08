@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # Same image as docker-compose.yml so CI and local behave alike.
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: brick
+          POSTGRES_PASSWORD: brick
+          POSTGRES_DB: brick_campaign
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U brick -d brick_campaign"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://brick:brick@localhost:5432/brick_campaign
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4 # version read from package.json "packageManager"
+
+      - uses: actions/setup-node@v4
+        with:
+          # Lowest version allowed by "engines": CI validates the floor we promise.
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The generated client is gitignored; lint and build import it.
+      - run: pnpm --filter api exec prisma generate
+
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm build
+      - run: pnpm test
+
+      - run: pnpm --filter api exec prisma migrate deploy
+      - run: pnpm test:e2e

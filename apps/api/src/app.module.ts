@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module.js';
 import { validateEnv } from './config/env.schema.js';
 import { HealthController } from './health/health.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
@@ -12,6 +13,7 @@ const rootEnvFile = fileURLToPath(new URL('../../../.env', import.meta.url));
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: rootEnvFile, validate: validateEnv }),
     PrismaModule,
+    AuthModule,
   ],
   controllers: [HealthController],
 })

@@ -32,6 +32,7 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_URL: postgresql://brick:brick@localhost:5432/brick_campaign
+      JWT_SECRET: ci-only-secret-not-used-anywhere-else-0000
 
     steps:
       - uses: actions/checkout@v4

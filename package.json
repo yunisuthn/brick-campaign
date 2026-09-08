@@ -1,0 +1,13 @@
+{
+  "name": "brick-campaign",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Seasonal brick production and sales management",
+  "packageManager": "pnpm@12.3.4",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build"
+  }
+}

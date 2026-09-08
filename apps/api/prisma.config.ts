@@ -1,7 +1,8 @@
 import { config } from 'dotenv';
 import { defineConfig } from 'prisma/config';
 
-config({ path: '../../.env', quiet: true });
+// Prisma CLI runs outside Nest: load the root .env itself, resolved from this file rather than the cwd.
+config({ path: new URL('../../.env', import.meta.url), quiet: true });
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',

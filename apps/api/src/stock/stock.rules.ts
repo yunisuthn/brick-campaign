@@ -5,7 +5,7 @@ export interface StockCounts {
   loaded: number;
   /** Live kiln batches with an unloading date. */
   unloaded: number;
-  /** Live deliveries. Zero until deliveries exist (reference document, section 7, step 5). */
+  /** Live deliveries, reached through their sale. */
   delivered: number;
 }
 

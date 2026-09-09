@@ -211,9 +211,30 @@ model Sale {
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  campaign Campaign @relation(fields: [campaignId], references: [id])
-  client   Client   @relation(fields: [clientId], references: [id])
+  campaign   Campaign   @relation(fields: [campaignId], references: [id])
+  client     Client     @relation(fields: [clientId], references: [id])
+  deliveries Delivery[]
 
   @@index([campaignId, clientId])
   @@map("sales")
+}
+
+// One truck trip for a sale (2 300-2 500 bricks per trip in practice, not enforced). Takes its
+// quantity out of the fired stock. The campaign is reached through the sale, not repeated here.
+// Cost is fuel plus driver, in integer Ariary. A wrong entry is cancelled, never deleted.
+model Delivery {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  saleId      String    @map("sale_id") @db.Uuid
+  date        DateTime  @db.Date
+  quantity    Int
+  cost        Int
+  plate       String?
+  cancelledAt DateTime? @map("cancelled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  sale Sale @relation(fields: [saleId], references: [id])
+
+  @@index([saleId])
+  @@map("deliveries")
 }

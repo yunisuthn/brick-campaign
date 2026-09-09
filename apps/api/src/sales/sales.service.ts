@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -88,8 +93,15 @@ export class SalesService {
     return toDto(row);
   }
 
+  /** Deliveries point at the sale: they are cancelled first, or the sale stays. */
   async cancel(campaignId: string, id: string): Promise<void> {
     await this.findOne(campaignId, id);
+    const liveDeliveries = await this.prisma.delivery.count({
+      where: { saleId: id, cancelledAt: null },
+    });
+    if (liveDeliveries > 0) {
+      throw new ConflictException(`Sale ${id} still has ${liveDeliveries} delivery(ies)`);
+    }
     await this.prisma.sale.update({ where: { id }, data: { cancelledAt: new Date() } });
   }
 }

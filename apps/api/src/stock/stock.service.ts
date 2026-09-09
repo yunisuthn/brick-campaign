@@ -23,19 +23,28 @@ export class StockService {
     return produced - loaded;
   }
 
+  /** Pass `excludingDeliveryId` when re-checking a delivery being corrected, so its own quantity is not counted. */
+  async firedStock(campaignId: string, excludingDeliveryId?: string): Promise<number> {
+    const [unloaded, delivered] = await Promise.all([
+      this.unloaded(campaignId),
+      this.delivered(campaignId, excludingDeliveryId),
+    ]);
+    return unloaded - delivered;
+  }
+
   async overview(campaignId: string): Promise<StockDto> {
     const campaign = await this.prisma.campaign.findUnique({
       where: { id: campaignId },
       select: { id: true },
     });
     if (!campaign) throw new NotFoundException(`Campaign ${campaignId} not found`);
-    const [produced, loaded, unloaded] = await Promise.all([
+    const [produced, loaded, unloaded, delivered] = await Promise.all([
       this.produced(campaignId),
       this.loaded(campaignId),
       this.unloaded(campaignId),
+      this.delivered(campaignId),
     ]);
-    // Deliveries come with step 5 of the roadmap; until then nothing has left the fired stock.
-    const counts: StockCounts = { produced, loaded, unloaded, delivered: 0 };
+    const counts: StockCounts = { produced, loaded, unloaded, delivered };
     return { campaignId, ...counts, ...stockLevels(counts) };
   }
 
@@ -62,6 +71,19 @@ export class StockService {
   private async unloaded(campaignId: string): Promise<number> {
     const result = await this.prisma.kilnBatch.aggregate({
       where: { campaignId, cancelledAt: null, unloadedOn: { not: null } },
+      _sum: { quantity: true },
+    });
+    return result._sum.quantity ?? 0;
+  }
+
+  /** Deliveries reach the campaign through their sale. */
+  private async delivered(campaignId: string, excludingDeliveryId?: string): Promise<number> {
+    const result = await this.prisma.delivery.aggregate({
+      where: {
+        sale: { campaignId },
+        cancelledAt: null,
+        id: excludingDeliveryId === undefined ? undefined : { not: excludingDeliveryId },
+      },
       _sum: { quantity: true },
     });
     return result._sum.quantity ?? 0;

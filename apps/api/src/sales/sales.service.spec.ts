@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { EntryReferences } from '../entries/entry-references.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { SalesService } from './sales.service.js';
@@ -9,10 +9,12 @@ describe('SalesService', () => {
   const create = vi.fn();
   const findFirst = vi.fn();
   const update = vi.fn();
+  const deliveryCount = vi.fn();
   const prisma = {
     campaign: { findUnique: campaignFindUnique },
     client: { findUnique: clientFindUnique },
     sale: { create, findFirst, update },
+    delivery: { count: deliveryCount },
   } as unknown as PrismaService;
   const service = new SalesService(prisma, new EntryReferences(prisma));
 
@@ -124,12 +126,20 @@ describe('SalesService', () => {
   describe('cancel', () => {
     it('stamps cancelledAt instead of deleting', async () => {
       findFirst.mockResolvedValue(row);
+      deliveryCount.mockResolvedValue(0);
       update.mockResolvedValue(row);
       await service.cancel(campaignId, 'sale-id');
       expect(update).toHaveBeenCalledWith({
         where: { id: 'sale-id' },
         data: { cancelledAt: expect.any(Date) },
       });
+    });
+
+    it('refuses with 409 while live deliveries point at the sale', async () => {
+      findFirst.mockResolvedValue(row);
+      deliveryCount.mockResolvedValue(2);
+      await expect(service.cancel(campaignId, 'sale-id')).rejects.toBeInstanceOf(ConflictException);
+      expect(update).not.toHaveBeenCalled();
     });
   });
 });

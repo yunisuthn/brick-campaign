@@ -17,3 +17,19 @@ model User {
 
   @@map("users")
 }
+
+// One season. Rates live here (not on each entry) so a new season changes them in one place.
+// Money is stored as integer Ariary: the currency has no subunit in daily use.
+model Campaign {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  year            Int       @unique
+  startedOn       DateTime  @map("started_on") @db.Date
+  closedOn        DateTime? @map("closed_on") @db.Date
+  mouldingRate    Int       @map("moulding_rate")
+  transportRate   Int       @map("transport_rate")
+  kilnLoadingRate Int       @map("kiln_loading_rate")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("campaigns")
+}

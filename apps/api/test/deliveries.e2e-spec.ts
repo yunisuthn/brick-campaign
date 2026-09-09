@@ -139,6 +139,13 @@ describe('Deliveries (e2e)', () => {
     const list = await request(server).get(path()).set('Cookie', cookie).expect(200);
     expect(list.body).toEqual([first.body, grown.body]);
 
+    // The sale reads the trips back: 2 500 + 37 500 cover the 5 000 ordered, surplus included.
+    const sale = await request(server)
+      .get(`/campaigns/${campaignId}/sales/${saleId}`)
+      .set('Cookie', cookie)
+      .expect(200);
+    expect(sale.body).toMatchObject({ deliveredQuantity: 40000, status: 'delivered' });
+
     const stock = await request(server)
       .get(`/campaigns/${campaignId}/stock`)
       .set('Cookie', cookie)
@@ -155,6 +162,11 @@ describe('Deliveries (e2e)', () => {
     await request(server).get(`${path()}/${grown.body.id}`).set('Cookie', cookie).expect(404);
     const after = await request(server).get(path()).set('Cookie', cookie).expect(200);
     expect(after.body).toEqual([first.body]);
+    const reopened = await request(server)
+      .get(`/campaigns/${campaignId}/sales/${saleId}`)
+      .set('Cookie', cookie)
+      .expect(200);
+    expect(reopened.body).toMatchObject({ deliveredQuantity: 2500, status: 'ordered' });
   });
 
   it('404s on a sale of another campaign', async () => {

@@ -9,6 +9,7 @@ import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateSaleDto, SaleDto, SalePaymentDto, UpdateSaleDto } from './sale.dto.js';
+import { saleStatus, saleTotal } from './sale.rules.js';
 
 const saleSelect = {
   id: true,
@@ -46,17 +47,21 @@ export class SalesService {
       },
       select: saleSelect,
     });
-    return toDto(row);
+    // Nothing delivered yet: the sale was just created.
+    return toDto(row, 0);
   }
 
   async findAll(campaignId: string): Promise<SaleDto[]> {
     await this.refs.campaignWindow(campaignId);
-    const rows = await this.prisma.sale.findMany({
-      where: { campaignId, cancelledAt: null },
-      select: saleSelect,
-      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-    });
-    return rows.map(toDto);
+    const [rows, delivered] = await Promise.all([
+      this.prisma.sale.findMany({
+        where: { campaignId, cancelledAt: null },
+        select: saleSelect,
+        orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      }),
+      this.deliveredPerSale(campaignId),
+    ]);
+    return rows.map((row) => toDto(row, delivered.get(row.id) ?? 0));
   }
 
   /** A cancelled sale is gone from the API: reading, correcting or cancelling it again is a 404. */
@@ -66,7 +71,7 @@ export class SalesService {
       select: saleSelect,
     });
     if (!row) throw new NotFoundException(`Sale ${id} not found`);
-    return toDto(row);
+    return toDto(row, await this.deliveredFor(id));
   }
 
   /** Recording the payment is a correction that sets `payment`; rules are checked on the merged state. */
@@ -90,7 +95,7 @@ export class SalesService {
       },
       select: saleSelect,
     });
-    return toDto(row);
+    return toDto(row, current.deliveredQuantity);
   }
 
   /** Deliveries point at the sale: they are cancelled first, or the sale stays. */
@@ -103,6 +108,24 @@ export class SalesService {
       throw new ConflictException(`Sale ${id} still has ${liveDeliveries} delivery(ies)`);
     }
     await this.prisma.sale.update({ where: { id }, data: { cancelledAt: new Date() } });
+  }
+
+  /** One query for the whole list: live deliveries summed per sale of the campaign. */
+  private async deliveredPerSale(campaignId: string): Promise<Map<string, number>> {
+    const groups = await this.prisma.delivery.groupBy({
+      by: ['saleId'],
+      where: { sale: { campaignId }, cancelledAt: null },
+      _sum: { quantity: true },
+    });
+    return new Map(groups.map((group) => [group.saleId, group._sum.quantity ?? 0]));
+  }
+
+  private async deliveredFor(saleId: string): Promise<number> {
+    const result = await this.prisma.delivery.aggregate({
+      where: { saleId, cancelledAt: null },
+      _sum: { quantity: true },
+    });
+    return result._sum.quantity ?? 0;
   }
 }
 
@@ -121,14 +144,22 @@ function paymentColumns(
     : { paidOn: parseDateOnly(payment.paidOn), amountReceived: payment.amountReceived };
 }
 
-function toDto(row: SaleRow): SaleDto {
+function toDto(row: SaleRow, deliveredQuantity: number): SaleDto {
   const { paidOn, amountReceived, ...rest } = row;
+  const payment =
+    paidOn === null || amountReceived === null
+      ? null
+      : { paidOn: formatDateOnly(paidOn), amountReceived };
   return {
     ...rest,
     date: formatDateOnly(row.date),
-    payment:
-      paidOn === null || amountReceived === null
-        ? null
-        : { paidOn: formatDateOnly(paidOn), amountReceived },
+    payment,
+    deliveredQuantity,
+    total: saleTotal(row.orderedQuantity, row.unitPrice),
+    status: saleStatus({
+      orderedQuantity: row.orderedQuantity,
+      deliveredQuantity,
+      paid: payment !== null,
+    }),
   };
 }

@@ -10,11 +10,14 @@ describe('SalesService', () => {
   const findFirst = vi.fn();
   const update = vi.fn();
   const deliveryCount = vi.fn();
+  const deliveryAggregate = vi.fn();
+  const deliveryGroupBy = vi.fn();
+  const findMany = vi.fn();
   const prisma = {
     campaign: { findUnique: campaignFindUnique },
     client: { findUnique: clientFindUnique },
-    sale: { create, findFirst, update },
-    delivery: { count: deliveryCount },
+    sale: { create, findFirst, findMany, update },
+    delivery: { count: deliveryCount, aggregate: deliveryAggregate, groupBy: deliveryGroupBy },
   } as unknown as PrismaService;
   const service = new SalesService(prisma, new EntryReferences(prisma));
 
@@ -45,16 +48,22 @@ describe('SalesService', () => {
       closedOn: null,
     });
     clientFindUnique.mockResolvedValue({ id: clientId });
+    deliveryAggregate.mockResolvedValue({ _sum: { quantity: null } });
+    deliveryGroupBy.mockResolvedValue([]);
   });
 
   describe('create', () => {
-    it('stores the sale unpaid and maps the two payment columns to one nullable object', async () => {
+    it('stores the sale unpaid, nothing delivered, with its total and status derived', async () => {
       create.mockResolvedValue(row);
       await expect(service.create(campaignId, input)).resolves.toEqual({
         id: 'sale-id',
         campaignId,
         ...input,
+        deliveredQuantity: 0,
+        total: 1_250_000,
+        status: 'ordered',
       });
+      expect(deliveryAggregate).not.toHaveBeenCalled();
       expect(create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ paidOn: null, amountReceived: null }),
@@ -78,6 +87,31 @@ describe('SalesService', () => {
     });
   });
 
+  describe('read', () => {
+    it('sums the live deliveries of the sale and derives the status from them', async () => {
+      findFirst.mockResolvedValue(row);
+      deliveryAggregate.mockResolvedValue({ _sum: { quantity: 5000 } });
+      await expect(service.findOne(campaignId, 'sale-id')).resolves.toMatchObject({
+        deliveredQuantity: 5000,
+        status: 'delivered',
+      });
+      expect(deliveryAggregate).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { saleId: 'sale-id', cancelledAt: null } }),
+      );
+    });
+
+    it('lists with one grouped query, sales without a trip at zero', async () => {
+      findMany.mockResolvedValue([row, { ...row, id: 'other-id' }]);
+      deliveryGroupBy.mockResolvedValue([{ saleId: 'sale-id', _sum: { quantity: 2500 } }]);
+      const list = await service.findAll(campaignId);
+      expect(list.map((sale) => [sale.id, sale.deliveredQuantity, sale.status])).toEqual([
+        ['sale-id', 2500, 'ordered'],
+        ['other-id', 0, 'ordered'],
+      ]);
+      expect(deliveryAggregate).not.toHaveBeenCalled();
+    });
+  });
+
   describe('update', () => {
     it('records the payment from payment alone, checked against the stored sale date', async () => {
       findFirst.mockResolvedValue(row);
@@ -89,6 +123,7 @@ describe('SalesService', () => {
       const payment = { paidOn: '2026-08-20', amountReceived: 1_250_000 };
       await expect(service.update(campaignId, 'sale-id', { payment })).resolves.toMatchObject({
         payment,
+        status: 'paid',
       });
       expect(clientFindUnique).not.toHaveBeenCalled();
       await expect(

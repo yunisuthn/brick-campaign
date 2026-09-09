@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { dateOnlySchema } from '../common/date-only.js';
 import { uuidSchema } from '../common/uuid.schema.js';
+import type { SaleStatus } from './sale.rules.js';
 
 /**
  * The client pays once, when everything is delivered (no partial payment in the v1), so the
@@ -34,6 +35,7 @@ export type SalePaymentDto = z.infer<typeof salePaymentSchema>;
 export type CreateSaleDto = z.infer<typeof createSaleSchema>;
 export type UpdateSaleDto = z.infer<typeof updateSaleSchema>;
 
+/** Stored fields plus what is derived at read time: nothing below `payment` is in the table. */
 export interface SaleDto {
   id: string;
   campaignId: string;
@@ -42,4 +44,9 @@ export interface SaleDto {
   orderedQuantity: number;
   unitPrice: number;
   payment: SalePaymentDto | null;
+  /** Sum of the live deliveries. */
+  deliveredQuantity: number;
+  /** orderedQuantity x unitPrice: the revenue of the sale. */
+  total: number;
+  status: SaleStatus;
 }

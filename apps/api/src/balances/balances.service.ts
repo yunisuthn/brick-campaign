@@ -1,10 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { type ContractorBalance, contractorBalance } from './contractor-balance.js';
 import { type MoulderBalance, moulderBalance } from './moulder-balance.js';
 
 export interface MoulderBalanceDto extends MoulderBalance {
   moulderId: string;
   name: string;
+}
+
+export interface ContractorBalanceDto extends ContractorBalance {
+  contractorName: string;
 }
 
 /**
@@ -18,10 +23,10 @@ export class BalancesService {
 
   /** One line per moulder with at least one entry in the campaign, by name. */
   async moulders(campaignId: string): Promise<MoulderBalanceDto[]> {
-    const rate = await this.mouldingRate(campaignId);
+    const { mouldingRate } = await this.rates(campaignId);
     const [productions, payments] = await Promise.all([
       this.productions(campaignId),
-      this.payments(campaignId),
+      this.moulderPayments(campaignId),
     ]);
     const ids = new Set([...productions, ...payments].map((e) => e.moulderId));
     const moulders = await this.prisma.moulder.findMany({
@@ -33,7 +38,7 @@ export class BalancesService {
       moulderId: m.id,
       name: m.name,
       ...moulderBalance(
-        rate,
+        mouldingRate,
         productions.filter((p) => p.moulderId === m.id),
         payments.filter((p) => p.moulderId === m.id),
       ),
@@ -42,7 +47,7 @@ export class BalancesService {
 
   /** A known moulder with no entry in the campaign has a balance of zero, not a 404. */
   async moulder(campaignId: string, moulderId: string): Promise<MoulderBalanceDto> {
-    const rate = await this.mouldingRate(campaignId);
+    const { mouldingRate } = await this.rates(campaignId);
     const moulder = await this.prisma.moulder.findUnique({
       where: { id: moulderId },
       select: { id: true, name: true },
@@ -50,18 +55,55 @@ export class BalancesService {
     if (!moulder) throw new NotFoundException(`Moulder ${moulderId} not found`);
     const [productions, payments] = await Promise.all([
       this.productions(campaignId, moulderId),
-      this.payments(campaignId, moulderId),
+      this.moulderPayments(campaignId, moulderId),
     ]);
-    return { moulderId, name: moulder.name, ...moulderBalance(rate, productions, payments) };
+    return {
+      moulderId,
+      name: moulder.name,
+      ...moulderBalance(mouldingRate, productions, payments),
+    };
   }
 
-  private async mouldingRate(campaignId: string): Promise<number> {
+  /** One line per contractor name seen in a work or a payment of the campaign, by name. */
+  async contractors(campaignId: string): Promise<ContractorBalanceDto[]> {
+    const rates = await this.rates(campaignId);
+    const [works, payments] = await Promise.all([
+      this.contractorWorks(campaignId),
+      this.contractorPayments(campaignId),
+    ]);
+    const names = [...new Set([...works, ...payments].map((e) => e.contractorName))];
+    return names
+      .sort((a, b) => a.localeCompare(b))
+      .map((contractorName) => ({
+        contractorName,
+        ...contractorBalance(
+          rates,
+          works.filter((w) => w.contractorName === contractorName),
+          payments.filter((p) => p.contractorName === contractorName),
+        ),
+      }));
+  }
+
+  /** Contractors have no record of their own: a name with no entry in the campaign is a 404. */
+  async contractor(campaignId: string, contractorName: string): Promise<ContractorBalanceDto> {
+    const rates = await this.rates(campaignId);
+    const [works, payments] = await Promise.all([
+      this.contractorWorks(campaignId, contractorName),
+      this.contractorPayments(campaignId, contractorName),
+    ]);
+    if (works.length === 0 && payments.length === 0) {
+      throw new NotFoundException(`No entry for contractor ${contractorName} in this campaign`);
+    }
+    return { contractorName, ...contractorBalance(rates, works, payments) };
+  }
+
+  private async rates(campaignId: string) {
     const campaign = await this.prisma.campaign.findUnique({
       where: { id: campaignId },
-      select: { mouldingRate: true },
+      select: { mouldingRate: true, transportRate: true, kilnLoadingRate: true },
     });
     if (!campaign) throw new NotFoundException(`Campaign ${campaignId} not found`);
-    return campaign.mouldingRate;
+    return campaign;
   }
 
   private productions(campaignId: string, moulderId?: string) {
@@ -71,12 +113,29 @@ export class BalancesService {
     });
   }
 
-  /** Contractor payments carry no moulder and are not part of any moulder balance. */
-  private async payments(campaignId: string, moulderId?: string) {
+  private contractorWorks(campaignId: string, contractorName?: string) {
+    return this.prisma.contractorWork.findMany({
+      where: { campaignId, contractorName, cancelledAt: null },
+      select: { contractorName: true, type: true, quantity: true },
+    });
+  }
+
+  /** Payments to a moulder; the contractor ones carry no moulder and are left out. */
+  private async moulderPayments(campaignId: string, moulderId?: string) {
     const rows = await this.prisma.payment.findMany({
       where: { campaignId, moulderId: moulderId ?? { not: null }, cancelledAt: null },
       select: { moulderId: true, type: true, amount: true },
     });
     return rows.flatMap((r) => (r.moulderId === null ? [] : [{ ...r, moulderId: r.moulderId }]));
+  }
+
+  private async contractorPayments(campaignId: string, contractorName?: string) {
+    const rows = await this.prisma.payment.findMany({
+      where: { campaignId, contractorName: contractorName ?? { not: null }, cancelledAt: null },
+      select: { contractorName: true, type: true, amount: true },
+    });
+    return rows.flatMap((r) =>
+      r.contractorName === null ? [] : [{ ...r, contractorName: r.contractorName }],
+    );
   }
 }

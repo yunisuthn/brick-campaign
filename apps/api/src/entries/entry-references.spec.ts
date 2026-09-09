@@ -6,10 +6,12 @@ describe('EntryReferences', () => {
   const campaignFindUnique = vi.fn();
   const moulderFindUnique = vi.fn();
   const riceFieldFindUnique = vi.fn();
+  const kilnBatchFindFirst = vi.fn();
   const prisma = {
     campaign: { findUnique: campaignFindUnique },
     moulder: { findUnique: moulderFindUnique },
     riceField: { findUnique: riceFieldFindUnique },
+    kilnBatch: { findFirst: kilnBatchFindFirst },
   } as unknown as PrismaService;
   const refs = new EntryReferences(prisma);
 
@@ -48,5 +50,17 @@ describe('EntryReferences', () => {
   it('rejects an unknown rice field with 400', async () => {
     riceFieldFindUnique.mockResolvedValue(null);
     await expect(refs.assertRiceField('x')).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('looks the kiln batch up within the campaign, live only, and 400s otherwise', async () => {
+    kilnBatchFindFirst.mockResolvedValue(null);
+    await expect(refs.assertKilnBatch('campaign-id', 'batch-id')).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(kilnBatchFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'batch-id', campaignId: 'campaign-id', cancelledAt: null },
+      }),
+    );
   });
 });

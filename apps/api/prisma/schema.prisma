@@ -33,7 +33,8 @@ model Campaign {
 
   productions Production[]
   payments    Payment[]
-  kilnBatches KilnBatch[]
+  kilnBatches     KilnBatch[]
+  contractorWorks ContractorWork[]
 
   @@map("campaigns")
 }
@@ -140,8 +141,38 @@ model KilnBatch {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  campaign Campaign @relation(fields: [campaignId], references: [id])
+  campaign        Campaign         @relation(fields: [campaignId], references: [id])
+  contractorWorks ContractorWork[]
 
   @@index([campaignId])
   @@map("kiln_batches")
+}
+
+/// Paid-per-brick steps done by people other than the moulders.
+enum ContractorWorkType {
+  transport
+  kiln_loading
+}
+
+// Bricks carried to the kiln or loaded into it, by a contractor known by a free-text name, for one
+// firing. Paid at the campaign rate of the type; what is owed is computed per exact name (known
+// limit of the v1). A wrong entry is cancelled, never deleted.
+model ContractorWork {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  campaignId     String             @map("campaign_id") @db.Uuid
+  kilnBatchId    String             @map("kiln_batch_id") @db.Uuid
+  type           ContractorWorkType
+  contractorName String             @map("contractor_name")
+  date           DateTime           @db.Date
+  quantity       Int
+  cancelledAt    DateTime?          @map("cancelled_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  campaign  Campaign  @relation(fields: [campaignId], references: [id])
+  kilnBatch KilnBatch @relation(fields: [kilnBatchId], references: [id])
+
+  @@index([campaignId, contractorName])
+  @@index([kilnBatchId])
+  @@map("contractor_works")
 }

@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ContractorWorksModule } from './contractor-works/contractor-works.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { BalancesModule } from './balances/balances.module.js';
 import { CampaignsModule } from './campaigns/campaigns.module.js';
@@ -28,6 +29,7 @@ const rootEnvFile = fileURLToPath(new URL('../../../.env', import.meta.url));
     PaymentsModule,
     BalancesModule,
     KilnBatchesModule,
+    ContractorWorksModule,
   ],
   controllers: [HealthController],
 })

@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { EntryReferences } from '../entries/entry-references.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import type { StockService } from '../stock/stock.service.js';
@@ -10,9 +10,11 @@ describe('KilnBatchesService', () => {
   const findFirst = vi.fn();
   const update = vi.fn();
   const rawStock = vi.fn();
+  const contractorWorkCount = vi.fn();
   const prisma = {
     campaign: { findUnique: campaignFindUnique },
     kilnBatch: { create, findFirst, update },
+    contractorWork: { count: contractorWorkCount },
   } as unknown as PrismaService;
   const stock = { rawStock } as unknown as StockService;
   const service = new KilnBatchesService(prisma, new EntryReferences(prisma), stock);
@@ -99,12 +101,22 @@ describe('KilnBatchesService', () => {
   describe('cancel', () => {
     it('stamps cancelledAt instead of deleting', async () => {
       findFirst.mockResolvedValue(row);
+      contractorWorkCount.mockResolvedValue(0);
       update.mockResolvedValue(row);
       await service.cancel(campaignId, 'batch-id');
       expect(update).toHaveBeenCalledWith({
         where: { id: 'batch-id' },
         data: { cancelledAt: expect.any(Date) },
       });
+    });
+
+    it('refuses with 409 while live contractor works point at the batch', async () => {
+      findFirst.mockResolvedValue(row);
+      contractorWorkCount.mockResolvedValue(2);
+      await expect(service.cancel(campaignId, 'batch-id')).rejects.toBeInstanceOf(
+        ConflictException,
+      );
+      expect(update).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -85,8 +90,15 @@ export class KilnBatchesService {
     return toDto(row);
   }
 
+  /** Contractor works point at the batch: they are cancelled first, or the batch stays. */
   async cancel(campaignId: string, id: string): Promise<void> {
     await this.findOne(campaignId, id);
+    const liveWorks = await this.prisma.contractorWork.count({
+      where: { kilnBatchId: id, cancelledAt: null },
+    });
+    if (liveWorks > 0) {
+      throw new ConflictException(`Kiln batch ${id} still has ${liveWorks} contractor work(s)`);
+    }
     await this.prisma.kilnBatch.update({ where: { id }, data: { cancelledAt: new Date() } });
   }
 

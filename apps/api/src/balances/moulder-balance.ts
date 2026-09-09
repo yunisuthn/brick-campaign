@@ -1,12 +1,11 @@
 import type { PaymentType } from '../generated/prisma/client.js';
+import { type Paid, sumPaid } from './paid.js';
 
-export interface MoulderBalance {
+export interface MoulderBalance extends Paid {
   /** Bricks moulded over the campaign (cancelled entries excluded upstream). */
   bricks: number;
   /** bricks x campaign moulding rate, in Ariary. */
   earned: number;
-  paid: number;
-  paidByType: Record<PaymentType, number>;
   /** earned - paid. Negative means the moulder was paid more than they produced. */
   due: number;
 }
@@ -18,9 +17,7 @@ export function moulderBalance(
   payments: ReadonlyArray<{ type: PaymentType; amount: number }>,
 ): MoulderBalance {
   const bricks = productions.reduce((sum, p) => sum + p.quantity, 0);
-  const paidByType: Record<PaymentType, number> = { vatsy: 0, advance: 0, settlement: 0 };
-  for (const payment of payments) paidByType[payment.type] += payment.amount;
   const earned = bricks * mouldingRate;
-  const paid = paidByType.vatsy + paidByType.advance + paidByType.settlement;
+  const { paid, paidByType } = sumPaid(payments);
   return { bricks, earned, paid, paidByType, due: earned - paid };
 }

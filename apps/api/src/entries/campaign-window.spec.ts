@@ -1,4 +1,4 @@
-import { isWithinCampaign } from './production.rules.js';
+import { isWithinCampaign } from './campaign-window.js';
 
 describe('isWithinCampaign', () => {
   const open = { startedOn: '2026-05-01', closedOn: null };

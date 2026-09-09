@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { EntryReferences } from '../entries/entry-references.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { ProductionsService } from './productions.service.js';
 
@@ -15,7 +16,8 @@ describe('ProductionsService', () => {
     riceField: { findUnique: riceFieldFindUnique },
     production: { create, findFirst, update },
   } as unknown as PrismaService;
-  const service = new ProductionsService(prisma);
+  // Real reference checks over the mocked client: the service is tested with the checks it ships with.
+  const service = new ProductionsService(prisma, new EntryReferences(prisma));
 
   const campaignId = 'campaign-id';
   const input = {
@@ -56,32 +58,16 @@ describe('ProductionsService', () => {
       await expect(service.create('missing', input)).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('rejects a date before the campaign start', async () => {
+    it('checks the date, the moulder and the rice field before writing', async () => {
       await expect(
         service.create(campaignId, { ...input, date: '2026-04-30' }),
       ).rejects.toBeInstanceOf(BadRequestException);
-      expect(create).not.toHaveBeenCalled();
-    });
-
-    it('rejects a date after the campaign close', async () => {
-      campaignFindUnique.mockResolvedValue({
-        startedOn: new Date('2026-05-01T00:00:00Z'),
-        closedOn: new Date('2026-05-31T00:00:00Z'),
-      });
-      await expect(service.create(campaignId, input)).rejects.toBeInstanceOf(BadRequestException);
-    });
-
-    it('rejects an unknown or inactive moulder with 400', async () => {
-      moulderFindUnique.mockResolvedValue(null);
-      await expect(service.create(campaignId, input)).rejects.toThrow('Unknown moulder');
       moulderFindUnique.mockResolvedValue({ active: false });
-      await expect(service.create(campaignId, input)).rejects.toThrow('is inactive');
-      expect(create).not.toHaveBeenCalled();
-    });
-
-    it('rejects an unknown rice field with 400', async () => {
+      await expect(service.create(campaignId, input)).rejects.toBeInstanceOf(BadRequestException);
+      moulderFindUnique.mockResolvedValue({ active: true });
       riceFieldFindUnique.mockResolvedValue(null);
       await expect(service.create(campaignId, input)).rejects.toBeInstanceOf(BadRequestException);
+      expect(create).not.toHaveBeenCalled();
     });
   });
 

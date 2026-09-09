@@ -1,50 +1,33 @@
-import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from '../src/app.module.js';
-import { configureApp } from '../src/app.setup.js';
-import { hashPassword } from '../src/auth/password.js';
-import { PrismaService } from '../src/prisma/prisma.service.js';
+import { bootstrapE2e, type E2eContext, uniqueTag } from './e2e.helpers.js';
 
 describe('Moulders (e2e)', () => {
-  const email = `e2e-moulders-${Date.now()}@example.com`;
-  const password = 'a-long-enough-password';
-  // A run-specific prefix so cleanup removes only what this run created.
-  const prefix = `e2e-${Date.now()}`;
-  let app: INestApplication<App>;
-  let prisma: PrismaService;
+  const prefix = uniqueTag();
+  let ctx: E2eContext;
   let cookie: string;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = moduleRef.createNestApplication();
-    configureApp(app);
-    await app.init();
-    prisma = app.get(PrismaService);
-    await prisma.user.create({ data: { email, passwordHash: await hashPassword(password) } });
-    const login = await request(app.getHttpServer()).post('/auth/login').send({ email, password });
-    cookie = login.headers['set-cookie'][0];
+    ctx = await bootstrapE2e();
+    cookie = ctx.cookie;
   });
 
   afterAll(async () => {
-    await prisma.moulder.deleteMany({ where: { name: { startsWith: prefix } } });
-    await prisma.user.delete({ where: { email } });
-    await app.close();
+    await ctx.prisma.moulder.deleteMany({ where: { name: { startsWith: prefix } } });
+    await ctx.close();
   });
 
   it('requires a session', async () => {
-    await request(app.getHttpServer()).get('/moulders').expect(401);
+    await request(ctx.app.getHttpServer()).get('/moulders').expect(401);
   });
 
   it('rejects a blank name and a bad query flag with 400', async () => {
-    const server = app.getHttpServer();
+    const server = ctx.app.getHttpServer();
     await request(server).post('/moulders').set('Cookie', cookie).send({ name: ' ' }).expect(400);
     await request(server).get('/moulders?includeInactive=maybe').set('Cookie', cookie).expect(400);
   });
 
   it('creates, reads, retires and hides a retired moulder from the default list', async () => {
-    const server = app.getHttpServer();
+    const server = ctx.app.getHttpServer();
     const name = `${prefix} Rakoto`;
 
     const created = await request(server)

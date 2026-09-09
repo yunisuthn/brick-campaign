@@ -6,6 +6,7 @@ import { CampaignsModule } from './campaigns/campaigns.module.js';
 import { validateEnv } from './config/env.schema.js';
 import { HealthController } from './health/health.controller.js';
 import { MouldersModule } from './moulders/moulders.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProductionsModule } from './productions/productions.module.js';
 import { RiceFieldsModule } from './rice-fields/rice-fields.module.js';
@@ -22,6 +23,7 @@ const rootEnvFile = fileURLToPath(new URL('../../../.env', import.meta.url));
     MouldersModule,
     RiceFieldsModule,
     ProductionsModule,
+    PaymentsModule,
   ],
   controllers: [HealthController],
 })

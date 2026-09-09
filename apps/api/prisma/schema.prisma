@@ -32,6 +32,7 @@ model Campaign {
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
   productions Production[]
+  payments    Payment[]
 
   @@map("campaigns")
 }
@@ -47,6 +48,7 @@ model Moulder {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   productions Production[]
+  payments    Payment[]
 
   @@map("moulders")
 }
@@ -92,4 +94,35 @@ model Production {
 
   @@index([campaignId, moulderId])
   @@map("productions")
+}
+
+/// Why money went out: weekly food allowance (vatsy), an advance, or the end-of-campaign settlement.
+enum PaymentType {
+  vatsy
+  advance
+  settlement
+}
+
+// Money paid to a moulder or to a named contractor (transport, kiln loading). Replaces the "paid"
+// column of the notebook. Exactly one beneficiary: moulder_id or contractor_name, enforced by a CHECK
+// constraint written by hand in the migration (Prisma has no syntax for it). Contractors are matched
+// by exact name: a known limit of the v1. A wrong entry is cancelled, never deleted.
+model Payment {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  campaignId     String      @map("campaign_id") @db.Uuid
+  moulderId      String?     @map("moulder_id") @db.Uuid
+  contractorName String?     @map("contractor_name")
+  type           PaymentType
+  date           DateTime    @db.Date
+  amount         Int
+  cancelledAt    DateTime?   @map("cancelled_at")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+  moulder  Moulder? @relation(fields: [moulderId], references: [id], onDelete: Restrict)
+
+  @@index([campaignId, moulderId])
+  @@index([campaignId, contractorName])
+  @@map("payments")
 }

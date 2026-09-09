@@ -11,8 +11,26 @@ describe('api', () => {
         return HttpResponse.json({ status: 'ok' });
       }),
     );
-    await expect(api('/health')).resolves.toEqual({ status: 'ok' });
+    await expect(api.get('/health')).resolves.toEqual({ status: 'ok' });
     expect(credentials).toBe('same-origin');
+  });
+
+  it('sends a JSON body on post and patch', async () => {
+    let received: { method: string; type: string | null; body: unknown } | undefined;
+    server.use(
+      http.all('/api/things', async ({ request }) => {
+        received = {
+          method: request.method,
+          type: request.headers.get('content-type'),
+          body: await request.json(),
+        };
+        return HttpResponse.json({ ok: true });
+      }),
+    );
+    await api.post('/things', { name: 'x' });
+    expect(received).toEqual({ method: 'POST', type: 'application/json', body: { name: 'x' } });
+    await api.patch('/things', { name: 'y' });
+    expect(received).toEqual({ method: 'PATCH', type: 'application/json', body: { name: 'y' } });
   });
 
   it('turns a non-2xx answer into an ApiError carrying the status and the API message', async () => {
@@ -21,13 +39,13 @@ describe('api', () => {
         HttpResponse.json({ statusCode: 503, message: 'database down' }, { status: 503 }),
       ),
     );
-    const error = await api('/health').catch((e: unknown) => e);
+    const error = await api.get('/health').catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);
     expect(error).toMatchObject({ status: 503, message: 'database down' });
   });
 
   it('resolves to undefined on a 204', async () => {
     server.use(http.delete('/api/things/1', () => new HttpResponse(null, { status: 204 })));
-    await expect(api('/things/1', { method: 'DELETE' })).resolves.toBeUndefined();
+    await expect(api.delete('/things/1')).resolves.toBeUndefined();
   });
 });

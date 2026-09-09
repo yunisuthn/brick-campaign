@@ -13,11 +13,11 @@ export class ApiError extends Error {
  * Every call goes through here: same-origin `/api` prefix (proxied in development), the session
  * cookie sent along, JSON both ways. The API's `message` field becomes the error message.
  */
-export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`/api${path}`, {
     credentials: 'same-origin',
-    headers: { Accept: 'application/json', ...init.headers },
     ...init,
+    headers: { Accept: 'application/json', ...init.headers },
   });
   if (!response.ok) {
     const body: unknown = await response.json().catch(() => null);
@@ -25,6 +25,21 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
 }
+
+function withBody(method: string, body: unknown): RequestInit {
+  return {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  };
+}
+
+export const api = {
+  get: <T>(path: string) => request<T>(path),
+  post: <T>(path: string, body: unknown = {}) => request<T>(path, withBody('POST', body)),
+  patch: <T>(path: string, body: unknown) => request<T>(path, withBody('PATCH', body)),
+  delete: (path: string) => request<void>(path, { method: 'DELETE' }),
+};
 
 function errorMessage(body: unknown): string | undefined {
   if (typeof body !== 'object' || body === null || !('message' in body)) return undefined;

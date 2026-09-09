@@ -1,35 +1,16 @@
-import { useEffect, useState } from 'react';
-import { api } from './api/client.js';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { useState } from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createQueryClient } from './queryClient.js';
+import { routes } from './routes.js';
 
-interface HealthReport {
-  status: 'ok';
-  database: 'up';
-}
+const router = createBrowserRouter(routes);
 
-type Health = { state: 'loading' } | { state: 'up' } | { state: 'down'; message: string };
-
-/** Step 1 of the front plan: a page that proves the build, the proxy and the API talk to each other. */
 export function App() {
-  const [health, setHealth] = useState<Health>({ state: 'loading' });
-
-  useEffect(() => {
-    let cancelled = false;
-    api<HealthReport>('/health')
-      .then(() => !cancelled && setHealth({ state: 'up' }))
-      .catch((error: Error) => !cancelled && setHealth({ state: 'down', message: error.message }));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+  const [queryClient] = useState(createQueryClient);
   return (
-    <main style={{ padding: '1rem' }}>
-      <h1>Briqueterie</h1>
-      <p role="status">
-        {health.state === 'loading' && 'Vérification de l’API…'}
-        {health.state === 'up' && 'API disponible.'}
-        {health.state === 'down' && `API indisponible : ${health.message}`}
-      </p>
-    </main>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   );
 }

@@ -33,6 +33,7 @@ model Campaign {
 
   productions Production[]
   payments    Payment[]
+  kilnBatches KilnBatch[]
 
   @@map("campaigns")
 }
@@ -125,4 +126,22 @@ model Payment {
   @@index([campaignId, moulderId])
   @@index([campaignId, contractorName])
   @@map("payments")
+}
+
+// One firing. Moves its quantity from raw stock (when loaded) to fired stock (when unloaded).
+// Breakage is not counted: what goes in comes out. A wrong entry is cancelled, never deleted.
+model KilnBatch {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  campaignId  String    @map("campaign_id") @db.Uuid
+  loadedOn    DateTime  @map("loaded_on") @db.Date
+  unloadedOn  DateTime? @map("unloaded_on") @db.Date
+  quantity    Int
+  cancelledAt DateTime? @map("cancelled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId])
+  @@map("kiln_batches")
 }

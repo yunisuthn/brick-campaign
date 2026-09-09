@@ -46,3 +46,23 @@ model Moulder {
 
   @@map("moulders")
 }
+
+/// Land contract: `durable` spans seasons, `seasonal` is signed for one campaign.
+enum RiceFieldContract {
+  durable
+  seasonal
+}
+
+// Where the clay is dug. The contract cost is an Expense, not a field here.
+// Surface in whole square metres (1 are = 100 m2), optional: not every contract states it.
+model RiceField {
+  id           String            @id @default(uuid(7)) @db.Uuid
+  name         String
+  location     String
+  surfaceM2    Int?              @map("surface_m2")
+  contractType RiceFieldContract @map("contract_type")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@map("rice_fields")
+}

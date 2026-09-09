@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { CampaignsModule } from './campaigns/campaigns.module.js';
 import { validateEnv } from './config/env.schema.js';
 import { HealthController } from './health/health.controller.js';
+import { MouldersModule } from './moulders/moulders.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 // Single .env at the monorepo root; resolved from this file so it works from src/ and dist/.
@@ -16,6 +17,7 @@ const rootEnvFile = fileURLToPath(new URL('../../../.env', import.meta.url));
     PrismaModule,
     AuthModule,
     CampaignsModule,
+    MouldersModule,
   ],
   controllers: [HealthController],
 })

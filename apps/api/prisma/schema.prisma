@@ -33,3 +33,16 @@ model Campaign {
 
   @@map("campaigns")
 }
+
+// Production and pay unit: one person or a household of 2-3. A single person is a moulder of 1 member.
+// Reference data, not an entry: a mistaken or departed moulder is deactivated, never deleted.
+model Moulder {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  name        String
+  memberCount Int      @default(1) @map("member_count")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("moulders")
+}

@@ -31,10 +31,11 @@ model Campaign {
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  productions Production[]
-  payments    Payment[]
+  productions     Production[]
+  payments        Payment[]
   kilnBatches     KilnBatch[]
   contractorWorks ContractorWork[]
+  sales           Sale[]
 
   @@map("campaigns")
 }
@@ -87,6 +88,8 @@ model Client {
   locality  String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
+  sales Sale[]
 
   @@map("clients")
 }
@@ -189,4 +192,28 @@ model ContractorWork {
   @@index([campaignId, contractorName])
   @@index([kilnBatchId])
   @@map("contractor_works")
+}
+
+// One order of fired bricks by a client, at a price negotiated for that sale. No total stored:
+// revenue is ordered_quantity x unit_price. The client pays once, when everything is delivered
+// (no partial payment in the v1): paid_on and amount_received are set together, enforced by a
+// CHECK constraint written by hand in the migration. A wrong entry is cancelled, never deleted.
+model Sale {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  campaignId      String    @map("campaign_id") @db.Uuid
+  clientId        String    @map("client_id") @db.Uuid
+  date            DateTime  @db.Date
+  orderedQuantity Int       @map("ordered_quantity")
+  unitPrice       Int       @map("unit_price")
+  paidOn          DateTime? @map("paid_on") @db.Date
+  amountReceived  Int?      @map("amount_received")
+  cancelledAt     DateTime? @map("cancelled_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+  client   Client   @relation(fields: [clientId], references: [id])
+
+  @@index([campaignId, clientId])
+  @@map("sales")
 }

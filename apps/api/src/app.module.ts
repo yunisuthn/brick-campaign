@@ -14,6 +14,7 @@ import { PaymentsModule } from './payments/payments.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProductionsModule } from './productions/productions.module.js';
 import { RiceFieldsModule } from './rice-fields/rice-fields.module.js';
+import { SalesModule } from './sales/sales.module.js';
 
 // Single .env at the monorepo root; resolved from this file so it works from src/ and dist/.
 const rootEnvFile = fileURLToPath(new URL('../../../.env', import.meta.url));
@@ -32,6 +33,7 @@ const rootEnvFile = fileURLToPath(new URL('../../../.env', import.meta.url));
     KilnBatchesModule,
     ContractorWorksModule,
     ClientsModule,
+    SalesModule,
   ],
   controllers: [HealthController],
 })

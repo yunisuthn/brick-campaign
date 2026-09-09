@@ -5,8 +5,8 @@ import { type CampaignWindow, isWithinCampaign } from './campaign-window.js';
 
 /**
  * Checks shared by every entry recorded under a campaign (productions, payments, ...).
- * The campaign is part of the route, so a missing one is a 404; the moulder, rice field and
- * kiln batch are part of the body, so a bad one is a 400.
+ * The campaign is part of the route, so a missing one is a 404; the moulder, rice field, client
+ * and kiln batch are part of the body, so a bad one is a 400.
  */
 @Injectable()
 export class EntryReferences {
@@ -43,6 +43,11 @@ export class EntryReferences {
   async assertRiceField(id: string): Promise<void> {
     const field = await this.prisma.riceField.findUnique({ where: { id }, select: { id: true } });
     if (!field) throw new BadRequestException(`Unknown rice field ${id}`);
+  }
+
+  async assertClient(id: string): Promise<void> {
+    const client = await this.prisma.client.findUnique({ where: { id }, select: { id: true } });
+    if (!client) throw new BadRequestException(`Unknown client ${id}`);
   }
 
   /** The batch must be live and belong to the same campaign as the entry. */

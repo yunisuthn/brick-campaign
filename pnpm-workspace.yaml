@@ -6,5 +6,6 @@ allowBuilds:
   argon2: true
   esbuild: true
   msgpackr-extract: false
+  msw: false
   prisma: true
   workerd: false

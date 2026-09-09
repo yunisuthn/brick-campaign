@@ -9,12 +9,16 @@ describe('KilnBatchesService', () => {
   const create = vi.fn();
   const findFirst = vi.fn();
   const update = vi.fn();
+  const findMany = vi.fn();
   const rawStock = vi.fn();
   const contractorWorkCount = vi.fn();
+  const contractorWorkGroupBy = vi.fn();
+  const expenseGroupBy = vi.fn();
   const prisma = {
     campaign: { findUnique: campaignFindUnique },
-    kilnBatch: { create, findFirst, update },
-    contractorWork: { count: contractorWorkCount },
+    kilnBatch: { create, findFirst, findMany, update },
+    contractorWork: { count: contractorWorkCount, groupBy: contractorWorkGroupBy },
+    expense: { groupBy: expenseGroupBy },
   } as unknown as PrismaService;
   const stock = { rawStock } as unknown as StockService;
   const service = new KilnBatchesService(prisma, new EntryReferences(prisma), stock);
@@ -29,24 +33,32 @@ describe('KilnBatchesService', () => {
     quantity: 40000,
   };
 
+  const noCost = { expenses: 0, labour: 0, total: 0 };
+
   beforeEach(() => {
     vi.resetAllMocks();
     campaignFindUnique.mockResolvedValue({
       startedOn: new Date('2026-05-01T00:00:00Z'),
       closedOn: null,
+      transportRate: 5,
+      kilnLoadingRate: 3,
     });
     rawStock.mockResolvedValue(50000);
+    expenseGroupBy.mockResolvedValue([]);
+    contractorWorkGroupBy.mockResolvedValue([]);
   });
 
   describe('create', () => {
-    it('stores the batch when the raw stock covers it', async () => {
+    it('stores the batch when the raw stock covers it, at no cost yet', async () => {
       create.mockResolvedValue(row);
       await expect(service.create(campaignId, input)).resolves.toEqual({
         id: 'batch-id',
         campaignId,
         ...input,
+        cost: noCost,
       });
       expect(rawStock).toHaveBeenCalledWith(campaignId, undefined);
+      expect(expenseGroupBy).not.toHaveBeenCalled();
     });
 
     it('refuses to load more than the raw stock, naming the available quantity', async () => {
@@ -63,6 +75,48 @@ describe('KilnBatchesService', () => {
         service.create(campaignId, { ...input, unloadedOn: '2026-06-30' }),
       ).rejects.toBeInstanceOf(BadRequestException);
       expect(create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('read', () => {
+    it('derives the cost of one batch from its linked expenses and works at the campaign rates', async () => {
+      findFirst.mockResolvedValue(row);
+      expenseGroupBy.mockResolvedValue([{ kilnBatchId: 'batch-id', _sum: { amount: 320000 } }]);
+      contractorWorkGroupBy.mockResolvedValue([
+        { kilnBatchId: 'batch-id', type: 'transport', _sum: { quantity: 40000 } },
+        { kilnBatchId: 'batch-id', type: 'kiln_loading', _sum: { quantity: 40000 } },
+      ]);
+      await expect(service.findOne(campaignId, 'batch-id')).resolves.toMatchObject({
+        cost: { expenses: 320000, labour: 320000, total: 640000 },
+      });
+      expect(expenseGroupBy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { campaignId, kilnBatchId: 'batch-id', cancelledAt: null },
+        }),
+      );
+    });
+
+    it('lists with grouped queries, batches with nothing linked at no cost', async () => {
+      findMany.mockResolvedValue([row, { ...row, id: 'other-id' }]);
+      contractorWorkGroupBy.mockResolvedValue([
+        { kilnBatchId: 'other-id', type: 'transport', _sum: { quantity: 1000 } },
+      ]);
+      const list = await service.findAll(campaignId);
+      expect(list.map((batch) => [batch.id, batch.cost.total])).toEqual([
+        ['batch-id', 0],
+        ['other-id', 5000],
+      ]);
+      expect(expenseGroupBy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { campaignId, kilnBatchId: { not: null }, cancelledAt: null },
+        }),
+      );
+    });
+
+    it('throws 404 for an unknown campaign on the list', async () => {
+      findMany.mockResolvedValue([]);
+      campaignFindUnique.mockResolvedValue(null);
+      await expect(service.findAll('missing')).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 

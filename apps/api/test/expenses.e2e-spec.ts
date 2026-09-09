@@ -14,6 +14,7 @@ describe('Expenses (e2e)', () => {
   async function cleanUp() {
     const campaign = { year };
     await ctx.prisma.expense.deleteMany({ where: { campaign } });
+    await ctx.prisma.contractorWork.deleteMany({ where: { campaign } });
     await ctx.prisma.kilnBatch.deleteMany({ where: { campaign } });
     await ctx.prisma.production.deleteMany({ where: { campaign } });
     await ctx.prisma.campaign.deleteMany({ where: campaign });
@@ -55,6 +56,17 @@ describe('Expenses (e2e)', () => {
       data: { campaignId, loadedOn: day('07-01'), quantity: 40000 },
     });
     batchId = batch.id;
+    // Labour of the batch: 40 000 x 5 (transport) + 40 000 x 3 (loading) = 320 000.
+    await prisma.contractorWork.createMany({
+      data: (['transport', 'kiln_loading'] as const).map((type) => ({
+        campaignId,
+        kilnBatchId: batchId,
+        type,
+        contractorName: `${prefix} Solo`,
+        date: day('07-01'),
+        quantity: 40000,
+      })),
+    });
   });
 
   afterAll(async () => {
@@ -139,12 +151,20 @@ describe('Expenses (e2e)', () => {
       .send({ amount: 320_000 })
       .expect(200);
     expect(fixed.body).toEqual({ ...fuel.body, amount: 320_000 });
+
+    // The batch reads its cost back: the linked fuel plus the works at the campaign rates.
+    const batchPath = `/campaigns/${campaignId}/kiln-batches/${batchId}`;
+    const costed = await request(server).get(batchPath).set('Cookie', cookie).expect(200);
+    expect(costed.body.cost).toEqual({ expenses: 320_000, labour: 320_000, total: 640_000 });
+
     const detached = await request(server)
       .patch(`${path()}/${fuel.body.id}`)
       .set('Cookie', cookie)
       .send({ kilnBatchId: null })
       .expect(200);
     expect(detached.body).toEqual({ ...fixed.body, kilnBatchId: null });
+    const uncosted = await request(server).get(batchPath).set('Cookie', cookie).expect(200);
+    expect(uncosted.body.cost).toEqual({ expenses: 0, labour: 320_000, total: 320_000 });
 
     await request(server).delete(`${path()}/${rent.body.id}`).set('Cookie', cookie).expect(204);
     await request(server).get(`${path()}/${rent.body.id}`).set('Cookie', cookie).expect(404);

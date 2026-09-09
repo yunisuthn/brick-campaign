@@ -81,6 +81,7 @@ describe('Kiln batches (e2e)', () => {
       loadedOn: '2094-07-01',
       unloadedOn: null,
       quantity: 40000,
+      cost: { expenses: 0, labour: 0, total: 0 },
     });
     const second = await request(server)
       .post(path())

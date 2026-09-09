@@ -9,6 +9,7 @@ import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { StockService } from '../stock/stock.service.js';
+import { type KilnBatchCost, kilnBatchCost, NO_COST } from './kiln-batch-cost.js';
 import type { CreateKilnBatchDto, KilnBatchDto, UpdateKilnBatchDto } from './kiln-batch.dto.js';
 
 const kilnBatchSelect = {
@@ -43,17 +44,19 @@ export class KilnBatchesService {
       },
       select: kilnBatchSelect,
     });
-    return toDto(row);
+    return toDto(row, NO_COST);
   }
 
   async findAll(campaignId: string): Promise<KilnBatchDto[]> {
-    await this.refs.campaignWindow(campaignId);
-    const rows = await this.prisma.kilnBatch.findMany({
-      where: { campaignId, cancelledAt: null },
-      select: kilnBatchSelect,
-      orderBy: [{ loadedOn: 'desc' }, { createdAt: 'desc' }],
-    });
-    return rows.map(toDto);
+    const [rows, costs] = await Promise.all([
+      this.prisma.kilnBatch.findMany({
+        where: { campaignId, cancelledAt: null },
+        select: kilnBatchSelect,
+        orderBy: [{ loadedOn: 'desc' }, { createdAt: 'desc' }],
+      }),
+      this.costsByBatch(campaignId),
+    ]);
+    return rows.map((row) => toDto(row, costs.get(row.id) ?? NO_COST));
   }
 
   /** A cancelled batch is gone from the API: reading, correcting or cancelling it again is a 404. */
@@ -63,7 +66,8 @@ export class KilnBatchesService {
       select: kilnBatchSelect,
     });
     if (!row) throw new NotFoundException(`Kiln batch ${id} not found`);
-    return toDto(row);
+    const costs = await this.costsByBatch(campaignId, id);
+    return toDto(row, costs.get(id) ?? NO_COST);
   }
 
   /** Unloading a batch is a correction that sets `unloadedOn`; rules are checked on the merged state. */
@@ -87,7 +91,7 @@ export class KilnBatchesService {
       },
       select: kilnBatchSelect,
     });
-    return toDto(row);
+    return toDto(row, current.cost);
   }
 
   /** Contractor works point at the batch: they are cancelled first, or the batch stays. */
@@ -100,6 +104,52 @@ export class KilnBatchesService {
       throw new ConflictException(`Kiln batch ${id} still has ${liveWorks} contractor work(s)`);
     }
     await this.prisma.kilnBatch.update({ where: { id }, data: { cancelledAt: new Date() } });
+  }
+
+  /**
+   * Cost of every batch of the campaign (or of one batch) in three queries, whatever the number
+   * of batches: rates, linked expenses summed per batch, works summed per batch and type.
+   * Nothing is stored (reference document, section 5). An unknown campaign is a 404.
+   */
+  private async costsByBatch(
+    campaignId: string,
+    kilnBatchId?: string,
+  ): Promise<Map<string, KilnBatchCost>> {
+    const [rates, expenses, works] = await Promise.all([
+      this.rates(campaignId),
+      this.prisma.expense.groupBy({
+        by: ['kilnBatchId'],
+        where: { campaignId, kilnBatchId: kilnBatchId ?? { not: null }, cancelledAt: null },
+        _sum: { amount: true },
+      }),
+      this.prisma.contractorWork.groupBy({
+        by: ['kilnBatchId', 'type'],
+        where: { campaignId, kilnBatchId, cancelledAt: null },
+        _sum: { quantity: true },
+      }),
+    ]);
+    const ids = new Set([...expenses, ...works].flatMap((g) => g.kilnBatchId ?? []));
+    return new Map(
+      [...ids].map((id) => [
+        id,
+        kilnBatchCost(
+          rates,
+          expenses.filter((g) => g.kilnBatchId === id).map((g) => ({ amount: g._sum.amount ?? 0 })),
+          works
+            .filter((g) => g.kilnBatchId === id)
+            .map((g) => ({ type: g.type, quantity: g._sum.quantity ?? 0 })),
+        ),
+      ]),
+    );
+  }
+
+  private async rates(campaignId: string) {
+    const campaign = await this.prisma.campaign.findUnique({
+      where: { id: campaignId },
+      select: { transportRate: true, kilnLoadingRate: true },
+    });
+    if (!campaign) throw new NotFoundException(`Campaign ${campaignId} not found`);
+    return campaign;
   }
 
   /** Decision with the owner: loading more than the raw stock is refused, a missing production entry is fixed first. */
@@ -123,10 +173,11 @@ function assertDatesOrdered(loadedOn: string, unloadedOn: string | null): void {
   }
 }
 
-function toDto(row: KilnBatchRow): KilnBatchDto {
+function toDto(row: KilnBatchRow, cost: KilnBatchCost): KilnBatchDto {
   return {
     ...row,
     loadedOn: formatDateOnly(row.loadedOn),
     unloadedOn: row.unloadedOn === null ? null : formatDateOnly(row.unloadedOn),
+    cost,
   };
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { dateOnlySchema } from '../common/date-only.js';
+import type { KilnBatchCost } from './kiln-batch-cost.js';
 
 /** Reference document, section 1: a firing is 40 000 bricks at least. */
 export const MIN_KILN_BATCH_QUANTITY = 40_000;
@@ -23,10 +24,12 @@ export const updateKilnBatchSchema = kilnBatchFields
 export type CreateKilnBatchDto = z.infer<typeof createKilnBatchSchema>;
 export type UpdateKilnBatchDto = z.infer<typeof updateKilnBatchSchema>;
 
+/** Stored fields plus the cost, derived at read time from the linked expenses and works. */
 export interface KilnBatchDto {
   id: string;
   campaignId: string;
   loadedOn: string;
   unloadedOn: string | null;
   quantity: number;
+  cost: KilnBatchCost;
 }

@@ -31,6 +31,8 @@ model Campaign {
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
+  productions Production[]
+
   @@map("campaigns")
 }
 
@@ -43,6 +45,8 @@ model Moulder {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+
+  productions Production[]
 
   @@map("moulders")
 }
@@ -64,5 +68,28 @@ model RiceField {
   createdAt    DateTime          @default(now()) @map("created_at")
   updatedAt    DateTime          @updatedAt @map("updated_at")
 
+  productions Production[]
+
   @@map("rice_fields")
+}
+
+// One day of moulding by one moulder on one rice field. No amount stored: pay is quantity x campaign rate.
+// A wrong entry is cancelled (cancelledAt), never deleted: cancelled rows leave the API but keep the history.
+model Production {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  campaignId  String    @map("campaign_id") @db.Uuid
+  moulderId   String    @map("moulder_id") @db.Uuid
+  riceFieldId String    @map("rice_field_id") @db.Uuid
+  date        DateTime  @db.Date
+  quantity    Int
+  cancelledAt DateTime? @map("cancelled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  campaign  Campaign  @relation(fields: [campaignId], references: [id])
+  moulder   Moulder   @relation(fields: [moulderId], references: [id])
+  riceField RiceField @relation(fields: [riceFieldId], references: [id])
+
+  @@index([campaignId, moulderId])
+  @@map("productions")
 }

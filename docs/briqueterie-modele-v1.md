@@ -100,3 +100,50 @@ Chaque chantier est terminé, testé et committé avant le suivant.
 
 - Nom de l'entité `Mouleur` dans l'interface
 - Tarif enfournement : confirmé à la brique ? (supposé oui)
+
+## 9. Front — plan des écrans
+
+Ajouté le 9 septembre 2026, une fois les sept chantiers de l'API livrés. Même règle : chaque chantier est terminé, testé et committé avant le suivant, sur la branche `feat/front`.
+
+### 9.1 Principes
+
+- **Téléphone d'abord.** Saisie le soir, sur mobile, d'une main. Un écran = une tâche. Les listes sont triées du plus récent au plus ancien, comme l'API.
+- **Interface en français**, vocabulaire du cahier (vatsy, akofa, tai-charbon gardés tels quels).
+- **L'API fait foi.** Le front n'a aucune règle de calcul : stock, dû, statut, coût, résultat viennent de l'API. Il valide seulement la forme (champ requis, nombre entier, date) et affiche les erreurs 400 renvoyées.
+- **Pas de hors-ligne en v1** (section 5). La PWA se limite à l'installation sur l'écran d'accueil et au chargement de la coquille.
+- **Une campagne courante** choisie en tête d'écran, gardée en session, préfixe de toutes les saisies.
+
+### 9.2 Choix techniques
+
+| Sujet         | Choix                                       | Justification                                                                      |
+| ------------- | ------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Application   | `apps/web` : React, Vite, TypeScript        | Stack fixée en section 6, même monorepo, même lint et prettier                     |
+| Routage       | React Router                                | Routes imbriquées calquées sur l'API (`/campagnes/:id/ventes/:id/livraisons`)      |
+| Données       | TanStack Query                              | Cache par ressource, invalidation après chaque saisie, état de chargement uniforme |
+| Formulaires   | React Hook Form                             | Formulaires nombreux et courts, validation de forme sans dupliquer les règles      |
+| Session       | Cookie de l'API, `GET /auth/me` au départ   | Rien à stocker côté front ; un 401 renvoie à la connexion                          |
+| Style         | CSS modules, pas de librairie de composants | Une dizaine d'écrans simples ; une dépendance de moins à porter                    |
+| Tests         | Vitest + Testing Library, MSW pour l'API    | Tester les écrans contre des réponses d'API réalistes, sans serveur                |
+| Développement | Proxy Vite vers `localhost:3000`            | Même origine, le cookie de session passe sans configuration CORS                   |
+
+Les schémas Zod des DTO restent dans l'API. Si le front en a besoin, ils seront extraits dans `packages/contracts` à ce moment-là, pas avant.
+
+### 9.3 Ordre des chantiers
+
+1. **Squelette** : `apps/web` avec Vite, lint et prettier partagés, proxy vers l'API, manifeste PWA minimal, CI (lint, build, tests). Page vide qui appelle `GET /health`.
+2. **Session** : écran de connexion, déconnexion, garde des routes, rechargement de la session au démarrage.
+3. **Campagnes** : liste, création avec les trois tarifs, fiche, clôture. Choix de la campagne courante.
+4. **Référentiels** : mouleurs (avec retrait), rizières, clients. Liste et formulaire pour chacun.
+5. **Productions** : saisie du jour (mouleur, rizière, quantité), liste de la campagne, correction, annulation.
+6. **Versements et dû** : saisie d'un versement (mouleur ou prestataire), page des soldes mouleurs et prestataires.
+7. **Lots et prestations** : lots avec enfournement et défournement, prestations rattachées, coût du lot, stock crue / four / cuite.
+8. **Ventes et livraisons** : ventes avec statut, encaissement, livraisons par voyage.
+9. **Dépenses** : saisie par catégorie, rattachement optionnel à un lot ou une rizière, liste filtrée.
+10. **Tableau de bord** : chiffre d'affaires, encaissé, reste à encaisser, dépenses par catégorie, main-d'œuvre due et versée, coûts de livraison, résultat, stock.
+11. **PWA** : icônes, installation, coquille en cache. Rien de plus.
+
+### 9.4 Points ouverts du front
+
+- Nom affiché pour « Mouleur » (déjà en section 8), à trancher avant le chantier 4.
+- Format des montants : `1 250 000 Ar` supposé.
+- Le tableau de bord est-il la page d'accueil d'une campagne, ou la liste des saisies du jour ? Supposé : le tableau de bord.

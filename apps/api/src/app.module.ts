@@ -5,6 +5,7 @@ import { ContractorWorksModule } from './contractor-works/contractor-works.modul
 import { AuthModule } from './auth/auth.module.js';
 import { BalancesModule } from './balances/balances.module.js';
 import { CampaignsModule } from './campaigns/campaigns.module.js';
+import { ClientsModule } from './clients/clients.module.js';
 import { validateEnv } from './config/env.schema.js';
 import { HealthController } from './health/health.controller.js';
 import { KilnBatchesModule } from './kiln-batches/kiln-batches.module.js';
@@ -30,6 +31,7 @@ const rootEnvFile = fileURLToPath(new URL('../../../.env', import.meta.url));
     BalancesModule,
     KilnBatchesModule,
     ContractorWorksModule,
+    ClientsModule,
   ],
   controllers: [HealthController],
 })

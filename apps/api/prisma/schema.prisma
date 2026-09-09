@@ -77,6 +77,20 @@ model RiceField {
   @@map("rice_fields")
 }
 
+// Who buys the fired bricks. Reference data, not an entry: a mistaken client is corrected, never
+// deleted. Phone is free text (local numbers are written many ways) and optional: some clients
+// are only known by name and village.
+model Client {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String
+  phone     String?
+  locality  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("clients")
+}
+
 // One day of moulding by one moulder on one rice field. No amount stored: pay is quantity x campaign rate.
 // A wrong entry is cancelled (cancelledAt), never deleted: cancelled rows leave the API but keep the history.
 model Production {

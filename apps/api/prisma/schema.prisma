@@ -36,6 +36,7 @@ model Campaign {
   kilnBatches     KilnBatch[]
   contractorWorks ContractorWork[]
   sales           Sale[]
+  expenses        Expense[]
 
   @@map("campaigns")
 }
@@ -74,6 +75,7 @@ model RiceField {
   updatedAt    DateTime          @updatedAt @map("updated_at")
 
   productions Production[]
+  expenses    Expense[]
 
   @@map("rice_fields")
 }
@@ -160,6 +162,7 @@ model KilnBatch {
 
   campaign        Campaign         @relation(fields: [campaignId], references: [id])
   contractorWorks ContractorWork[]
+  expenses        Expense[]
 
   @@index([campaignId])
   @@map("kiln_batches")
@@ -237,4 +240,40 @@ model Delivery {
 
   @@index([saleId])
   @@map("deliveries")
+}
+
+/// Where the money went (reference document, section 3). `akofa` and `tai_charbon` are the firing fuels.
+enum ExpenseCategory {
+  rice_field
+  akofa
+  tai_charbon
+  fuel
+  repair
+  food
+  other
+}
+
+// Money spent on the campaign, in integer Ariary. The links to a firing or a rice field are free:
+// fuel is bought before any batch exists, so nothing forces them. Only what is explicitly linked
+// to a batch counts in that batch's cost. A wrong entry is cancelled, never deleted.
+model Expense {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  campaignId  String          @map("campaign_id") @db.Uuid
+  kilnBatchId String?         @map("kiln_batch_id") @db.Uuid
+  riceFieldId String?         @map("rice_field_id") @db.Uuid
+  date        DateTime        @db.Date
+  category    ExpenseCategory
+  amount      Int
+  label       String
+  cancelledAt DateTime?       @map("cancelled_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  campaign  Campaign   @relation(fields: [campaignId], references: [id])
+  kilnBatch KilnBatch? @relation(fields: [kilnBatchId], references: [id])
+  riceField RiceField? @relation(fields: [riceFieldId], references: [id])
+
+  @@index([campaignId, category])
+  @@index([kilnBatchId])
+  @@map("expenses")
 }

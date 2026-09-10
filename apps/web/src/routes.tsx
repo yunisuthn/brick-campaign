@@ -2,6 +2,9 @@ import { Navigate, type RouteObject } from 'react-router';
 import { CampaignPage } from './campaigns/CampaignPage.js';
 import { CampaignsPage } from './campaigns/CampaignsPage.js';
 import { NewCampaignPage } from './campaigns/NewCampaignPage.js';
+import { MoulderPage } from './moulders/MoulderPage.js';
+import { MouldersPage } from './moulders/MouldersPage.js';
+import { NewMoulderPage } from './moulders/NewMoulderPage.js';
 import { LoginPage } from './pages/LoginPage.js';
 import { AppShell } from './session/AppShell.js';
 import { RequireSession } from './session/RequireSession.js';
@@ -24,6 +27,9 @@ export const routes: RouteObject[] = [
           { path: 'campagnes', element: <CampaignsPage /> },
           { path: 'campagnes/nouvelle', element: <NewCampaignPage /> },
           { path: 'campagnes/:id', element: <CampaignPage /> },
+          { path: 'mouleurs', element: <MouldersPage /> },
+          { path: 'mouleurs/nouveau', element: <NewMoulderPage /> },
+          { path: 'mouleurs/:id', element: <MoulderPage /> },
         ],
       },
     ],

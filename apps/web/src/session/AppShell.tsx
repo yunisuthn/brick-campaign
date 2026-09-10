@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from 'react-router';
+import { NavLink, Outlet, useNavigate } from 'react-router';
 import { CurrentCampaignProvider, useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useLogout, useSession } from './useSession.js';
 
@@ -36,8 +36,34 @@ export function AppShell() {
         </span>
       </header>
       <CampaignPicker />
+      <MainNav />
       <Outlet />
     </CurrentCampaignProvider>
+  );
+}
+
+const sections = [
+  { to: '/campagnes', label: 'Campagnes' },
+  { to: '/mouleurs', label: 'Mouleurs' },
+];
+
+/** One link per section, the current one underlined; grows with the front plan. */
+function MainNav() {
+  return (
+    <nav
+      aria-label="Sections"
+      style={{ display: 'flex', gap: '1rem', padding: '0.5rem 1rem', flexWrap: 'wrap' }}
+    >
+      {sections.map((section) => (
+        <NavLink
+          key={section.to}
+          to={section.to}
+          style={({ isActive }) => ({ fontWeight: isActive ? 'bold' : 'normal' })}
+        >
+          {section.label}
+        </NavLink>
+      ))}
+    </nav>
   );
 }
 

@@ -63,6 +63,7 @@ describe('ProductionsPage', () => {
       await screen.findByRole('heading', { name: 'Productions · Campagne 2026' }),
     ).toBeInTheDocument();
     const rows = await screen.findAllByRole('listitem');
+    expect(screen.getByRole('link', { name: 'Rakoto' })).toHaveAttribute('href', '/productions/p2');
     expect(rows.map((row) => row.textContent)).toEqual([
       'Rakoto2 juin 2026 · Ambany1 200 briques',
       'Mouleur inconnu1 juin 2026 · Ambany800 briques',

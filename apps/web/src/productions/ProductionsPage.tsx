@@ -63,7 +63,9 @@ function ProductionList({ campaignId }: { campaignId: string }) {
           }}
         >
           <span>
-            <strong>{moulderName.get(production.moulderId) ?? 'Mouleur inconnu'}</strong>
+            <Link to={`/productions/${production.id}`} style={{ fontWeight: 'bold' }}>
+              {moulderName.get(production.moulderId) ?? 'Mouleur inconnu'}
+            </Link>
             <span style={{ display: 'block', fontSize: '0.875rem' }}>
               {formatDate(production.date)} ·{' '}
               {fieldName.get(production.riceFieldId) ?? 'Rizière inconnue'}

@@ -17,3 +17,10 @@ export function formatDate(value: string): string {
   const [year, month, day] = match.slice(1).map(Number) as [number, number, number];
   return date.format(new Date(year, month - 1, day));
 }
+
+/** Today as the API's `YYYY-MM-DD`, in the local calendar: the day the person sees on their phone. */
+export function today(): string {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}

@@ -1,4 +1,4 @@
-import { formatAmount, formatDate } from './format.js';
+import { formatAmount, formatDate, today } from './format.js';
 
 describe('formatAmount', () => {
   it('groups thousands the French way and appends the currency', () => {
@@ -14,5 +14,13 @@ describe('formatDate', () => {
 
   it('keeps the calendar day whatever the zone', () => {
     expect(formatDate('2026-01-01')).toBe('1 janvier 2026');
+  });
+});
+
+describe('today', () => {
+  it('gives the local calendar day in the API format', () => {
+    vi.useFakeTimers({ now: new Date(2026, 8, 10, 23, 30) });
+    expect(today()).toBe('2026-09-10');
+    vi.useRealTimers();
   });
 });

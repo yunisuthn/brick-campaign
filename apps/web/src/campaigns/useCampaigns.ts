@@ -42,3 +42,18 @@ export function useCreateCampaign() {
     },
   });
 }
+
+/**
+ * Closing is the one edit of a campaign in v1: a PATCH with the closing date alone. The answer
+ * replaces the detail at once and the list is refreshed behind it.
+ */
+export function useCloseCampaign(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (closedOn: string) => api.patch<Campaign>(`/campaigns/${id}`, { closedOn }),
+    onSuccess: (campaign) => {
+      queryClient.setQueryData(campaignKey(id), campaign);
+      return queryClient.invalidateQueries({ queryKey: CAMPAIGNS_KEY, exact: true });
+    },
+  });
+}

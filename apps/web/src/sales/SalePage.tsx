@@ -5,6 +5,7 @@ import { ApiError } from '../api/client.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { type Client, useClients } from '../clients/useClients.js';
+import { SaleDeliveries } from '../deliveries/SaleDeliveries.js';
 import { Field, SelectField } from '../form/Field.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
 import { SalePayment } from './SalePayment.js';
@@ -48,6 +49,7 @@ function LoadedSale({ campaignId, id }: { campaignId: string; id: string }) {
   return (
     <>
       <SaleHeading sale={sale.data} clients={clients.data} />
+      <SaleDeliveries campaignId={campaignId} saleId={sale.data.id} />
       <SalePayment sale={sale.data} />
       <SaleForm key={sale.data.id} sale={sale.data} clients={clients.data} />
     </>

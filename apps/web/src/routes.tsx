@@ -11,6 +11,8 @@ import { MouldersPage } from './moulders/MouldersPage.js';
 import { NewMoulderPage } from './moulders/NewMoulderPage.js';
 import { ContractorWorkPage } from './contractor-works/ContractorWorkPage.js';
 import { NewContractorWorkPage } from './contractor-works/NewContractorWorkPage.js';
+import { DeliveryPage } from './deliveries/DeliveryPage.js';
+import { NewDeliveryPage } from './deliveries/NewDeliveryPage.js';
 import { ExpensePage } from './expenses/ExpensePage.js';
 import { ExpensesPage } from './expenses/ExpensesPage.js';
 import { NewExpensePage } from './expenses/NewExpensePage.js';
@@ -74,6 +76,8 @@ export const routes: RouteObject[] = [
           { path: 'ventes', element: <SalesPage /> },
           { path: 'ventes/nouvelle', element: <NewSalePage /> },
           { path: 'ventes/:id', element: <SalePage /> },
+          { path: 'ventes/:id/livraisons/nouvelle', element: <NewDeliveryPage /> },
+          { path: 'ventes/:id/livraisons/:deliveryId', element: <DeliveryPage /> },
           { path: 'depenses', element: <ExpensesPage /> },
           { path: 'depenses/nouvelle', element: <NewExpensePage /> },
           { path: 'depenses/:id', element: <ExpensePage /> },

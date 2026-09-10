@@ -44,6 +44,7 @@ const routes = [
 
 const baseHandlers = [
   http.get('/api/campaigns', () => HttpResponse.json([campaign])),
+  http.get('/api/campaigns/c1/sales/s1/deliveries', () => HttpResponse.json([])),
   http.get('/api/clients', () =>
     HttpResponse.json([
       { id: 'cl1', name: 'Rabe', phone: null, locality: 'Antsirabe' },

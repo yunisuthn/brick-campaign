@@ -17,7 +17,7 @@ async function fillForm() {
   await user.type(screen.getByLabelText('Date de début'), '2026-05-10');
   await user.type(screen.getByLabelText('Moulage (Ar la brique)'), '40');
   await user.type(screen.getByLabelText('Transport (Ar la brique)'), '10');
-  await user.type(screen.getByLabelText('Enfournement (Ar la brique)'), '5');
+  // Kiln loading left empty: still under discussion.
   return user;
 }
 
@@ -45,7 +45,7 @@ describe('NewCampaignPage', () => {
       startedOn: '2026-05-10',
       mouldingRate: 40,
       transportRate: 10,
-      kilnLoadingRate: 5,
+      kilnLoadingRate: null,
     });
   });
 
@@ -75,9 +75,7 @@ describe('NewCampaignPage', () => {
     const alerts = await screen.findAllByRole('alert');
     expect(alerts.map((alert) => alert.textContent)).toEqual([
       'La date de début est requise.',
-      'Un nombre entier positif est attendu.',
-      'Un nombre entier positif est attendu.',
-      'Un nombre entier positif est attendu.',
+      'Un nombre entier positif est attendu, ou rien tant que le tarif n’est pas fixé.',
     ]);
     expect(screen.getByRole('heading', { name: 'Nouvelle campagne' })).toBeInTheDocument();
   });

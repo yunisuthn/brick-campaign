@@ -1,19 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client.js';
 
-/** Mirror of the API's CampaignDto: dates as `YYYY-MM-DD`, rates in ariary per brick. */
-export interface Campaign {
+/** Ariary per brick, null while the price is not negotiated yet ("à fixer"). */
+export interface CampaignRates {
+  mouldingRate: number | null;
+  transportRate: number | null;
+  kilnLoadingRate: number | null;
+}
+
+/** Mirror of the API's CampaignDto: dates as `YYYY-MM-DD`. */
+export interface Campaign extends CampaignRates {
   id: string;
   year: number;
   startedOn: string;
   closedOn: string | null;
-  mouldingRate: number;
-  transportRate: number;
-  kilnLoadingRate: number;
 }
 
 /** A campaign is created open: the API defaults `closedOn` to null when it is left out. */
 export type NewCampaign = Omit<Campaign, 'id' | 'closedOn'>;
+
+/** What a PATCH may carry: any field but the id, the rest is left untouched. */
+export type CampaignPatch = Partial<Omit<Campaign, 'id'>>;
 
 /** Prefix of every campaign query: invalidating it refreshes the list and each detail alike. */
 export const CAMPAIGNS_KEY = ['campaigns'] as const;
@@ -43,14 +50,11 @@ export function useCreateCampaign() {
   });
 }
 
-/**
- * Closing is the one edit of a campaign in v1: a PATCH with the closing date alone. The answer
- * replaces the detail at once and the list is refreshed behind it.
- */
-export function useCloseCampaign(id: string) {
+/** Closing and fixing the rates both go through here: the answer replaces the detail at once, the list is refreshed behind it. */
+export function useUpdateCampaign(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (closedOn: string) => api.patch<Campaign>(`/campaigns/${id}`, { closedOn }),
+    mutationFn: (patch: CampaignPatch) => api.patch<Campaign>(`/campaigns/${id}`, patch),
     onSuccess: (campaign) => {
       queryClient.setQueryData(campaignKey(id), campaign);
       return queryClient.invalidateQueries({ queryKey: CAMPAIGNS_KEY, exact: true });

@@ -13,7 +13,14 @@ const open = {
   transportRate: 10,
   kilnLoadingRate: 5,
 };
-const closed = { ...open, id: 'c1', year: 2025, startedOn: '2025-05-02', closedOn: '2025-11-30' };
+const closed = {
+  ...open,
+  id: 'c1',
+  year: 2025,
+  startedOn: '2025-05-02',
+  closedOn: '2025-11-30',
+  kilnLoadingRate: null,
+};
 
 describe('CampaignsPage', () => {
   it('lists the campaigns as the API orders them, with their state and rates', async () => {
@@ -30,6 +37,7 @@ describe('CampaignsPage', () => {
     expect(within(first!).getByText('Ouverte depuis le 10 mai 2026')).toBeInTheDocument();
     expect(within(first!).getByText('40 Ar la brique')).toBeInTheDocument();
     expect(within(second!).getByText('Clôturée le 30 novembre 2025')).toBeInTheDocument();
+    expect(within(second!).getByText('À fixer')).toBeInTheDocument();
   });
 
   it('says so when there is no campaign yet', async () => {

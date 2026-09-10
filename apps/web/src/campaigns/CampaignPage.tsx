@@ -2,9 +2,16 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
 import { ApiError } from '../api/client.js';
+import { Field } from '../form/Field.js';
 import { today } from '../format.js';
 import { CampaignFacts } from './CampaignFacts.js';
-import { type Campaign, useCampaign, useCloseCampaign } from './useCampaigns.js';
+import { RateFields } from './rateFields.js';
+import {
+  type Campaign,
+  type CampaignRates,
+  useCampaign,
+  useUpdateCampaign,
+} from './useCampaigns.js';
 
 /** A wrong or stale id is a plain "not found", not an API failure. */
 function loadErrorMessage(error: Error): string {
@@ -27,10 +34,62 @@ export function CampaignPage() {
         <>
           <h1>Campagne {campaign.data.year}</h1>
           <CampaignFacts campaign={campaign.data} />
+          <EditRates campaign={campaign.data} />
           {campaign.data.closedOn === null && <CloseCampaign campaign={campaign.data} />}
         </>
       )}
     </main>
+  );
+}
+
+const formStyle = { marginTop: '1rem', maxWidth: '24rem' };
+
+/**
+ * The rates are fixed here once negotiated, and can be corrected later; a rate fixed after
+ * the fact applies to the whole campaign (reference document, section 4).
+ */
+function EditRates({ campaign }: { campaign: Campaign }) {
+  const [open, setOpen] = useState(false);
+  const update = useUpdateCampaign(campaign.id);
+  const form = useForm<CampaignRates>({
+    defaultValues: {
+      mouldingRate: campaign.mouldingRate,
+      transportRate: campaign.transportRate,
+      kilnLoadingRate: campaign.kilnLoadingRate,
+    },
+  });
+
+  if (!open) {
+    return (
+      <p>
+        <button type="button" onClick={() => setOpen(true)}>
+          Modifier les tarifs
+        </button>
+      </p>
+    );
+  }
+
+  const submit = form.handleSubmit((rates) =>
+    update.mutate(rates, { onSuccess: () => setOpen(false) }),
+  );
+
+  return (
+    <form onSubmit={submit} noValidate style={formStyle} aria-label="Tarifs de la campagne">
+      <RateFields register={form.register} errors={form.formState.errors} />
+      {update.isError && (
+        <p role="alert" style={{ color: 'var(--error)' }}>
+          Enregistrement impossible : {update.error.message}
+        </p>
+      )}
+      <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <button type="submit" disabled={update.isPending}>
+          Enregistrer les tarifs
+        </button>
+        <button type="button" onClick={() => setOpen(false)}>
+          Annuler
+        </button>
+      </p>
+    </form>
   );
 }
 
@@ -41,7 +100,7 @@ export function CampaignPage() {
  */
 function CloseCampaign({ campaign }: { campaign: Campaign }) {
   const [open, setOpen] = useState(false);
-  const close = useCloseCampaign(campaign.id);
+  const close = useUpdateCampaign(campaign.id);
   const form = useForm<{ closedOn: string }>({ defaultValues: { closedOn: today() } });
 
   if (!open) {
@@ -54,23 +113,16 @@ function CloseCampaign({ campaign }: { campaign: Campaign }) {
     );
   }
 
-  const submit = form.handleSubmit(({ closedOn }) => close.mutate(closedOn));
+  const submit = form.handleSubmit(({ closedOn }) => close.mutate({ closedOn }));
 
   return (
-    <form onSubmit={submit} noValidate style={{ marginTop: '1rem', maxWidth: '24rem' }}>
-      <label style={{ display: 'block', marginBottom: '0.75rem' }}>
-        Date de clôture
-        <input
-          type="date"
-          style={{ display: 'block', width: '100%', boxSizing: 'border-box' }}
-          {...form.register('closedOn', { required: 'La date de clôture est requise.' })}
-        />
-        {form.formState.errors.closedOn && (
-          <span role="alert" style={{ display: 'block', color: 'var(--error)' }}>
-            {form.formState.errors.closedOn.message}
-          </span>
-        )}
-      </label>
+    <form onSubmit={submit} noValidate style={formStyle}>
+      <Field
+        label="Date de clôture"
+        error={form.formState.errors.closedOn}
+        input={form.register('closedOn', { required: 'La date de clôture est requise.' })}
+        type="date"
+      />
       {close.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
           Clôture impossible : {close.error.message}

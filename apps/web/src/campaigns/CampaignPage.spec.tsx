@@ -85,6 +85,31 @@ describe('CampaignPage', () => {
     expect(screen.getByText('Ouverte depuis le 10 mai 2026')).toBeInTheDocument();
   });
 
+  it('shows a rate still to be fixed and lets the rates be set from the page', async () => {
+    let body: unknown;
+    server.use(
+      http.get('/api/campaigns/c1', () => HttpResponse.json({ ...open, mouldingRate: null })),
+      http.patch('/api/campaigns/c1', async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({ ...open, ...(body as object) });
+      }),
+    );
+    const user = userEvent.setup();
+    renderRoutes(routes, '/campagnes/c1');
+
+    expect(await screen.findByText('À fixer')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Modifier les tarifs' }));
+    const moulding = screen.getByLabelText('Moulage (Ar la brique)');
+    expect(moulding).toHaveValue('');
+    expect(screen.getByLabelText('Transport (Ar la brique)')).toHaveValue('10');
+    await user.type(moulding, '40');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les tarifs' }));
+
+    expect(await screen.findByText('40 Ar la brique')).toBeInTheDocument();
+    expect(body).toEqual({ mouldingRate: 40, transportRate: 10, kilnLoadingRate: 5 });
+    expect(screen.queryByRole('form', { name: 'Tarifs de la campagne' })).not.toBeInTheDocument();
+  });
+
   it('offers no closing on a campaign already closed', async () => {
     server.use(
       http.get('/api/campaigns/c1', () => HttpResponse.json({ ...open, closedOn: '2026-11-30' })),

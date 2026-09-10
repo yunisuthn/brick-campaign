@@ -1,6 +1,11 @@
 import { formatAmount, formatDate } from '../format.js';
 import type { Campaign } from './useCampaigns.js';
 
+/** A rate not negotiated yet reads "à fixer", never 0 (reference document, section 4). */
+export function rateText(rate: number | null): string {
+  return rate === null ? 'À fixer' : `${formatAmount(rate)} la brique`;
+}
+
 /** What the list card and the detail page both say: open or closed since when, and the three rates. */
 export function CampaignFacts({ campaign }: { campaign: Campaign }) {
   return (
@@ -19,11 +24,11 @@ export function CampaignFacts({ campaign }: { campaign: Campaign }) {
         }}
       >
         <dt>Moulage</dt>
-        <dd style={{ margin: 0 }}>{formatAmount(campaign.mouldingRate)} la brique</dd>
+        <dd style={{ margin: 0 }}>{rateText(campaign.mouldingRate)}</dd>
         <dt>Transport</dt>
-        <dd style={{ margin: 0 }}>{formatAmount(campaign.transportRate)} la brique</dd>
+        <dd style={{ margin: 0 }}>{rateText(campaign.transportRate)}</dd>
         <dt>Enfournement</dt>
-        <dd style={{ margin: 0 }}>{formatAmount(campaign.kilnLoadingRate)} la brique</dd>
+        <dd style={{ margin: 0 }}>{rateText(campaign.kilnLoadingRate)}</dd>
       </dl>
     </>
   );

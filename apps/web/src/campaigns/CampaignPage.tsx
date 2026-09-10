@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
-import { ApiError } from '../api/client.js';
+import { loadErrorMessage } from '../api/loadError.js';
 import { Field } from '../form/Field.js';
 import { today } from '../format.js';
 import { CampaignFacts } from './CampaignFacts.js';
@@ -13,12 +13,6 @@ import {
   useUpdateCampaign,
 } from './useCampaigns.js';
 
-/** A wrong or stale id is a plain "not found", not an API failure. */
-function loadErrorMessage(error: Error): string {
-  if (error instanceof ApiError && error.status === 404) return 'Campagne introuvable.';
-  return `Chargement impossible : ${error.message}`;
-}
-
 export function CampaignPage() {
   const { id = '' } = useParams();
   const campaign = useCampaign(id);
@@ -29,7 +23,9 @@ export function CampaignPage() {
         <Link to="/campagnes">Toutes les campagnes</Link>
       </p>
       {campaign.isPending && <p role="status">Chargement…</p>}
-      {campaign.isError && <p role="alert">{loadErrorMessage(campaign.error)}</p>}
+      {campaign.isError && (
+        <p role="alert">{loadErrorMessage(campaign.error, 'Campagne introuvable.')}</p>
+      )}
       {campaign.isSuccess && (
         <>
           <h1>Campagne {campaign.data.year}</h1>

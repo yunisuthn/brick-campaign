@@ -1,13 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
-import { ApiError } from '../api/client.js';
+import { loadErrorMessage } from '../api/loadError.js';
 import { MoulderFields } from './moulderFields.js';
 import { type Moulder, type NewMoulder, useMoulder, useUpdateMoulder } from './useMoulders.js';
-
-function loadErrorMessage(error: Error): string {
-  if (error instanceof ApiError && error.status === 404) return 'Mouleur introuvable.';
-  return `Chargement impossible : ${error.message}`;
-}
 
 export function MoulderPage() {
   const { id = '' } = useParams();
@@ -19,7 +14,9 @@ export function MoulderPage() {
         <Link to="/mouleurs">Tous les mouleurs</Link>
       </p>
       {moulder.isPending && <p role="status">Chargement…</p>}
-      {moulder.isError && <p role="alert">{loadErrorMessage(moulder.error)}</p>}
+      {moulder.isError && (
+        <p role="alert">{loadErrorMessage(moulder.error, 'Mouleur introuvable.')}</p>
+      )}
       {moulder.isSuccess && <MoulderForm key={moulder.data.id} moulder={moulder.data} />}
     </main>
   );

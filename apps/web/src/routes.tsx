@@ -10,6 +10,7 @@ import { MouldersPage } from './moulders/MouldersPage.js';
 import { NewMoulderPage } from './moulders/NewMoulderPage.js';
 import { LoginPage } from './pages/LoginPage.js';
 import { NewProductionPage } from './productions/NewProductionPage.js';
+import { PaymentsPage } from './payments/PaymentsPage.js';
 import { ProductionPage } from './productions/ProductionPage.js';
 import { ProductionsPage } from './productions/ProductionsPage.js';
 import { NewRiceFieldPage } from './rice-fields/NewRiceFieldPage.js';
@@ -48,6 +49,7 @@ export const routes: RouteObject[] = [
           { path: 'productions', element: <ProductionsPage /> },
           { path: 'productions/nouvelle', element: <NewProductionPage /> },
           { path: 'productions/:id', element: <ProductionPage /> },
+          { path: 'versements', element: <PaymentsPage /> },
         ],
       },
     ],

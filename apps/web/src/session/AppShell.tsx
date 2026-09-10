@@ -43,6 +43,7 @@ export function AppShell() {
 }
 
 const sections = [
+  { to: '/', label: 'Tableau de bord' },
   { to: '/campagnes', label: 'Campagnes' },
   { to: '/mouleurs', label: 'Mouleurs' },
   { to: '/rizieres', label: 'Rizières' },
@@ -55,7 +56,11 @@ const sections = [
   { to: '/soldes', label: 'Soldes' },
 ];
 
-/** One link per section, the current one underlined; grows with the front plan. */
+/**
+ * One link per section, the current one in bold; grows with the front plan. The dashboard
+ * needs `end`: every path descends from the root, so without it that link would always look
+ * like the current one.
+ */
 function MainNav() {
   return (
     <nav
@@ -66,6 +71,7 @@ function MainNav() {
         <NavLink
           key={section.to}
           to={section.to}
+          end={section.to === '/'}
           style={({ isActive }) => ({ fontWeight: isActive ? 'bold' : 'normal' })}
         >
           {section.label}

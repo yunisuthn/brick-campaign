@@ -6,15 +6,15 @@ import { renderRoutes } from './test/render.js';
 import { server } from './test/server.js';
 
 describe('routes', () => {
-  it('sends / to the campaigns inside the shell once signed in', async () => {
+  it('opens on the dashboard inside the shell once signed in', async () => {
     server.use(
       http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
       http.get('/api/campaigns', () => HttpResponse.json([])),
     );
     const { router } = renderRoutes(routes, '/');
-    expect(await screen.findByText('Aucune campagne.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Tableau de bord' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Déconnexion' })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/campagnes');
+    expect(router.state.location.pathname).toBe('/');
   });
 
   it('reaches the moulders from the section links', async () => {

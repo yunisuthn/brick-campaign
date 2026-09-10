@@ -49,6 +49,7 @@ const sections = [
   { to: '/clients', label: 'Clients' },
   { to: '/productions', label: 'Productions' },
   { to: '/versements', label: 'Versements' },
+  { to: '/soldes', label: 'Soldes' },
 ];
 
 /** One link per section, the current one underlined; grows with the front plan. */

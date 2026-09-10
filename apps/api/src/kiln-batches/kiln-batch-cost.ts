@@ -1,13 +1,14 @@
 import type { ContractorRates } from '../balances/contractor-balance.js';
+import { labourCost, sumKnown } from '../balances/labour.js';
 import type { ContractorWorkType } from '../generated/prisma/client.js';
 
 export interface KilnBatchCost {
   /** Live expenses explicitly linked to the batch, in Ariary. */
   expenses: number;
-  /** Transport and kiln loading of the batch, each type at its campaign rate, in Ariary. */
-  labour: number;
-  /** expenses + labour. */
-  total: number;
+  /** Transport and kiln loading of the batch, each type at its campaign rate, in Ariary; null while a needed rate is not fixed. */
+  labour: number | null;
+  /** expenses + labour; null with labour. */
+  total: number | null;
 }
 
 /** A batch just created has nothing linked to it yet. */
@@ -20,10 +21,14 @@ export function kilnBatchCost(
   works: ReadonlyArray<{ type: ContractorWorkType; quantity: number }>,
 ): KilnBatchCost {
   const expenseTotal = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const rateOf: Record<ContractorWorkType, number> = {
+  const rateOf: Record<ContractorWorkType, number | null> = {
     transport: rates.transportRate,
     kiln_loading: rates.kilnLoadingRate,
   };
-  const labour = works.reduce((sum, work) => sum + work.quantity * rateOf[work.type], 0);
-  return { expenses: expenseTotal, labour, total: expenseTotal + labour };
+  const labour = sumKnown(works.map((work) => labourCost(work.quantity, rateOf[work.type])));
+  return {
+    expenses: expenseTotal,
+    labour,
+    total: labour === null ? null : expenseTotal + labour,
+  };
 }

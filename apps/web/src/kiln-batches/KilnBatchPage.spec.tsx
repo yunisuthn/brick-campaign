@@ -37,13 +37,16 @@ const routes = [
   { path: '/lots/:id', element: <Page /> },
 ];
 
-const campaignHandler = http.get('/api/campaigns', () => HttpResponse.json([campaign]));
+const baseHandlers = [
+  http.get('/api/campaigns', () => HttpResponse.json([campaign])),
+  http.get('/api/campaigns/c1/contractor-works', () => HttpResponse.json([])),
+];
 
 describe('KilnBatchPage', () => {
   it('shows the cost with an unknown labour, and unloads the batch by dating it', async () => {
     let body: unknown;
     server.use(
-      campaignHandler,
+      ...baseHandlers,
       http.get('/api/campaigns/c1/kiln-batches/b1', () => HttpResponse.json(batch)),
       http.patch('/api/campaigns/c1/kiln-batches/b1', async ({ request }) => {
         body = await request.json();
@@ -68,7 +71,7 @@ describe('KilnBatchPage', () => {
 
   it('refuses a corrected quantity under the minimum without calling the API', async () => {
     server.use(
-      campaignHandler,
+      ...baseHandlers,
       http.get('/api/campaigns/c1/kiln-batches/b1', () => HttpResponse.json(batch)),
     );
     const user = userEvent.setup();
@@ -86,7 +89,7 @@ describe('KilnBatchPage', () => {
 
   it('says the works must go first when the API refuses the cancellation', async () => {
     server.use(
-      campaignHandler,
+      ...baseHandlers,
       http.get('/api/campaigns/c1/kiln-batches/b1', () => HttpResponse.json(batch)),
       http.delete('/api/campaigns/c1/kiln-batches/b1', () =>
         HttpResponse.json(
@@ -109,7 +112,7 @@ describe('KilnBatchPage', () => {
   it('cancels an empty batch and goes back to the list', async () => {
     let cancelled = false;
     server.use(
-      campaignHandler,
+      ...baseHandlers,
       http.get('/api/campaigns/c1/kiln-batches/b1', () => HttpResponse.json(batch)),
       http.delete('/api/campaigns/c1/kiln-batches/b1', () => {
         cancelled = true;

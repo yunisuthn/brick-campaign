@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/client.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { BatchWorks } from '../contractor-works/BatchWorks.js';
 import { Field } from '../form/Field.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
 import {
@@ -95,6 +96,7 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
         </span>
       </h1>
       <Cost cost={batch.cost} />
+      <BatchWorks campaignId={batch.campaignId} batchId={batch.id} />
       <form onSubmit={save} noValidate>
         <Field
           label="Date d’enfournement"

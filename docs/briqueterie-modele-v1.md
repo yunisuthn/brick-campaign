@@ -121,16 +121,16 @@ Ajouté le 9 septembre 2026, une fois les sept chantiers de l'API livrés. Même
 
 ### 9.2 Choix techniques
 
-| Sujet         | Choix                                       | Justification                                                                      |
-| ------------- | ------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Application   | `apps/web` : React, Vite, TypeScript        | Stack fixée en section 6, même monorepo, même lint et prettier                     |
-| Routage       | React Router                                | Routes imbriquées calquées sur l'API (`/campagnes/:id/ventes/:id/livraisons`)      |
-| Données       | TanStack Query                              | Cache par ressource, invalidation après chaque saisie, état de chargement uniforme |
-| Formulaires   | React Hook Form                             | Formulaires nombreux et courts, validation de forme sans dupliquer les règles      |
-| Session       | Cookie de l'API, `GET /auth/me` au départ   | Rien à stocker côté front ; un 401 renvoie à la connexion                          |
-| Style         | CSS modules, pas de librairie de composants | Une dizaine d'écrans simples ; une dépendance de moins à porter                    |
-| Tests         | Vitest + Testing Library, MSW pour l'API    | Tester les écrans contre des réponses d'API réalistes, sans serveur                |
-| Développement | Proxy Vite vers l'API, port lu dans `.env`  | Même origine, le cookie de session passe sans configuration CORS                   |
+| Sujet         | Choix                                       | Justification                                                                                                                                    |
+| ------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Application   | `apps/web` : React, Vite, TypeScript        | Stack fixée en section 6, même monorepo, même lint et prettier                                                                                   |
+| Routage       | React Router                                | Routes courtes sous la campagne courante (`/productions`, `/ventes/:id`), le sélecteur d'en-tête fixe la campagne (tranché le 10 septembre 2026) |
+| Données       | TanStack Query                              | Cache par ressource, invalidation après chaque saisie, état de chargement uniforme                                                               |
+| Formulaires   | React Hook Form                             | Formulaires nombreux et courts, validation de forme sans dupliquer les règles                                                                    |
+| Session       | Cookie de l'API, `GET /auth/me` au départ   | Rien à stocker côté front ; un 401 renvoie à la connexion                                                                                        |
+| Style         | CSS modules, pas de librairie de composants | Une dizaine d'écrans simples ; une dépendance de moins à porter                                                                                  |
+| Tests         | Vitest + Testing Library, MSW pour l'API    | Tester les écrans contre des réponses d'API réalistes, sans serveur                                                                              |
+| Développement | Proxy Vite vers l'API, port lu dans `.env`  | Même origine, le cookie de session passe sans configuration CORS                                                                                 |
 
 Les schémas Zod des DTO restent dans l'API. Si le front en a besoin, ils seront extraits dans `packages/contracts` à ce moment-là, pas avant.
 

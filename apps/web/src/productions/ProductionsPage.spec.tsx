@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderWithProviders } from '../test/render.js';
+import { plain } from '../test/text.js';
 import { server } from '../test/server.js';
 import { ProductionsPage } from './ProductionsPage.js';
 
@@ -65,8 +66,8 @@ describe('ProductionsPage', () => {
     ).toBeInTheDocument();
     const rows = await screen.findAllByRole('listitem');
     expect(screen.getByRole('link', { name: 'Rakoto' })).toHaveAttribute('href', '/productions/p2');
-    expect(rows.map((row) => row.textContent)).toEqual([
-      'Rakoto2 juin 2026 · Ambany1 200 briques',
+    expect(rows.map((row) => plain(row.textContent))).toEqual([
+      'Rakoto2 juin 2026 · Ambany1 200 briques',
       'Mouleur inconnu1 juin 2026 · Ambany800 briques',
     ]);
   });

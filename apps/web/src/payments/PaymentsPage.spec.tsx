@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderWithProviders } from '../test/render.js';
+import { plain } from '../test/text.js';
 import { server } from '../test/server.js';
 import { PaymentsPage } from './PaymentsPage.js';
 
@@ -55,9 +56,9 @@ describe('PaymentsPage', () => {
     mount();
 
     const rows = await screen.findAllByRole('listitem');
-    expect(rows.map((row) => row.textContent)).toEqual([
-      'Rakoto5 juin 2026 · Vatsy50 000 Ar',
-      'Solo4 juin 2026 · Avance120 000 Ar',
+    expect(rows.map((row) => plain(row.textContent))).toEqual([
+      'Rakoto5 juin 2026 · Vatsy50 000 Ar',
+      'Solo4 juin 2026 · Avance120 000 Ar',
     ]);
     expect(screen.getByRole('link', { name: 'Rakoto' })).toHaveAttribute('href', '/versements/v1');
   });

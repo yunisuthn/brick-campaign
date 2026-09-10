@@ -6,7 +6,7 @@ import { server } from '../test/server.js';
 import { NewCampaignPage } from './NewCampaignPage.js';
 
 const routes = [
-  { path: '/campagnes', element: <p>Liste des campagnes</p> },
+  { path: '/campagnes/:id', element: <p>Fiche de la campagne</p> },
   { path: '/campagnes/nouvelle', element: <NewCampaignPage /> },
 ];
 
@@ -22,7 +22,7 @@ async function fillForm() {
 }
 
 describe('NewCampaignPage', () => {
-  it('posts the campaign as the API expects it and goes back to the list', async () => {
+  it('posts the campaign as the API expects it and opens its page', async () => {
     let body: unknown;
     server.use(
       http.post('/api/campaigns', async ({ request }) => {
@@ -38,8 +38,8 @@ describe('NewCampaignPage', () => {
     const user = await fillForm();
     await user.click(screen.getByRole('button', { name: 'Créer la campagne' }));
 
-    expect(await screen.findByText('Liste des campagnes')).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/campagnes');
+    expect(await screen.findByText('Fiche de la campagne')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/campagnes/c1');
     expect(body).toEqual({
       year: 2026,
       startedOn: '2026-05-10',

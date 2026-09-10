@@ -17,7 +17,7 @@ export function NewCampaignPage() {
   const { errors } = form.formState;
 
   const submit = form.handleSubmit((input) =>
-    create.mutate(input, { onSuccess: () => navigate('/campagnes') }),
+    create.mutate(input, { onSuccess: (campaign) => navigate(`/campagnes/${campaign.id}`) }),
   );
 
   return (

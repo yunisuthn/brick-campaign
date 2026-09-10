@@ -22,6 +22,10 @@ describe('CampaignsPage', () => {
 
     const [first, second] = await screen.findAllByRole('article');
     expect(first).toHaveAccessibleName('Campagne 2026');
+    expect(within(first!).getByRole('link', { name: 'Campagne 2026' })).toHaveAttribute(
+      'href',
+      '/campagnes/c2',
+    );
     expect(second).toHaveAccessibleName('Campagne 2025');
     expect(within(first!).getByText('Ouverte depuis le 10 mai 2026')).toBeInTheDocument();
     expect(within(first!).getByText('40 Ar la brique')).toBeInTheDocument();

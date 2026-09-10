@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { formatAmount, formatDate } from '../format.js';
+import { CampaignFacts } from './CampaignFacts.js';
 import { type Campaign, useCampaigns } from './useCampaigns.js';
 
 export function CampaignsPage() {
@@ -29,7 +29,7 @@ export function CampaignsPage() {
   );
 }
 
-/** One campaign at a glance: its year, whether it is still open, and the three rates of the season. */
+/** One campaign at a glance; its year leads to the detail page. */
 function CampaignCard({ campaign }: { campaign: Campaign }) {
   return (
     <article
@@ -37,28 +37,9 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
       style={{ padding: '0.75rem 1rem', background: 'white', borderRadius: '0.5rem' }}
     >
       <h2 id={`campaign-${campaign.id}`} style={{ margin: '0 0 0.25rem', fontSize: '1.125rem' }}>
-        Campagne {campaign.year}
+        <Link to={`/campagnes/${campaign.id}`}>Campagne {campaign.year}</Link>
       </h2>
-      <p style={{ margin: '0 0 0.5rem' }}>
-        {campaign.closedOn === null
-          ? `Ouverte depuis le ${formatDate(campaign.startedOn)}`
-          : `Clôturée le ${formatDate(campaign.closedOn)}`}
-      </p>
-      <dl
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto 1fr',
-          gap: '0.125rem 0.75rem',
-          margin: 0,
-        }}
-      >
-        <dt>Moulage</dt>
-        <dd style={{ margin: 0 }}>{formatAmount(campaign.mouldingRate)} la brique</dd>
-        <dt>Transport</dt>
-        <dd style={{ margin: 0 }}>{formatAmount(campaign.transportRate)} la brique</dd>
-        <dt>Enfournement</dt>
-        <dd style={{ margin: 0 }}>{formatAmount(campaign.kilnLoadingRate)} la brique</dd>
-      </dl>
+      <CampaignFacts campaign={campaign} />
     </article>
   );
 }

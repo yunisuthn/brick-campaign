@@ -95,3 +95,60 @@ describe('campaignResult', () => {
     expect(advanced.result).toBe(unpaid.result);
   });
 });
+
+describe('campaignResult with a rate not fixed', () => {
+  const nothing = {
+    sales: [],
+    expenses: [],
+    productions: [],
+    contractorWorks: [],
+    payments: [],
+    deliveries: [],
+  };
+
+  it('keeps sales, expenses and deliveries known, and makes the labour and the result unknown', () => {
+    const result = campaignResult(
+      { mouldingRate: null, transportRate: 5, kilnLoadingRate: 3 },
+      {
+        ...nothing,
+        sales: [{ orderedQuantity: 5000, unitPrice: 250, amountReceived: 1_250_000 }],
+        expenses: [{ category: 'akofa' as const, amount: 20_000 }],
+        productions: [{ quantity: 10000 }],
+        contractorWorks: [{ type: 'transport' as const, quantity: 10000 }],
+        payments: [{ amount: 50_000 }],
+        deliveries: [{ cost: 60_000 }],
+      },
+    );
+    expect(result).toMatchObject({
+      revenue: 1_250_000,
+      received: 1_250_000,
+      expenses: { total: 20_000 },
+      labour: {
+        moulding: null,
+        transport: 50_000,
+        kilnLoading: 0,
+        total: null,
+        paid: 50_000,
+        outstanding: null,
+      },
+      deliveryCosts: 60_000,
+      result: null,
+    });
+  });
+
+  it('stays all known while nothing needs the missing rate', () => {
+    const result = campaignResult(
+      { mouldingRate: 20, transportRate: 5, kilnLoadingRate: null },
+      { ...nothing, productions: [{ quantity: 1000 }] },
+    );
+    expect(result.labour).toEqual({
+      moulding: 20_000,
+      transport: 0,
+      kilnLoading: 0,
+      total: 20_000,
+      paid: 0,
+      outstanding: 20_000,
+    });
+    expect(result.result).toBe(-20_000);
+  });
+});

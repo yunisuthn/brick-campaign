@@ -1,10 +1,12 @@
 import { type ContractorRates, contractorBalance } from '../balances/contractor-balance.js';
+import { labourCost, sumKnown } from '../balances/labour.js';
 import { moulderBalance } from '../balances/moulder-balance.js';
 import type { ExpenseCategory } from '../expenses/expense.dto.js';
 import type { ContractorWorkType } from '../generated/prisma/client.js';
 
+/** Null while a rate is not fixed (reference document, section 3). */
 export interface CampaignRates extends ContractorRates {
-  mouldingRate: number;
+  mouldingRate: number | null;
 }
 
 /** Live entries of the campaign, or their sums: a grouped row counts like a single entry. */
@@ -30,19 +32,23 @@ export interface CampaignResult {
   /** revenue - received: what clients still owe. */
   outstanding: number;
   expenses: { total: number; byCategory: Record<ExpenseCategory, number> };
-  /** Owed for the bricks, whether paid yet or not (reference document, section 4). */
+  /**
+   * Owed for the bricks, whether paid yet or not (reference document, section 4). Each part is
+   * null while its rate is not fixed and there is work to pay for; the total, the outstanding
+   * and the result follow.
+   */
   labour: {
-    moulding: number;
-    transport: number;
-    kilnLoading: number;
-    total: number;
+    moulding: number | null;
+    transport: number | null;
+    kilnLoading: number | null;
+    total: number | null;
     paid: number;
     /** total - paid: what is still due to moulders and contractors. */
-    outstanding: number;
+    outstanding: number | null;
   };
   deliveryCosts: number;
-  /** received - expenses - labour owed - delivery costs. */
-  result: number;
+  /** received - expenses - labour owed - delivery costs; null while the labour is unknown. */
+  result: number | null;
 }
 
 const EXPENSE_CATEGORIES: readonly ExpenseCategory[] = [
@@ -73,9 +79,9 @@ export function campaignResult(rates: CampaignRates, entries: CampaignEntries): 
 
   const moulding = moulderBalance(rates.mouldingRate, entries.productions, []).earned;
   const { bricksByType } = contractorBalance(rates, entries.contractorWorks, []);
-  const transport = bricksByType.transport * rates.transportRate;
-  const kilnLoading = bricksByType.kiln_loading * rates.kilnLoadingRate;
-  const labourTotal = moulding + transport + kilnLoading;
+  const transport = labourCost(bricksByType.transport, rates.transportRate);
+  const kilnLoading = labourCost(bricksByType.kiln_loading, rates.kilnLoadingRate);
+  const labourTotal = sumKnown([moulding, transport, kilnLoading]);
   const labourPaid = entries.payments.reduce((sum, p) => sum + p.amount, 0);
 
   const deliveryCosts = entries.deliveries.reduce((sum, d) => sum + d.cost, 0);
@@ -91,9 +97,9 @@ export function campaignResult(rates: CampaignRates, entries: CampaignEntries): 
       kilnLoading,
       total: labourTotal,
       paid: labourPaid,
-      outstanding: labourTotal - labourPaid,
+      outstanding: labourTotal === null ? null : labourTotal - labourPaid,
     },
     deliveryCosts,
-    result: received - expenseTotal - labourTotal - deliveryCosts,
+    result: labourTotal === null ? null : received - expenseTotal - labourTotal - deliveryCosts,
   };
 }

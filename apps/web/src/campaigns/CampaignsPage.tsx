@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import { formatAmount, formatDate } from '../format.js';
 import { type Campaign, useCampaigns } from './useCampaigns.js';
 
@@ -7,6 +8,9 @@ export function CampaignsPage() {
   return (
     <main style={{ padding: '1rem' }}>
       <h1>Campagnes</h1>
+      <p>
+        <Link to="/campagnes/nouvelle">Nouvelle campagne</Link>
+      </p>
       {campaigns.isPending && <p role="status">Chargement…</p>}
       {campaigns.isError && <p role="alert">Chargement impossible : {campaigns.error.message}</p>}
       {campaigns.isSuccess &&

@@ -1,5 +1,6 @@
 import { Navigate, type RouteObject } from 'react-router';
 import { CampaignsPage } from './campaigns/CampaignsPage.js';
+import { NewCampaignPage } from './campaigns/NewCampaignPage.js';
 import { LoginPage } from './pages/LoginPage.js';
 import { AppShell } from './session/AppShell.js';
 import { RequireSession } from './session/RequireSession.js';
@@ -20,6 +21,7 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <Navigate to="/campagnes" replace /> },
           { path: 'campagnes', element: <CampaignsPage /> },
+          { path: 'campagnes/nouvelle', element: <NewCampaignPage /> },
         ],
       },
     ],

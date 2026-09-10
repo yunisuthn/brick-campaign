@@ -27,6 +27,8 @@ import { ProductionsPage } from './productions/ProductionsPage.js';
 import { NewRiceFieldPage } from './rice-fields/NewRiceFieldPage.js';
 import { RiceFieldPage } from './rice-fields/RiceFieldPage.js';
 import { RiceFieldsPage } from './rice-fields/RiceFieldsPage.js';
+import { NewSalePage } from './sales/NewSalePage.js';
+import { SalesPage } from './sales/SalesPage.js';
 import { AppShell } from './session/AppShell.js';
 import { RequireSession } from './session/RequireSession.js';
 
@@ -68,6 +70,8 @@ export const routes: RouteObject[] = [
           { path: 'lots/:id', element: <KilnBatchPage /> },
           { path: 'lots/:id/prestations/nouvelle', element: <NewContractorWorkPage /> },
           { path: 'prestations/:id', element: <ContractorWorkPage /> },
+          { path: 'ventes', element: <SalesPage /> },
+          { path: 'ventes/nouvelle', element: <NewSalePage /> },
           { path: 'depenses', element: <ExpensesPage /> },
           { path: 'depenses/nouvelle', element: <NewExpensePage /> },
           { path: 'depenses/:id', element: <ExpensePage /> },

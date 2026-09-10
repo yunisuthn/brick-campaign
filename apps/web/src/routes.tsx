@@ -9,6 +9,7 @@ import { NewCampaignPage } from './campaigns/NewCampaignPage.js';
 import { MoulderPage } from './moulders/MoulderPage.js';
 import { MouldersPage } from './moulders/MouldersPage.js';
 import { NewMoulderPage } from './moulders/NewMoulderPage.js';
+import { KilnBatchPage } from './kiln-batches/KilnBatchPage.js';
 import { KilnBatchesPage } from './kiln-batches/KilnBatchesPage.js';
 import { NewKilnBatchPage } from './kiln-batches/NewKilnBatchPage.js';
 import { LoginPage } from './pages/LoginPage.js';
@@ -59,6 +60,7 @@ export const routes: RouteObject[] = [
           { path: 'versements/:id', element: <PaymentPage /> },
           { path: 'lots', element: <KilnBatchesPage /> },
           { path: 'lots/nouveau', element: <NewKilnBatchPage /> },
+          { path: 'lots/:id', element: <KilnBatchPage /> },
           { path: 'soldes', element: <BalancesPage /> },
         ],
       },

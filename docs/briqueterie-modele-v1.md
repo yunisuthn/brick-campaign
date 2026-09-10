@@ -124,7 +124,7 @@ Ajouté le 9 septembre 2026, une fois les sept chantiers de l'API livrés. Même
 | Session       | Cookie de l'API, `GET /auth/me` au départ   | Rien à stocker côté front ; un 401 renvoie à la connexion                          |
 | Style         | CSS modules, pas de librairie de composants | Une dizaine d'écrans simples ; une dépendance de moins à porter                    |
 | Tests         | Vitest + Testing Library, MSW pour l'API    | Tester les écrans contre des réponses d'API réalistes, sans serveur                |
-| Développement | Proxy Vite vers `localhost:3000`            | Même origine, le cookie de session passe sans configuration CORS                   |
+| Développement | Proxy Vite vers l'API, port lu dans `.env`  | Même origine, le cookie de session passe sans configuration CORS                   |
 
 Les schémas Zod des DTO restent dans l'API. Si le front en a besoin, ils seront extraits dans `packages/contracts` à ce moment-là, pas avant.
 

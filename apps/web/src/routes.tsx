@@ -6,6 +6,9 @@ import { MoulderPage } from './moulders/MoulderPage.js';
 import { MouldersPage } from './moulders/MouldersPage.js';
 import { NewMoulderPage } from './moulders/NewMoulderPage.js';
 import { LoginPage } from './pages/LoginPage.js';
+import { NewRiceFieldPage } from './rice-fields/NewRiceFieldPage.js';
+import { RiceFieldPage } from './rice-fields/RiceFieldPage.js';
+import { RiceFieldsPage } from './rice-fields/RiceFieldsPage.js';
 import { AppShell } from './session/AppShell.js';
 import { RequireSession } from './session/RequireSession.js';
 
@@ -30,6 +33,9 @@ export const routes: RouteObject[] = [
           { path: 'mouleurs', element: <MouldersPage /> },
           { path: 'mouleurs/nouveau', element: <NewMoulderPage /> },
           { path: 'mouleurs/:id', element: <MoulderPage /> },
+          { path: 'rizieres', element: <RiceFieldsPage /> },
+          { path: 'rizieres/nouvelle', element: <NewRiceFieldPage /> },
+          { path: 'rizieres/:id', element: <RiceFieldPage /> },
         ],
       },
     ],

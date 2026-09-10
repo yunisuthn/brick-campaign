@@ -11,6 +11,8 @@ import { MouldersPage } from './moulders/MouldersPage.js';
 import { NewMoulderPage } from './moulders/NewMoulderPage.js';
 import { ContractorWorkPage } from './contractor-works/ContractorWorkPage.js';
 import { NewContractorWorkPage } from './contractor-works/NewContractorWorkPage.js';
+import { ExpensesPage } from './expenses/ExpensesPage.js';
+import { NewExpensePage } from './expenses/NewExpensePage.js';
 import { KilnBatchPage } from './kiln-batches/KilnBatchPage.js';
 import { KilnBatchesPage } from './kiln-batches/KilnBatchesPage.js';
 import { NewKilnBatchPage } from './kiln-batches/NewKilnBatchPage.js';
@@ -65,6 +67,8 @@ export const routes: RouteObject[] = [
           { path: 'lots/:id', element: <KilnBatchPage /> },
           { path: 'lots/:id/prestations/nouvelle', element: <NewContractorWorkPage /> },
           { path: 'prestations/:id', element: <ContractorWorkPage /> },
+          { path: 'depenses', element: <ExpensesPage /> },
+          { path: 'depenses/nouvelle', element: <NewExpensePage /> },
           { path: 'soldes', element: <BalancesPage /> },
         ],
       },

@@ -50,6 +50,7 @@ const sections = [
   { to: '/productions', label: 'Productions' },
   { to: '/versements', label: 'Versements' },
   { to: '/lots', label: 'Lots' },
+  { to: '/depenses', label: 'Dépenses' },
   { to: '/soldes', label: 'Soldes' },
 ];
 

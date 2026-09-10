@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client.js';
 
 /** Only the values that are set become query parameters; an empty filter is left out. */
@@ -7,6 +7,15 @@ function search(filters: object): string {
   for (const [name, value] of Object.entries(filters)) if (value) params.set(name, String(value));
   const text = params.toString();
   return text === '' ? '' : `?${text}`;
+}
+
+interface EntryOptions {
+  /**
+   * Keys of the figures this entry feeds, given the campaign it belongs to: the stock is a sum
+   * over productions, batches and deliveries, so entering one leaves it stale. They are
+   * invalidated alongside the lists.
+   */
+  affects?: (campaignId: string) => ReadonlyArray<ReadonlyArray<unknown>>;
 }
 
 /**
@@ -21,6 +30,7 @@ function search(filters: object): string {
 export function campaignEntryHooks<T extends { id: string }, New, Patch, Filters extends object>(
   name: string,
   path: (campaignId: string) => string,
+  options: EntryOptions = {},
 ) {
   const KEY = [name] as const;
   const campaignKey = (campaignId: string) => [...KEY, campaignId] as const;
@@ -28,6 +38,13 @@ export function campaignEntryHooks<T extends { id: string }, New, Patch, Filters
   const listKey = (campaignId: string, filters: Filters) =>
     [...listsKey(campaignId), filters] as const;
   const oneKey = (campaignId: string, id: string) => [...campaignKey(campaignId), id] as const;
+
+  function refresh(queryClient: QueryClient, campaignId: string): Promise<void> {
+    const keys = [listsKey(campaignId), ...(options.affects?.(campaignId) ?? [])];
+    return Promise.all(keys.map((queryKey) => queryClient.invalidateQueries({ queryKey }))).then(
+      () => undefined,
+    );
+  }
 
   function useList(campaignId: string, filters: Filters) {
     return useQuery({
@@ -49,7 +66,7 @@ export function campaignEntryHooks<T extends { id: string }, New, Patch, Filters
       mutationFn: request,
       onSuccess: (entry) => {
         queryClient.setQueryData(oneKey(campaignId, entry.id), entry);
-        return queryClient.invalidateQueries({ queryKey: listsKey(campaignId) });
+        return refresh(queryClient, campaignId);
       },
     });
   }
@@ -70,7 +87,7 @@ export function campaignEntryHooks<T extends { id: string }, New, Patch, Filters
       mutationFn: () => api.delete(`${path(campaignId)}/${id}`),
       onSuccess: () => {
         queryClient.removeQueries({ queryKey: oneKey(campaignId, id) });
-        return queryClient.invalidateQueries({ queryKey: listsKey(campaignId) });
+        return refresh(queryClient, campaignId);
       },
     });
   }

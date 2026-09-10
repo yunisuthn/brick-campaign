@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
@@ -30,11 +30,18 @@ const routes = [
   { path: '/lots/:id', element: <p>Fiche du lot</p> },
 ];
 
+let stockReads = 0;
+
+beforeEach(() => {
+  stockReads = 0;
+});
+
 function stockHandlers(raw: number) {
   return [
     http.get('/api/campaigns', () => HttpResponse.json([campaign])),
-    http.get('/api/campaigns/c1/stock', () =>
-      HttpResponse.json({
+    http.get('/api/campaigns/c1/stock', () => {
+      stockReads += 1;
+      return HttpResponse.json({
         campaignId: 'c1',
         produced: raw,
         loaded: 0,
@@ -43,8 +50,8 @@ function stockHandlers(raw: number) {
         raw,
         inKiln: 0,
         fired: 0,
-      }),
-    ),
+      });
+    }),
   ];
 }
 
@@ -76,6 +83,8 @@ describe('NewKilnBatchPage', () => {
     expect(await screen.findByText('Fiche du lot')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/lots/b1');
     expect(body).toEqual({ loadedOn: today(), unloadedOn: null, quantity: 40000 });
+    // Loading takes bricks out of the raw stock, so the figure is read again.
+    await waitFor(() => expect(stockReads).toBe(2));
   });
 
   it('refuses a batch under the minimum without calling the API', async () => {

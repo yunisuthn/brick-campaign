@@ -1,4 +1,5 @@
 import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
+import { stockKey } from '../stock/useStock.js';
 
 /** Mirror of the API's ProductionDto: one day of one moulder on one rice field, no amount. */
 export interface Production {
@@ -23,6 +24,8 @@ export interface ProductionFilters {
 const hooks = campaignEntryHooks<Production, NewProduction, ProductionPatch, ProductionFilters>(
   'productions',
   (campaignId) => `/campaigns/${campaignId}/productions`,
+  // Moulded bricks are the raw stock.
+  { affects: (campaignId) => [stockKey(campaignId)] },
 );
 
 /** Newest first, as the API sorts. */

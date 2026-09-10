@@ -1,4 +1,5 @@
 import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
+import { stockKey } from '../stock/useStock.js';
 
 /** Reference document, section 1: a firing is 40 000 bricks at least. */
 export const MIN_KILN_BATCH_QUANTITY = 40_000;
@@ -26,6 +27,8 @@ export type KilnBatchPatch = Partial<NewKilnBatch>;
 const hooks = campaignEntryHooks<KilnBatch, NewKilnBatch, KilnBatchPatch, Record<string, never>>(
   'kiln-batches',
   (campaignId) => `/campaigns/${campaignId}/kiln-batches`,
+  // Loading takes bricks out of the raw stock, unloading puts them in the fired one.
+  { affects: (campaignId) => [stockKey(campaignId)] },
 );
 
 /** Newest first, as the API sorts. The list takes no filter. */

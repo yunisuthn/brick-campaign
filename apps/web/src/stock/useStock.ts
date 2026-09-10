@@ -16,11 +16,14 @@ export interface Stock {
   fired: number;
 }
 
-export const STOCK_KEY = ['stock'] as const;
+const STOCK_KEY = ['stock'] as const;
+
+/** Every entry that moves bricks invalidates this, so the three levels never lag behind. */
+export const stockKey = (campaignId: string) => [...STOCK_KEY, campaignId] as const;
 
 export function useStock(campaignId: string) {
   return useQuery({
-    queryKey: [...STOCK_KEY, campaignId] as const,
+    queryKey: stockKey(campaignId),
     queryFn: () => api.get<Stock>(`/campaigns/${campaignId}/stock`),
   });
 }

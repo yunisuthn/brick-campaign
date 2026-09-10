@@ -1,11 +1,36 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
+import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderRoutes } from '../test/render.js';
 import { server } from '../test/server.js';
 import { RiceFieldPage } from './RiceFieldPage.js';
 
-const routes = [{ path: '/rizieres/:id', element: <RiceFieldPage /> }];
+function Page() {
+  return (
+    <CurrentCampaignProvider>
+      <RiceFieldPage />
+    </CurrentCampaignProvider>
+  );
+}
+
+const routes = [{ path: '/rizieres/:id', element: <Page /> }];
+
+const campaign = {
+  id: 'c1',
+  year: 2026,
+  startedOn: '2026-05-10',
+  closedOn: null,
+  mouldingRate: 40,
+  transportRate: 10,
+  kilnLoadingRate: 5,
+};
+
+/** The page now shows what the field costs on the current campaign, summed from its expenses. */
+const baseHandlers = [
+  http.get('/api/campaigns', () => HttpResponse.json([campaign])),
+  http.get('/api/campaigns/c1/expenses', () => HttpResponse.json([])),
+];
 const ambany = {
   id: 'r1',
   name: 'Ambany',
@@ -18,6 +43,7 @@ describe('RiceFieldPage', () => {
   it('edits the rice field and sends every field back', async () => {
     let body: unknown;
     server.use(
+      ...baseHandlers,
       http.get('/api/rice-fields/r1', () => HttpResponse.json(ambany)),
       http.patch('/api/rice-fields/r1', async ({ request }) => {
         body = await request.json();
@@ -45,6 +71,7 @@ describe('RiceFieldPage', () => {
 
   it('says the rice field is not found on a 404', async () => {
     server.use(
+      ...baseHandlers,
       http.get('/api/rice-fields/nope', () =>
         HttpResponse.json({ message: 'Rice field nope not found' }, { status: 404 }),
       ),

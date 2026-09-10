@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
 import { loadErrorMessage } from '../api/loadError.js';
+import { RiceFieldExpenses } from '../expenses/RiceFieldExpenses.js';
 import { RiceFieldFields } from './riceFieldFields.js';
 import {
   type NewRiceField,
@@ -57,6 +58,7 @@ function RiceFieldForm({ field }: { field: RiceField }) {
           </button>
         </p>
       </form>
+      <RiceFieldExpenses riceFieldId={field.id} />
     </>
   );
 }

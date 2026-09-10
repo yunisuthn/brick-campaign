@@ -9,6 +9,7 @@ import { MoulderPage } from './moulders/MoulderPage.js';
 import { MouldersPage } from './moulders/MouldersPage.js';
 import { NewMoulderPage } from './moulders/NewMoulderPage.js';
 import { LoginPage } from './pages/LoginPage.js';
+import { NewProductionPage } from './productions/NewProductionPage.js';
 import { ProductionsPage } from './productions/ProductionsPage.js';
 import { NewRiceFieldPage } from './rice-fields/NewRiceFieldPage.js';
 import { RiceFieldPage } from './rice-fields/RiceFieldPage.js';
@@ -44,6 +45,7 @@ export const routes: RouteObject[] = [
           { path: 'clients/nouveau', element: <NewClientPage /> },
           { path: 'clients/:id', element: <ClientPage /> },
           { path: 'productions', element: <ProductionsPage /> },
+          { path: 'productions/nouvelle', element: <NewProductionPage /> },
         ],
       },
     ],

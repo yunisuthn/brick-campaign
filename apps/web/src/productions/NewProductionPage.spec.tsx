@@ -1,0 +1,126 @@
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
+import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
+import { today } from '../format.js';
+import { renderWithProviders } from '../test/render.js';
+import { server } from '../test/server.js';
+import { NewProductionPage } from './NewProductionPage.js';
+
+const campaign = {
+  id: 'c1',
+  year: 2026,
+  startedOn: '2026-05-10',
+  closedOn: null,
+  mouldingRate: 40,
+  transportRate: 10,
+  kilnLoadingRate: 5,
+};
+
+function mount() {
+  renderWithProviders(
+    <CurrentCampaignProvider>
+      <NewProductionPage />
+    </CurrentCampaignProvider>,
+  );
+}
+
+function referenceHandlers() {
+  return [
+    http.get('/api/campaigns', () => HttpResponse.json([campaign])),
+    http.get('/api/moulders', ({ request }) => {
+      expect(new URL(request.url).searchParams.get('includeInactive')).toBe('false');
+      return HttpResponse.json([
+        { id: 'm1', name: 'Rakoto', memberCount: 3, active: true },
+        { id: 'm2', name: 'Rasoa', memberCount: 1, active: true },
+      ]);
+    }),
+    http.get('/api/rice-fields', () =>
+      HttpResponse.json([
+        { id: 'r1', name: 'Ambany', location: 'Sud', surfaceM2: null, contractType: 'durable' },
+      ]),
+    ),
+  ];
+}
+
+describe('NewProductionPage', () => {
+  it('saves one entry after another, keeping the date and the rice field', async () => {
+    const bodies: unknown[] = [];
+    server.use(
+      ...referenceHandlers(),
+      http.post('/api/campaigns/c1/productions', async ({ request }) => {
+        const body = (await request.json()) as object;
+        bodies.push(body);
+        return HttpResponse.json(
+          { id: `p${bodies.length}`, campaignId: 'c1', ...body },
+          { status: 201 },
+        );
+      }),
+    );
+    const user = userEvent.setup();
+    mount();
+
+    const date = await screen.findByLabelText('Date');
+    expect(date).toHaveValue(today());
+    await user.clear(date);
+    await user.type(date, '2026-06-02');
+    await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
+    await user.selectOptions(screen.getByLabelText('Rizière'), 'r1');
+    await user.type(screen.getByLabelText('Quantité (briques)'), '1200');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Enregistré : Rakoto, 1 200 briques.',
+    );
+    expect(screen.getByLabelText('Date')).toHaveValue('2026-06-02');
+    expect(screen.getByLabelText('Rizière')).toHaveValue('r1');
+    expect(screen.getByLabelText('Mouleur')).toHaveValue('');
+    expect(screen.getByLabelText('Quantité (briques)')).toHaveValue('');
+
+    await user.selectOptions(screen.getByLabelText('Mouleur'), 'm2');
+    await user.type(screen.getByLabelText('Quantité (briques)'), '800');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(await screen.findByText('Enregistré : Rasoa, 800 briques.')).toBeInTheDocument();
+    expect(bodies).toEqual([
+      { date: '2026-06-02', moulderId: 'm1', riceFieldId: 'r1', quantity: 1200 },
+      { date: '2026-06-02', moulderId: 'm2', riceFieldId: 'r1', quantity: 800 },
+    ]);
+  });
+
+  it('requires a moulder, a rice field and a whole positive quantity', async () => {
+    server.use(...referenceHandlers());
+    const user = userEvent.setup();
+    mount();
+
+    await user.type(await screen.findByLabelText('Quantité (briques)'), '0');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    const alerts = await screen.findAllByRole('alert');
+    expect(alerts.map((alert) => alert.textContent)).toEqual([
+      'Le mouleur est requis.',
+      'La rizière est requise.',
+      'Un nombre entier de briques est attendu.',
+    ]);
+  });
+
+  it('shows the API message when the entry is refused', async () => {
+    server.use(
+      ...referenceHandlers(),
+      http.post('/api/campaigns/c1/productions', () =>
+        HttpResponse.json({ message: 'Validation failed' }, { status: 400 }),
+      ),
+    );
+    const user = userEvent.setup();
+    mount();
+
+    await user.selectOptions(await screen.findByLabelText('Mouleur'), 'm1');
+    await user.selectOptions(screen.getByLabelText('Rizière'), 'r1');
+    await user.type(screen.getByLabelText('Quantité (briques)'), '500');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Enregistrement impossible : Validation failed',
+    );
+  });
+});

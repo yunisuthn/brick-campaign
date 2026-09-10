@@ -11,6 +11,11 @@ export function ProductionsPage() {
   return (
     <main style={{ padding: '1rem' }}>
       <h1>Productions{campaign && ` · Campagne ${campaign.year}`}</h1>
+      {campaign && (
+        <p>
+          <Link to="/productions/nouvelle">Saisir la production du jour</Link>
+        </p>
+      )}
       {campaign ? (
         <ProductionList campaignId={campaign.id} />
       ) : (

@@ -144,7 +144,7 @@ Les schémas Zod des DTO restent dans l'API. Si le front en a besoin, ils seront
 6. **Versements et dû** : saisie d'un versement (mouleur ou prestataire), page des soldes mouleurs et prestataires.
 7. **Lots et prestations** : lots avec enfournement et défournement, prestations rattachées, coût du lot, stock crue / four / cuite.
 8. **Ventes et livraisons** : ventes avec statut, encaissement, livraisons par voyage.
-9. **Dépenses** : saisie par catégorie, rattachement optionnel à un lot ou une rizière, liste filtrée.
+9. **Dépenses** : saisie par catégorie, rattachement optionnel à un lot ou une rizière, liste filtrée. Fait avant le chantier 8, le 10 septembre 2026 : à l'essai, le besoin de saisir le prix d'un contrat de rizière est apparu tout de suite. La fiche d'une rizière affiche donc le total des dépenses qui lui sont rattachées sur la campagne courante, et non un champ prix : une rizière est un référentiel partagé entre campagnes, un contrat se paie saison par saison.
 10. **Tableau de bord** : chiffre d'affaires, encaissé, reste à encaisser, dépenses par catégorie, main-d'œuvre due et versée, coûts de livraison, résultat, stock.
 11. **PWA** : icônes, installation, coquille en cache. Rien de plus.
 

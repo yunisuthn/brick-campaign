@@ -1,6 +1,9 @@
 import { Navigate, type RouteObject } from 'react-router';
 import { CampaignPage } from './campaigns/CampaignPage.js';
 import { CampaignsPage } from './campaigns/CampaignsPage.js';
+import { ClientPage } from './clients/ClientPage.js';
+import { ClientsPage } from './clients/ClientsPage.js';
+import { NewClientPage } from './clients/NewClientPage.js';
 import { NewCampaignPage } from './campaigns/NewCampaignPage.js';
 import { MoulderPage } from './moulders/MoulderPage.js';
 import { MouldersPage } from './moulders/MouldersPage.js';
@@ -36,6 +39,9 @@ export const routes: RouteObject[] = [
           { path: 'rizieres', element: <RiceFieldsPage /> },
           { path: 'rizieres/nouvelle', element: <NewRiceFieldPage /> },
           { path: 'rizieres/:id', element: <RiceFieldPage /> },
+          { path: 'clients', element: <ClientsPage /> },
+          { path: 'clients/nouveau', element: <NewClientPage /> },
+          { path: 'clients/:id', element: <ClientPage /> },
         ],
       },
     ],

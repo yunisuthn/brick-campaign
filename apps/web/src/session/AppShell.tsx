@@ -49,6 +49,7 @@ const sections = [
   { to: '/clients', label: 'Clients' },
   { to: '/productions', label: 'Productions' },
   { to: '/versements', label: 'Versements' },
+  { to: '/lots', label: 'Lots' },
   { to: '/soldes', label: 'Soldes' },
 ];
 

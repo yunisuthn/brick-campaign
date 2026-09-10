@@ -30,6 +30,9 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
       include: ['src/**/*.spec.{ts,tsx}'],
+      // A form filled key by key takes seconds; the five-second default cut such tests off
+      // before the matchers themselves gave up, which reads as a hang rather than a failure.
+      testTimeout: 20_000,
     },
   };
 });

@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderWithProviders } from '../test/render.js';
@@ -79,6 +80,36 @@ describe('ProductionsPage', () => {
     );
     mount();
     expect(await screen.findByText('Aucune production saisie.')).toBeInTheDocument();
+  });
+
+  it('filters by moulder and period with the API query, and says when nothing matches', async () => {
+    const searches: string[] = [];
+    server.use(
+      http.get('/api/campaigns', () => HttpResponse.json([campaign])),
+      http.get('/api/campaigns/c1/productions', ({ request }) => {
+        searches.push(new URL(request.url).search);
+        return HttpResponse.json([]);
+      }),
+      http.get('/api/moulders', () =>
+        HttpResponse.json([
+          { id: 'm1', name: 'Rakoto', memberCount: 3, active: true },
+          { id: 'm2', name: 'Parti', memberCount: 1, active: false },
+        ]),
+      ),
+      http.get('/api/rice-fields', () => HttpResponse.json([])),
+    );
+    const user = userEvent.setup();
+    mount();
+
+    expect(await screen.findByText('Aucune production saisie.')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Parti (retiré)' })).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
+    await user.type(screen.getByLabelText('Du'), '2026-06-01');
+    await user.type(screen.getByLabelText('Au'), '2026-06-30');
+
+    expect(await screen.findByText('Aucune production pour ces critères.')).toBeInTheDocument();
+    expect(searches.at(-1)).toBe('?moulderId=m1&from=2026-06-01&to=2026-06-30');
   });
 
   it('asks for a campaign first when there is none', async () => {

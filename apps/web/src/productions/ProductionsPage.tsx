@@ -1,9 +1,10 @@
+import { type CSSProperties, useState } from 'react';
 import { Link } from 'react-router';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatBricks, formatDate } from '../format.js';
-import { useMoulders } from '../moulders/useMoulders.js';
+import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
-import { useProductions } from './useProductions.js';
+import { type Production, type ProductionFilters, useProductions } from './useProductions.js';
 
 export function ProductionsPage() {
   const { campaign } = useCurrentCampaign();
@@ -30,26 +31,102 @@ export function ProductionsPage() {
 
 /**
  * The API gives ids; the names come from the reference lists, retired moulders included since
- * an old entry can name a moulder who has left since.
+ * an old entry can name a moulder who has left since. The filters are the API's own.
  */
 function ProductionList({ campaignId }: { campaignId: string }) {
-  const productions = useProductions(campaignId);
+  const [filters, setFilters] = useState<ProductionFilters>({});
+  const productions = useProductions(campaignId, filters);
   const moulders = useMoulders(true);
   const riceFields = useRiceFields();
 
   const failed = [productions, moulders, riceFields].find((query) => query.isError);
-  if (failed) return <p role="alert">Chargement impossible : {failed.error?.message}</p>;
-  if (!productions.isSuccess || !moulders.isSuccess || !riceFields.isSuccess) {
-    return <p role="status">Chargement…</p>;
-  }
-  if (productions.data.length === 0) return <p>Aucune production saisie.</p>;
-
-  const moulderName = new Map(moulders.data.map((m) => [m.id, m.name]));
-  const fieldName = new Map(riceFields.data.map((f) => [f.id, f.name]));
+  const loaded = productions.isSuccess && moulders.isSuccess && riceFields.isSuccess;
+  const filtered = Object.values(filters).some(Boolean);
 
   return (
+    <>
+      <FilterBar moulders={moulders.data ?? []} filters={filters} onChange={setFilters} />
+      {failed && <p role="alert">Chargement impossible : {failed.error?.message}</p>}
+      {!failed && !loaded && <p role="status">Chargement…</p>}
+      {loaded && productions.data.length === 0 && (
+        <p>{filtered ? 'Aucune production pour ces critères.' : 'Aucune production saisie.'}</p>
+      )}
+      {loaded && productions.data.length > 0 && (
+        <Rows
+          productions={productions.data}
+          moulderName={new Map(moulders.data.map((m) => [m.id, m.name]))}
+          fieldName={new Map(riceFields.data.map((f) => [f.id, f.name]))}
+        />
+      )}
+    </>
+  );
+}
+
+interface FilterBarProps {
+  moulders: ReadonlyArray<Moulder>;
+  filters: ProductionFilters;
+  onChange: (filters: ProductionFilters) => void;
+}
+
+const filterControl: CSSProperties = { display: 'block' };
+
+/** A moulder, a period, or both; an empty control means no filter on that side. */
+function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
+  const set = (patch: ProductionFilters) => onChange({ ...filters, ...patch });
+  return (
+    <form
+      aria-label="Filtres"
+      onSubmit={(event) => event.preventDefault()}
+      style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}
+    >
+      <label>
+        Mouleur
+        <select
+          style={filterControl}
+          value={filters.moulderId ?? ''}
+          onChange={(event) => set({ moulderId: event.target.value || undefined })}
+        >
+          <option value="">Tous</option>
+          {moulders.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+              {!m.active && ' (retiré)'}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Du
+        <input
+          type="date"
+          style={filterControl}
+          value={filters.from ?? ''}
+          onChange={(event) => set({ from: event.target.value || undefined })}
+        />
+      </label>
+      <label>
+        Au
+        <input
+          type="date"
+          style={filterControl}
+          value={filters.to ?? ''}
+          onChange={(event) => set({ to: event.target.value || undefined })}
+        />
+      </label>
+    </form>
+  );
+}
+
+interface RowsProps {
+  productions: ReadonlyArray<Production>;
+  moulderName: ReadonlyMap<string, string>;
+  fieldName: ReadonlyMap<string, string>;
+}
+
+function Rows({ productions, moulderName, fieldName }: RowsProps) {
+  return (
     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-      {productions.data.map((production) => (
+      {productions.map((production) => (
         <li
           key={production.id}
           style={{

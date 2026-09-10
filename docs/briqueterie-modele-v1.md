@@ -41,7 +41,7 @@ Activité saisonnière de fabrication et de vente de briques cuites.
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Campagne**       | année, date début, date clôture (nullable), tarif moulage/brique, tarif transport/brique, tarif enfournement/brique (les trois nullables) | Racine de toutes les données. Les tarifs vivent ici car ils changent par saison. Un tarif absent est « à fixer » : il se négocie parfois en cours de saison (décidé le 10 septembre 2026). |
 | **Rizière**        | nom, localisation, surface (opt.), type contrat (durable / campagne)                                                                      | Le coût du contrat est une Dépense, pas un champ ici.                                                                                                                                      |
-| **Mouleur**        | nom du responsable, nombre de membres, actif                                                                                              | Unité de production et de paie. Une personne seule = mouleur à 1 membre. Nom affiché dans l'UI à confirmer (« Mouleur » / « Équipe »).                                                     |
+| **Mouleur**        | nom du responsable, nombre de membres, actif                                                                                              | Unité de production et de paie. Une personne seule = mouleur à 1 membre. Affiché « Mouleur » dans l'interface (tranché le 10 septembre 2026).                                              |
 | **Production**     | date, campagne, mouleur, rizière, quantité                                                                                                | Aucun montant stocké.                                                                                                                                                                      |
 | **Prestation**     | date, campagne, type (transport-four / enfournement), nom libre, quantité, lot de cuisson                                                 | Nom libre éditable. Le dû se calcule par nom exact — documenté comme limite connue.                                                                                                        |
 | **Versement**      | date, campagne, bénéficiaire (mouleur ou nom libre de prestation), type (vatsy / avance / solde), montant                                 | Remplace la colonne « payé » du cahier.                                                                                                                                                    |
@@ -100,12 +100,12 @@ Chaque chantier est terminé, testé et committé avant le suivant.
 
 ## 8. Points ouverts
 
-- Nom de l'entité `Mouleur` dans l'interface
 - Tarif enfournement : confirmé à la brique ? (supposé oui)
 
 Tranchés :
 
 - Tarifs nullables sur la campagne, « à fixer » tant qu'ils ne sont pas négociés (10 septembre 2026, section 3 et 4).
+- « Mouleur » est le nom affiché dans l'interface : le mot du cahier, valable pour une personne seule comme pour un foyer (10 septembre 2026).
 
 ## 9. Front — plan des écrans
 
@@ -150,7 +150,6 @@ Les schémas Zod des DTO restent dans l'API. Si le front en a besoin, ils seront
 
 ### 9.4 Points ouverts du front
 
-- Nom affiché pour « Mouleur » (déjà en section 8), à trancher avant le chantier 4.
 - Le tableau de bord est-il la page d'accueil d'une campagne, ou la liste des saisies du jour ? Supposé : le tableau de bord.
 - Les messages d'erreur 400 de l'API sont en anglais et affichés tels quels. À traduire côté API ou côté front, à trancher.
 

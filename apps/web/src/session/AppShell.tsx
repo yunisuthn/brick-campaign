@@ -1,7 +1,11 @@
 import { Outlet, useNavigate } from 'react-router';
+import { CurrentCampaignProvider, useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useLogout, useSession } from './useSession.js';
 
-/** Header shared by every signed-in screen: who is in, and the way out. */
+/**
+ * Header shared by every signed-in screen: who is in, the way out, and under it the current
+ * campaign, which every entry of the next steps is made under.
+ */
 export function AppShell() {
   const session = useSession();
   const logout = useLogout();
@@ -11,7 +15,7 @@ export function AppShell() {
     logout.mutate(undefined, { onSuccess: () => navigate('/connexion', { replace: true }) });
 
   return (
-    <>
+    <CurrentCampaignProvider>
       <header
         style={{
           display: 'flex',
@@ -31,7 +35,37 @@ export function AppShell() {
           </button>
         </span>
       </header>
+      <CampaignPicker />
       <Outlet />
-    </>
+    </CurrentCampaignProvider>
+  );
+}
+
+/** A closed campaign can still be chosen, to read past figures; it says so in the option. */
+function CampaignPicker() {
+  const { campaign, campaigns, choose } = useCurrentCampaign();
+
+  return (
+    <nav
+      aria-label="Campagne courante"
+      style={{ padding: '0.5rem 1rem', background: 'white', borderBottom: '1px solid #e5ddd4' }}
+    >
+      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        Campagne courante
+        <select
+          value={campaign?.id ?? ''}
+          onChange={(event) => choose(event.target.value)}
+          disabled={campaigns.length === 0}
+        >
+          {campaigns.length === 0 && <option value="">Aucune</option>}
+          {campaigns.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.year}
+              {c.closedOn !== null && ' (clôturée)'}
+            </option>
+          ))}
+        </select>
+      </label>
+    </nav>
   );
 }

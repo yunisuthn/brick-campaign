@@ -10,11 +10,16 @@ const routes = [
   { path: '/', element: <AppShell />, children: [{ index: true, element: <p>Accueil</p> }] },
 ];
 
+const base = { startedOn: '2026-05-10', mouldingRate: 40, transportRate: 10, kilnLoadingRate: 5 };
+const open2026 = { ...base, id: 'c2', year: 2026, closedOn: null };
+const closed2025 = { ...base, id: 'c1', year: 2025, closedOn: '2025-11-30' };
+
 describe('AppShell', () => {
   it('shows who is signed in and signs them out on request', async () => {
     let loggedOut = false;
     server.use(
       http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
+      http.get('/api/campaigns', () => HttpResponse.json([])),
       http.post('/api/auth/logout', () => {
         loggedOut = true;
         return new HttpResponse(null, { status: 204 });
@@ -28,5 +33,33 @@ describe('AppShell', () => {
     expect(await screen.findByText('Écran de connexion')).toBeInTheDocument();
     expect(loggedOut).toBe(true);
     expect(router.state.location.pathname).toBe('/connexion');
+  });
+
+  it('lets the current campaign be picked among all of them, closed ones marked', async () => {
+    server.use(
+      http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
+      http.get('/api/campaigns', () => HttpResponse.json([open2026, closed2025])),
+    );
+    renderRoutes(routes, '/');
+
+    const picker = await screen.findByRole('combobox', { name: 'Campagne courante' });
+    expect(await screen.findByRole('option', { name: '2025 (clôturée)' })).toBeInTheDocument();
+    expect(picker).toHaveValue('c2');
+
+    await userEvent.selectOptions(picker, 'c1');
+    expect(picker).toHaveValue('c1');
+    expect(localStorage.getItem('currentCampaignId')).toBe('c1');
+  });
+
+  it('disables the picker while there is no campaign', async () => {
+    server.use(
+      http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
+      http.get('/api/campaigns', () => HttpResponse.json([])),
+    );
+    renderRoutes(routes, '/');
+
+    const picker = await screen.findByRole('combobox', { name: 'Campagne courante' });
+    expect(picker).toBeDisabled();
+    expect(screen.getByRole('option', { name: 'Aucune' })).toBeInTheDocument();
   });
 });

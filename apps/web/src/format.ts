@@ -24,3 +24,10 @@ export function today(): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
+
+const count = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+
+/** Bricks are counted, never fractional: `1 200 briques`. */
+export function formatBricks(quantity: number): string {
+  return `${count.format(quantity)} ${quantity === 1 ? 'brique' : 'briques'}`;
+}

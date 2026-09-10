@@ -1,4 +1,4 @@
-import { formatAmount, formatDate, today } from './format.js';
+import { formatAmount, formatBricks, formatDate, today } from './format.js';
 
 describe('formatAmount', () => {
   it('groups thousands the French way and appends the currency', () => {
@@ -22,5 +22,12 @@ describe('today', () => {
     vi.useFakeTimers({ now: new Date(2026, 8, 10, 23, 30) });
     expect(today()).toBe('2026-09-10');
     vi.useRealTimers();
+  });
+});
+
+describe('formatBricks', () => {
+  it('groups thousands and agrees the noun', () => {
+    expect(formatBricks(1200)).toBe('1 200 briques');
+    expect(formatBricks(1)).toBe('1 brique');
   });
 });

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { type CSSProperties, useId } from 'react';
 import type { FieldError, UseFormRegisterReturn } from 'react-hook-form';
 
 interface FieldProps {
@@ -7,6 +7,8 @@ interface FieldProps {
   error: FieldError | undefined;
   type?: string;
   inputMode?: 'numeric' | 'tel';
+  /** Offered as a datalist: the value stays free text, the known ones are one tap away. */
+  suggestions?: ReadonlyArray<string>;
 }
 
 const controlStyle: CSSProperties = { display: 'block', width: '100%', boxSizing: 'border-box' };
@@ -22,7 +24,8 @@ function ErrorLine({ error }: { error: FieldError | undefined }) {
 }
 
 /** One labelled input with its own error line: what every short form of the app is made of. */
-export function Field({ label, input, error, type = 'text', inputMode }: FieldProps) {
+export function Field({ label, input, error, type = 'text', inputMode, suggestions }: FieldProps) {
+  const listId = useId();
   return (
     <label style={labelStyle}>
       {label}
@@ -30,9 +33,17 @@ export function Field({ label, input, error, type = 'text', inputMode }: FieldPr
         type={type}
         inputMode={inputMode}
         aria-invalid={!!error}
+        list={suggestions && suggestions.length > 0 ? listId : undefined}
         style={controlStyle}
         {...input}
       />
+      {suggestions && suggestions.length > 0 && (
+        <datalist id={listId}>
+          {suggestions.map((suggestion) => (
+            <option key={suggestion} value={suggestion} />
+          ))}
+        </datalist>
+      )}
       <ErrorLine error={error} />
     </label>
   );

@@ -13,6 +13,18 @@ describe('createCampaignSchema', () => {
     expect(createCampaignSchema.parse(valid)).toEqual({ ...valid, closedOn: null });
   });
 
+  it('lets the rates be left out or null: to be fixed once negotiated', () => {
+    const { year, startedOn } = valid;
+    expect(createCampaignSchema.parse({ year, startedOn, transportRate: null })).toEqual({
+      year,
+      startedOn,
+      closedOn: null,
+      mouldingRate: null,
+      transportRate: null,
+      kilnLoadingRate: null,
+    });
+  });
+
   it.each([
     ['a year outside the range', { year: 1999 }],
     ['a date with a time part', { startedOn: '2026-05-01T00:00:00Z' }],
@@ -35,5 +47,13 @@ describe('updateCampaignSchema', () => {
 
   it('rejects an empty body', () => {
     expect(updateCampaignSchema.safeParse({}).success).toBe(false);
+  });
+
+  it('lets a rate go back to null, but never to a negative or fractional value', () => {
+    expect(updateCampaignSchema.parse({ kilnLoadingRate: null })).toEqual({
+      kilnLoadingRate: null,
+    });
+    expect(updateCampaignSchema.safeParse({ kilnLoadingRate: -1 }).success).toBe(false);
+    expect(updateCampaignSchema.safeParse({ kilnLoadingRate: 2.5 }).success).toBe(false);
   });
 });

@@ -94,4 +94,27 @@ describe('Campaigns (e2e)', () => {
       .send({ year: years[1] })
       .expect(409);
   });
+
+  it('creates a campaign with the rates still to be fixed, then fixes one', async () => {
+    const server = ctx.app.getHttpServer();
+    await ctx.prisma.campaign.deleteMany({ where: { year: { in: years } } });
+
+    const created = await request(server)
+      .post('/campaigns')
+      .set('Cookie', cookie)
+      .send({ year: years[0], startedOn: '2099-05-01' })
+      .expect(201);
+    expect(created.body).toMatchObject({
+      mouldingRate: null,
+      transportRate: null,
+      kilnLoadingRate: null,
+    });
+
+    const fixed = await request(server)
+      .patch(`/campaigns/${created.body.id}`)
+      .set('Cookie', cookie)
+      .send({ mouldingRate: 25 })
+      .expect(200);
+    expect(fixed.body).toEqual({ ...created.body, mouldingRate: 25 });
+  });
 });

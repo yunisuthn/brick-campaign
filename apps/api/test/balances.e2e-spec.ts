@@ -141,4 +141,17 @@ describe('Balances (e2e)', () => {
       .set('Cookie', cookie)
       .expect(404);
   });
+
+  it('reports what is earned and due as unknown while the moulding rate is not fixed', async () => {
+    await ctx.prisma.campaign.update({ where: { id: campaignId }, data: { mouldingRate: null } });
+    try {
+      const res = await request(ctx.app.getHttpServer())
+        .get(`/campaigns/${campaignId}/balances/moulders/${rakotoId}`)
+        .set('Cookie', cookie)
+        .expect(200);
+      expect(res.body).toMatchObject({ bricks: 2500, earned: null, paid: 25000, due: null });
+    } finally {
+      await ctx.prisma.campaign.update({ where: { id: campaignId }, data: { mouldingRate: 20 } });
+    }
+  });
 });

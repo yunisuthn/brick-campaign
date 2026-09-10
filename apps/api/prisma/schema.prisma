@@ -25,9 +25,9 @@ model Campaign {
   year            Int       @unique
   startedOn       DateTime  @map("started_on") @db.Date
   closedOn        DateTime? @map("closed_on") @db.Date
-  mouldingRate    Int       @map("moulding_rate")
-  transportRate   Int       @map("transport_rate")
-  kilnLoadingRate Int       @map("kiln_loading_rate")
+  mouldingRate    Int?      @map("moulding_rate")
+  transportRate   Int?      @map("transport_rate")
+  kilnLoadingRate Int?      @map("kiln_loading_rate")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 

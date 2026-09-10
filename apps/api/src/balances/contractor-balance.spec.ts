@@ -32,3 +32,23 @@ describe('contractorBalance', () => {
     });
   });
 });
+
+describe('contractorBalance with a rate not fixed', () => {
+  it('is unknown when the missing rate is the one needed', () => {
+    const result = contractorBalance(
+      { transportRate: null, kilnLoadingRate: 3 },
+      [{ type: 'transport', quantity: 40000 }],
+      [{ type: 'advance', amount: 100000 }],
+    );
+    expect(result).toMatchObject({ earned: null, paid: 100000, due: null });
+  });
+
+  it('is known when the missing rate is for a type without work', () => {
+    const result = contractorBalance(
+      { transportRate: null, kilnLoadingRate: 3 },
+      [{ type: 'kiln_loading', quantity: 40000 }],
+      [],
+    );
+    expect(result).toMatchObject({ earned: 120000, due: 120000 });
+  });
+});

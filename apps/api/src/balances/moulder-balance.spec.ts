@@ -48,3 +48,22 @@ describe('moulderBalance', () => {
     expect(result.due).toBe(0);
   });
 });
+
+describe('moulderBalance with the rate not fixed', () => {
+  it('knows the bricks and the payments but not what is earned or due', () => {
+    expect(moulderBalance(null, [{ quantity: 2500 }], [{ type: 'vatsy', amount: 10000 }])).toEqual({
+      bricks: 2500,
+      earned: null,
+      paid: 10000,
+      paidByType: { vatsy: 10000, advance: 0, settlement: 0 },
+      due: null,
+    });
+  });
+
+  it('owes nothing for no bricks, so an advance alone is a known negative due', () => {
+    expect(moulderBalance(null, [], [{ type: 'advance', amount: 5000 }])).toMatchObject({
+      earned: 0,
+      due: -5000,
+    });
+  });
+});

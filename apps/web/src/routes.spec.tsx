@@ -5,14 +5,15 @@ import { renderRoutes } from './test/render.js';
 import { server } from './test/server.js';
 
 describe('routes', () => {
-  it('serves the home page at / inside the shell once signed in', async () => {
+  it('sends / to the campaigns inside the shell once signed in', async () => {
     server.use(
       http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
-      http.get('/api/health', () => HttpResponse.json({ status: 'ok', database: 'up' })),
+      http.get('/api/campaigns', () => HttpResponse.json([])),
     );
-    renderRoutes(routes, '/');
-    expect(await screen.findByText('API disponible.')).toBeInTheDocument();
+    const { router } = renderRoutes(routes, '/');
+    expect(await screen.findByText('Aucune campagne.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Déconnexion' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/campagnes');
   });
 
   it('sends a signed-out visitor from / to the login screen', async () => {

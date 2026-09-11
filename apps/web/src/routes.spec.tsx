@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { routes } from './routes.js';
@@ -27,6 +27,18 @@ describe('routes', () => {
     await userEvent.click(await screen.findByRole('link', { name: 'Mouleurs' }));
     expect(await screen.findByText('Aucun mouleur.')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/mouleurs');
+  });
+
+  it('reaches the rest of the sections from the bottom bar’s "Plus"', async () => {
+    server.use(
+      http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
+      http.get('/api/campaigns', () => HttpResponse.json([])),
+    );
+    const { router } = renderRoutes(routes, '/');
+    await userEvent.click(await screen.findByRole('link', { name: 'Plus' }));
+    const list = await screen.findByRole('navigation', { name: 'Autres sections' });
+    expect(within(list).getByRole('link', { name: 'Soldes' })).toHaveAttribute('href', '/soldes');
+    expect(router.state.location.pathname).toBe('/plus');
   });
 
   it('sends a signed-out visitor from / to the login screen', async () => {

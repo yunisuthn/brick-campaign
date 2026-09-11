@@ -7,6 +7,7 @@ import { ClientPage } from './clients/ClientPage.js';
 import { ClientsPage } from './clients/ClientsPage.js';
 import { NewClientPage } from './clients/NewClientPage.js';
 import { NewCampaignPage } from './campaigns/NewCampaignPage.js';
+import { MorePage } from './more/MorePage.js';
 import { MoulderPage } from './moulders/MoulderPage.js';
 import { MouldersPage } from './moulders/MouldersPage.js';
 import { NewMoulderPage } from './moulders/NewMoulderPage.js';
@@ -87,6 +88,7 @@ export const routes: RouteObject[] = [
           { path: 'depenses/nouvelle', element: <NewExpensePage /> },
           { path: 'depenses/:id', element: <ExpensePage /> },
           { path: 'soldes', element: <BalancesPage /> },
+          { path: 'plus', element: <MorePage /> },
         ],
       },
     ],

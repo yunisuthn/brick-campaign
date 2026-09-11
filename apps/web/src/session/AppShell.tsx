@@ -28,6 +28,7 @@ export function AppShell() {
       <CampaignPicker />
       <MainNav />
       <Outlet />
+      <BottomNav />
     </CurrentCampaignProvider>
   );
 }
@@ -49,12 +50,37 @@ const sections = [
 /**
  * One link per section; the stylesheet marks the current one, which react-router flags with
  * `aria-current`. The dashboard needs `end`: every path descends from the root, so without it
- * that link would always look like the current one.
+ * that link would always look like the current one. Hidden under 640 pixels (section 10.7),
+ * where eleven links wrapped to three lines above every screen; the bottom bar takes over.
  */
 function MainNav() {
   return (
     <nav aria-label="Sections" className="shell-nav">
       {sections.map((section) => (
+        <NavLink key={section.to} to={section.to} end={section.to === '/'}>
+          {section.label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
+const bottomSections = [
+  { to: '/', label: 'Accueil' },
+  { to: '/productions', label: 'Productions' },
+  { to: '/ventes', label: 'Ventes' },
+  { to: '/plus', label: 'Plus' },
+];
+
+/**
+ * Four destinations under the thumb (reference document, section 10.7): the evening's two main
+ * entries, the dashboard they open on, and everything else behind "Plus". Shown only under 640
+ * pixels; same routes as the top bar, so nothing needs keeping in sync between the two.
+ */
+function BottomNav() {
+  return (
+    <nav aria-label="Navigation" className="shell-bottom-nav">
+      {bottomSections.map((section) => (
         <NavLink key={section.to} to={section.to} end={section.to === '/'}>
           {section.label}
         </NavLink>

@@ -350,6 +350,55 @@ span[role='alert'] {
   text-decoration: underline;
 }
 
+/*
+ * Below 640 pixels eleven links wrap to three lines above every screen, before any content
+ * (reference document, section 10.7): the top bar gives way to four destinations at the
+ * bottom, under the thumb, and the page keeps clear of it.
+ */
+@media (max-width: 640px) {
+  .shell-nav {
+    display: none;
+  }
+
+  body {
+    padding-bottom: calc(var(--tap) + env(safe-area-inset-bottom));
+  }
+}
+
+.shell-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .shell-bottom-nav {
+    position: fixed;
+    z-index: 1;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+}
+
+.shell-bottom-nav a {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  color: var(--ink-soft);
+  text-align: center;
+  text-decoration: none;
+}
+
+.shell-bottom-nav a[aria-current='page'] {
+  color: var(--brick-dark);
+  font-weight: 700;
+}
+
 /* A form that opens inside a page rather than filling one: the rates, the closing date. */
 .inline-form {
   margin-top: 1rem;

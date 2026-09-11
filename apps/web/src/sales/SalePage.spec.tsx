@@ -2,7 +2,6 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
-import { today } from '../format.js';
 import { renderRoutes } from '../test/render.js';
 import { server } from '../test/server.js';
 import { SalePage } from './SalePage.js';
@@ -23,10 +22,11 @@ const sale = {
   date: '2026-08-01',
   orderedQuantity: 5000,
   unitPrice: 250,
-  payment: null,
   deliveredQuantity: 5000,
+  receivedAmount: 400000,
   total: 1250000,
-  status: 'delivered' as const,
+  outstanding: 850000,
+  status: 'partially_paid' as const,
 };
 
 function Page() {
@@ -45,6 +45,9 @@ const routes = [
 const baseHandlers = [
   http.get('/api/campaigns', () => HttpResponse.json([campaign])),
   http.get('/api/campaigns/c1/sales/s1/deliveries', () => HttpResponse.json([])),
+  http.get('/api/campaigns/c1/sales/s1/payments', () =>
+    HttpResponse.json([{ id: 'p1', saleId: 's1', date: '2026-08-05', amount: 400000 }]),
+  ),
   http.get('/api/clients', () =>
     HttpResponse.json([
       { id: 'cl1', name: 'Rabe', phone: null, locality: 'Antsirabe' },
@@ -54,40 +57,43 @@ const baseHandlers = [
 ];
 
 describe('SalePage', () => {
-  it('records the payment with the total owed by default, then takes it back', async () => {
-    const bodies: unknown[] = [];
-    let current = sale;
+  it('tells what came in, what is left, and leads to a new instalment', async () => {
     server.use(
       ...baseHandlers,
-      http.get('/api/campaigns/c1/sales/s1', () => HttpResponse.json(current)),
-      http.patch('/api/campaigns/c1/sales/s1', async ({ request }) => {
-        const body = (await request.json()) as { payment: unknown };
-        bodies.push(body);
-        current = {
-          ...sale,
-          payment: body.payment as typeof sale.payment,
-          status: body.payment === null ? 'delivered' : ('paid' as never),
-        };
-        return HttpResponse.json(current);
-      }),
+      http.get('/api/campaigns/c1/sales/s1', () => HttpResponse.json(sale)),
     );
-    const user = userEvent.setup();
     renderRoutes(routes, '/ventes/s1');
 
-    expect(await screen.findByLabelText('Montant encaissé (Ar)')).toHaveValue('1250000');
-    await user.click(screen.getByRole('button', { name: 'Encaisser' }));
-
-    expect(await screen.findByText(/1 250 000 Ar reçus le/)).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Reprendre l’encaissement' }));
-
-    expect(await screen.findByRole('button', { name: 'Encaisser' })).toBeInTheDocument();
-    expect(bodies).toEqual([
-      { payment: { paidOn: today(), amountReceived: 1250000 } },
-      { payment: null },
-    ]);
+    expect(await screen.findByRole('heading', { name: /Rabe/ })).toHaveTextContent(
+      'Partiellement payée',
+    );
+    expect(
+      screen.getByText(/400 000 Ar reçus sur 1 250 000 Ar, reste 850 000 Ar à encaisser/),
+    ).toBeInTheDocument();
+    // The accessible name keeps the narrow spaces French puts between thousands.
+    expect(await screen.findByRole('link', { name: /400\s000\sAr/ })).toHaveAttribute(
+      'href',
+      '/ventes/s1/encaissements/p1',
+    );
+    expect(screen.getByRole('link', { name: 'Encaisser un versement' })).toHaveAttribute(
+      'href',
+      '/ventes/s1/encaissements/nouveau',
+    );
   });
 
-  it('corrects the sale without touching its payment', async () => {
+  it('offers no new instalment once the sale is paid in full', async () => {
+    const paid = { ...sale, receivedAmount: 1250000, outstanding: 0, status: 'paid' as const };
+    server.use(
+      ...baseHandlers,
+      http.get('/api/campaigns/c1/sales/s1', () => HttpResponse.json(paid)),
+    );
+    renderRoutes(routes, '/ventes/s1');
+
+    expect(await screen.findByText(/1 250 000 Ar reçus sur 1 250 000 Ar\./)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Encaisser un versement' })).not.toBeInTheDocument();
+  });
+
+  it('corrects the sale without touching what came in', async () => {
     let body: unknown;
     server.use(
       ...baseHandlers,
@@ -112,16 +118,16 @@ describe('SalePage', () => {
     });
   });
 
-  it('says the deliveries must go first when the API refuses the cancellation', async () => {
+  it('says the instalments must go first when the API refuses the cancellation', async () => {
     server.use(
       ...baseHandlers,
       http.get('/api/campaigns/c1/sales/s1', () => HttpResponse.json(sale)),
       http.delete('/api/campaigns/c1/sales/s1', () =>
         HttpResponse.json(
           {
-            code: 'sale_has_deliveries',
-            message: 'Sale s1 still has 2 delivery(ies)',
-            details: { deliveries: 2 },
+            code: 'sale_has_payments',
+            message: 'Sale s1 still has 1 payment(s)',
+            details: { payments: 1 },
           },
           { status: 409 },
         ),
@@ -134,7 +140,7 @@ describe('SalePage', () => {
     await user.click(screen.getByRole('button', { name: 'Confirmer l’annulation' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Annulation impossible : Cette vente porte encore 2 voyages : annulez-les d’abord.',
+      'Annulation impossible : Cette vente porte encore 1 encaissement : annulez-la d’abord.',
     );
   });
 

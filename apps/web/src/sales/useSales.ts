@@ -1,21 +1,16 @@
 import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
 
-export type SaleStatus = 'ordered' | 'delivered' | 'paid';
+export type SaleStatus = 'ordered' | 'delivered' | 'partially_paid' | 'paid';
 
-/** Derived by the API from the deliveries and the payment, never stored. */
+/** Derived by the API from the deliveries and the instalments, never stored. */
 export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
   ordered: 'Commandée',
   delivered: 'Livrée',
+  partially_paid: 'Partiellement payée',
   paid: 'Payée',
 };
 
-/** The client pays once, when everything is delivered: both fields together, or nothing. */
-export interface SalePayment {
-  paidOn: string;
-  amountReceived: number;
-}
-
-/** Mirror of the API's SaleDto; everything below `payment` is derived at read time. */
+/** Mirror of the API's SaleDto; everything below `unitPrice` is derived at read time. */
 export interface Sale {
   id: string;
   campaignId: string;
@@ -23,16 +18,18 @@ export interface Sale {
   date: string;
   orderedQuantity: number;
   unitPrice: number;
-  payment: SalePayment | null;
+  /** Sum of the live trips. */
   deliveredQuantity: number;
+  /** Sum of the live instalments (reference document, section 10.5). */
+  receivedAmount: number;
   /** orderedQuantity x unitPrice. */
   total: number;
+  /** total - receivedAmount: what this client still owes. */
+  outstanding: number;
   status: SaleStatus;
 }
 
-export type NewSale = Pick<Sale, 'clientId' | 'date' | 'orderedQuantity' | 'unitPrice'> & {
-  payment?: SalePayment | null;
-};
+export type NewSale = Pick<Sale, 'clientId' | 'date' | 'orderedQuantity' | 'unitPrice'>;
 export type SalePatch = Partial<NewSale>;
 
 export const SALES_KEY = ['sales'] as const;

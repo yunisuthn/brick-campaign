@@ -9,7 +9,7 @@ import { SaleDeliveries } from '../deliveries/SaleDeliveries.js';
 import { Field, SelectField } from '../form/Field.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
-import { SalePayment } from './SalePayment.js';
+import { SalePayments } from '../sale-payments/SalePayments.js';
 import {
   type Sale,
   SALE_STATUS_LABELS,
@@ -52,7 +52,7 @@ function LoadedSale({ campaignId, id }: { campaignId: string; id: string }) {
     <>
       <SaleHeading sale={sale.data} clients={clients.data} />
       <SaleDeliveries campaignId={campaignId} saleId={sale.data.id} />
-      <SalePayment sale={sale.data} />
+      <SalePayments sale={sale.data} />
       <SaleForm key={sale.data.id} sale={sale.data} clients={clients.data} />
     </>
   );
@@ -73,7 +73,7 @@ function SaleHeading({ sale, clients }: { sale: Sale; clients: ReadonlyArray<Cli
   );
 }
 
-/** The payment is left out of this form: it has its own, above. */
+/** The instalments are left out of this form: they have their own section, above. */
 function SaleForm({ sale, clients }: { sale: Sale; clients: ReadonlyArray<Client> }) {
   const update = useUpdateSale(sale.campaignId, sale.id);
   const cancel = useCancelSale(sale.campaignId, sale.id);

@@ -30,6 +30,8 @@ import { ProductionsPage } from './productions/ProductionsPage.js';
 import { NewRiceFieldPage } from './rice-fields/NewRiceFieldPage.js';
 import { RiceFieldPage } from './rice-fields/RiceFieldPage.js';
 import { RiceFieldsPage } from './rice-fields/RiceFieldsPage.js';
+import { NewSalePaymentPage } from './sale-payments/NewSalePaymentPage.js';
+import { SalePaymentPage } from './sale-payments/SalePaymentPage.js';
 import { NewSalePage } from './sales/NewSalePage.js';
 import { SalePage } from './sales/SalePage.js';
 import { SalesPage } from './sales/SalesPage.js';
@@ -77,6 +79,8 @@ export const routes: RouteObject[] = [
           { path: 'ventes', element: <SalesPage /> },
           { path: 'ventes/nouvelle', element: <NewSalePage /> },
           { path: 'ventes/:id', element: <SalePage /> },
+          { path: 'ventes/:id/encaissements/nouveau', element: <NewSalePaymentPage /> },
+          { path: 'ventes/:id/encaissements/:paymentId', element: <SalePaymentPage /> },
           { path: 'ventes/:id/livraisons/nouvelle', element: <NewDeliveryPage /> },
           { path: 'ventes/:id/livraisons/:deliveryId', element: <DeliveryPage /> },
           { path: 'depenses', element: <ExpensesPage /> },

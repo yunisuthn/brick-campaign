@@ -30,7 +30,7 @@ describe('Auth (e2e)', () => {
 
   it('rejects a malformed login body with 400', async () => {
     await request(app.getHttpServer())
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: 'not-an-email', password })
       .expect(400)
       .expect(hasCode('validation_failed'));
@@ -38,7 +38,7 @@ describe('Auth (e2e)', () => {
 
   it('rejects wrong credentials with 401 and no cookie', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email, password: 'wrong-password' })
       .expect(401)
       .expect(hasCode('invalid_credentials'));
@@ -47,14 +47,14 @@ describe('Auth (e2e)', () => {
 
   it('refuses /auth/me without a session', async () => {
     await request(app.getHttpServer())
-      .get('/auth/me')
+      .get('/api/auth/me')
       .expect(401)
       .expect(hasCode('session_required'));
   });
 
   it('logs in, reads the session, logs out, and is refused again', async () => {
     const login = await request(app.getHttpServer())
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ email: email.toUpperCase(), password })
       .expect(200);
     expect(login.body).toEqual({ id: expect.any(String), email });
@@ -63,23 +63,26 @@ describe('Auth (e2e)', () => {
     expect(cookie).toMatch(/HttpOnly/);
     expect(cookie).toMatch(/SameSite=Lax/);
 
-    const me = await request(app.getHttpServer()).get('/auth/me').set('Cookie', cookie).expect(200);
+    const me = await request(app.getHttpServer())
+      .get('/api/auth/me')
+      .set('Cookie', cookie)
+      .expect(200);
     expect(me.body).toEqual(login.body);
 
     const logout = await request(app.getHttpServer())
-      .post('/auth/logout')
+      .post('/api/auth/logout')
       .set('Cookie', cookie)
       .expect(204);
     const cleared = logout.headers['set-cookie'][0];
     expect(cleared).toMatch(/^session=;/);
     expect(cleared).toMatch(/Expires=Thu, 01 Jan 1970/);
 
-    await request(app.getHttpServer()).get('/auth/me').set('Cookie', cleared).expect(401);
+    await request(app.getHttpServer()).get('/api/auth/me').set('Cookie', cleared).expect(401);
   });
 
   it('refuses a tampered cookie', async () => {
     await request(app.getHttpServer())
-      .get('/auth/me')
+      .get('/api/auth/me')
       .set('Cookie', 'session=not.a.jwt')
       .expect(401);
   });

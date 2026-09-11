@@ -51,7 +51,7 @@ describe('Productions (e2e)', () => {
     await ctx.close();
   });
 
-  const path = () => `/campaigns/${campaignId}/productions`;
+  const path = () => `/api/campaigns/${campaignId}/productions`;
 
   it('requires a session', async () => {
     await request(ctx.app.getHttpServer()).get(path()).expect(401);
@@ -59,7 +59,7 @@ describe('Productions (e2e)', () => {
 
   it('returns 404 for an unknown campaign', async () => {
     await request(ctx.app.getHttpServer())
-      .get('/campaigns/00000000-0000-7000-8000-000000000000/productions')
+      .get('/api/campaigns/00000000-0000-7000-8000-000000000000/productions')
       .set('Cookie', cookie)
       .expect(404)
       .expect(hasCode('campaign_not_found'));

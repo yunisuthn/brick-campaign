@@ -39,7 +39,7 @@ describe('Payments (e2e)', () => {
     await ctx.close();
   });
 
-  const path = () => `/campaigns/${campaignId}/payments`;
+  const path = () => `/api/campaigns/${campaignId}/payments`;
   const contractorName = `${prefix} Rasoa`;
 
   it('requires a session', async () => {

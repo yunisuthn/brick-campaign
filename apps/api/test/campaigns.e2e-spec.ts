@@ -27,9 +27,9 @@ describe('Campaigns (e2e)', () => {
 
   it('requires a session on every route', async () => {
     const server = ctx.app.getHttpServer();
-    await request(server).get('/campaigns').expect(401).expect(hasCode('session_required'));
+    await request(server).get('/api/campaigns').expect(401).expect(hasCode('session_required'));
     await request(server)
-      .post('/campaigns')
+      .post('/api/campaigns')
       .send(body)
       .expect(401)
       .expect(hasCode('session_required'));
@@ -37,7 +37,7 @@ describe('Campaigns (e2e)', () => {
 
   it('rejects an invalid body with the failing paths', async () => {
     const res = await request(ctx.app.getHttpServer())
-      .post('/campaigns')
+      .post('/api/campaigns')
       .set('Cookie', cookie)
       .send({ ...body, startedOn: 'May 2099', mouldingRate: -1 })
       .expect(400);
@@ -49,12 +49,12 @@ describe('Campaigns (e2e)', () => {
   it('rejects a malformed id with 400 and an unknown id with 404', async () => {
     const server = ctx.app.getHttpServer();
     await request(server)
-      .get('/campaigns/not-a-uuid')
+      .get('/api/campaigns/not-a-uuid')
       .set('Cookie', cookie)
       .expect(400)
       .expect(hasCode('validation_failed'));
     await request(server)
-      .get('/campaigns/00000000-0000-7000-8000-000000000000')
+      .get('/api/campaigns/00000000-0000-7000-8000-000000000000')
       .set('Cookie', cookie)
       .expect(404)
       .expect(hasCode('campaign_not_found'));
@@ -64,7 +64,7 @@ describe('Campaigns (e2e)', () => {
     const server = ctx.app.getHttpServer();
 
     const created = await request(server)
-      .post('/campaigns')
+      .post('/api/campaigns')
       .set('Cookie', cookie)
       .send(body)
       .expect(201);
@@ -72,40 +72,43 @@ describe('Campaigns (e2e)', () => {
     const id: string = created.body.id;
 
     await request(server)
-      .post('/campaigns')
+      .post('/api/campaigns')
       .set('Cookie', cookie)
       .send(body)
       .expect(409)
       .expect(hasCode('campaign_year_taken'));
 
     await request(server)
-      .post('/campaigns')
+      .post('/api/campaigns')
       .set('Cookie', cookie)
       .send({ ...body, year: years[1], startedOn: '2098-05-01' })
       .expect(201);
-    const list = await request(server).get('/campaigns').set('Cookie', cookie).expect(200);
+    const list = await request(server).get('/api/campaigns').set('Cookie', cookie).expect(200);
     const listedYears = list.body.map((c: { year: number }) => c.year);
     expect(listedYears.indexOf(years[0])).toBeLessThan(listedYears.indexOf(years[1]));
 
-    const read = await request(server).get(`/campaigns/${id}`).set('Cookie', cookie).expect(200);
+    const read = await request(server)
+      .get(`/api/campaigns/${id}`)
+      .set('Cookie', cookie)
+      .expect(200);
     expect(read.body).toEqual(created.body);
 
     await request(server)
-      .patch(`/campaigns/${id}`)
+      .patch(`/api/campaigns/${id}`)
       .set('Cookie', cookie)
       .send({ closedOn: '2099-04-30' })
       .expect(400)
       .expect(hasCode('campaign_dates_out_of_order'));
 
     const closed = await request(server)
-      .patch(`/campaigns/${id}`)
+      .patch(`/api/campaigns/${id}`)
       .set('Cookie', cookie)
       .send({ closedOn: '2099-11-30', mouldingRate: 25 })
       .expect(200);
     expect(closed.body).toEqual({ ...created.body, closedOn: '2099-11-30', mouldingRate: 25 });
 
     await request(server)
-      .patch(`/campaigns/${id}`)
+      .patch(`/api/campaigns/${id}`)
       .set('Cookie', cookie)
       .send({ year: years[1] })
       .expect(409)
@@ -117,7 +120,7 @@ describe('Campaigns (e2e)', () => {
     await ctx.prisma.campaign.deleteMany({ where: { year: { in: years } } });
 
     const created = await request(server)
-      .post('/campaigns')
+      .post('/api/campaigns')
       .set('Cookie', cookie)
       .send({ year: years[0], startedOn: '2099-05-01' })
       .expect(201);
@@ -128,7 +131,7 @@ describe('Campaigns (e2e)', () => {
     });
 
     const fixed = await request(server)
-      .patch(`/campaigns/${created.body.id}`)
+      .patch(`/api/campaigns/${created.body.id}`)
       .set('Cookie', cookie)
       .send({ mouldingRate: 25 })
       .expect(200);

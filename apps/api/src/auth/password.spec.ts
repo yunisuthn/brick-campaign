@@ -15,11 +15,14 @@ describe('hashPassword / verifyPassword', () => {
     expect(a).not.toBe(b);
   });
 
+  // Three argon2 passes, deliberately slow, against every other test file at once: the
+  // five-second default cut this off on a loaded machine, which reads as a failure of the
+  // hashing rather than of the clock.
   it('verifies the right password and rejects a wrong one', async () => {
     const hash = await hashPassword('right-password');
     await expect(verifyPassword(hash, 'right-password')).resolves.toBe(true);
     await expect(verifyPassword(hash, 'wrong-password')).resolves.toBe(false);
-  });
+  }, 20_000);
 });
 
 describe('normaliseEmail', () => {

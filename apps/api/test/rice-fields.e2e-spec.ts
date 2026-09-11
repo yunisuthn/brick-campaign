@@ -17,12 +17,12 @@ describe('Rice fields (e2e)', () => {
   });
 
   it('requires a session', async () => {
-    await request(ctx.app.getHttpServer()).get('/rice-fields').expect(401);
+    await request(ctx.app.getHttpServer()).get('/api/rice-fields').expect(401);
   });
 
   it('rejects an unknown contract type with 400', async () => {
     await request(ctx.app.getHttpServer())
-      .post('/rice-fields')
+      .post('/api/rice-fields')
       .set('Cookie', cookie)
       .send({ name: `${prefix} x`, location: 'Somewhere', contractType: 'monthly' })
       .expect(400);
@@ -37,21 +37,24 @@ describe('Rice fields (e2e)', () => {
     };
 
     const created = await request(server)
-      .post('/rice-fields')
+      .post('/api/rice-fields')
       .set('Cookie', cookie)
       .send(body)
       .expect(201);
     expect(created.body).toEqual({ id: expect.any(String), surfaceM2: null, ...body });
     const id: string = created.body.id;
 
-    const list = await request(server).get('/rice-fields').set('Cookie', cookie).expect(200);
+    const list = await request(server).get('/api/rice-fields').set('Cookie', cookie).expect(200);
     expect(list.body).toContainEqual(created.body);
 
-    const read = await request(server).get(`/rice-fields/${id}`).set('Cookie', cookie).expect(200);
+    const read = await request(server)
+      .get(`/api/rice-fields/${id}`)
+      .set('Cookie', cookie)
+      .expect(200);
     expect(read.body).toEqual(created.body);
 
     const updated = await request(server)
-      .patch(`/rice-fields/${id}`)
+      .patch(`/api/rice-fields/${id}`)
       .set('Cookie', cookie)
       .send({ surfaceM2: 1200, contractType: 'seasonal' })
       .expect(200);

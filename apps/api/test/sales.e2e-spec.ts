@@ -42,7 +42,7 @@ describe('Sales (e2e)', () => {
     await ctx.close();
   });
 
-  const path = () => `/campaigns/${campaignId}/sales`;
+  const path = () => `/api/campaigns/${campaignId}/sales`;
 
   it('requires a session', async () => {
     await request(ctx.app.getHttpServer()).get(path()).expect(401);

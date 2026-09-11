@@ -5,6 +5,8 @@ export const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   DATABASE_URL: z.string().startsWith('postgresql://', 'must be a postgresql:// connection URL'),
   JWT_SECRET: z.string().min(32, 'must be at least 32 characters'),
+  /** Where the built front sits. Set online, left unset in development where Vite serves it. */
+  WEB_ROOT: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

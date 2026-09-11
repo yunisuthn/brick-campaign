@@ -98,13 +98,13 @@ describe('Balances (e2e)', () => {
 
   it('requires a session', async () => {
     await request(ctx.app.getHttpServer())
-      .get(`/campaigns/${campaignId}/balances/moulders`)
+      .get(`/api/campaigns/${campaignId}/balances/moulders`)
       .expect(401);
   });
 
   it('lists what each moulder is owed for the campaign', async () => {
     const res = await request(ctx.app.getHttpServer())
-      .get(`/campaigns/${campaignId}/balances/moulders`)
+      .get(`/api/campaigns/${campaignId}/balances/moulders`)
       .set('Cookie', cookie)
       .expect(200);
     expect(res.body).toEqual([
@@ -132,12 +132,12 @@ describe('Balances (e2e)', () => {
   it('reads one moulder, and 404s on an unknown one', async () => {
     const server = ctx.app.getHttpServer();
     const res = await request(server)
-      .get(`/campaigns/${campaignId}/balances/moulders/${rasoaId}`)
+      .get(`/api/campaigns/${campaignId}/balances/moulders/${rasoaId}`)
       .set('Cookie', cookie)
       .expect(200);
     expect(res.body).toMatchObject({ moulderId: rasoaId, due: 16000 });
     await request(server)
-      .get(`/campaigns/${campaignId}/balances/moulders/00000000-0000-7000-8000-000000000000`)
+      .get(`/api/campaigns/${campaignId}/balances/moulders/00000000-0000-7000-8000-000000000000`)
       .set('Cookie', cookie)
       .expect(404);
   });
@@ -146,7 +146,7 @@ describe('Balances (e2e)', () => {
     await ctx.prisma.campaign.update({ where: { id: campaignId }, data: { mouldingRate: null } });
     try {
       const res = await request(ctx.app.getHttpServer())
-        .get(`/campaigns/${campaignId}/balances/moulders/${rakotoId}`)
+        .get(`/api/campaigns/${campaignId}/balances/moulders/${rakotoId}`)
         .set('Cookie', cookie)
         .expect(200);
       expect(res.body).toMatchObject({ bricks: 2500, earned: null, paid: 25000, due: null });

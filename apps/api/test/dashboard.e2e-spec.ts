@@ -178,7 +178,7 @@ describe('Dashboard (e2e)', () => {
     await ctx.close();
   });
 
-  const path = () => `/campaigns/${campaignId}/dashboard`;
+  const path = () => `/api/campaigns/${campaignId}/dashboard`;
 
   it('requires a session', async () => {
     await request(ctx.app.getHttpServer()).get(path()).expect(401);
@@ -232,7 +232,7 @@ describe('Dashboard (e2e)', () => {
 
   it('404s on an unknown campaign', async () => {
     await request(ctx.app.getHttpServer())
-      .get('/campaigns/00000000-0000-7000-8000-000000000000/dashboard')
+      .get('/api/campaigns/00000000-0000-7000-8000-000000000000/dashboard')
       .set('Cookie', cookie)
       .expect(404);
   });

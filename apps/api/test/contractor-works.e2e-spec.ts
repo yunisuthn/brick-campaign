@@ -70,7 +70,7 @@ describe('Contractor works (e2e)', () => {
     await ctx.close();
   });
 
-  const path = () => `/campaigns/${campaignId}/contractor-works`;
+  const path = () => `/api/campaigns/${campaignId}/contractor-works`;
 
   it('requires a session', async () => {
     await request(ctx.app.getHttpServer()).get(path()).expect(401);
@@ -133,7 +133,9 @@ describe('Contractor works (e2e)', () => {
 
     // 40 000 x 5 + 40 000 x 3 = 320 000 earned, 100 000 advanced.
     const balance = await request(server)
-      .get(`/campaigns/${campaignId}/balances/contractors/${encodeURIComponent(contractorName)}`)
+      .get(
+        `/api/campaigns/${campaignId}/balances/contractors/${encodeURIComponent(contractorName)}`,
+      )
       .set('Cookie', cookie)
       .expect(200);
     expect(balance.body).toEqual({
@@ -145,14 +147,14 @@ describe('Contractor works (e2e)', () => {
       due: 220000,
     });
     const all = await request(server)
-      .get(`/campaigns/${campaignId}/balances/contractors`)
+      .get(`/api/campaigns/${campaignId}/balances/contractors`)
       .set('Cookie', cookie)
       .expect(200);
     expect(all.body).toEqual([balance.body]);
 
     // The batch has live works: it cannot be cancelled until they are.
     await request(server)
-      .delete(`/campaigns/${campaignId}/kiln-batches/${batchId}`)
+      .delete(`/api/campaigns/${campaignId}/kiln-batches/${batchId}`)
       .set('Cookie', cookie)
       .expect(409);
 
@@ -161,7 +163,9 @@ describe('Contractor works (e2e)', () => {
       .set('Cookie', cookie)
       .expect(204);
     const after = await request(server)
-      .get(`/campaigns/${campaignId}/balances/contractors/${encodeURIComponent(contractorName)}`)
+      .get(
+        `/api/campaigns/${campaignId}/balances/contractors/${encodeURIComponent(contractorName)}`,
+      )
       .set('Cookie', cookie)
       .expect(200);
     expect(after.body).toMatchObject({ earned: 120000, due: 20000 });

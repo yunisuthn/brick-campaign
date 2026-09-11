@@ -37,7 +37,9 @@ export async function bootstrapE2e(): Promise<E2eContext> {
   const email = `${uniqueTag()}@example.com`;
   const password = 'a-long-enough-password';
   await prisma.user.create({ data: { email, passwordHash: await hashPassword(password) } });
-  const login = await request(app.getHttpServer()).post('/auth/login').send({ email, password });
+  const login = await request(app.getHttpServer())
+    .post('/api/auth/login')
+    .send({ email, password });
 
   return {
     app,

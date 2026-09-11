@@ -40,9 +40,10 @@ const pwa = VitePWA({
 });
 
 /**
- * The front calls the API under `/api`; in development Vite forwards it to the Nest server
- * (same origin, so the session cookie needs no CORS setup). The API has no prefix of its own,
- * hence the rewrite; a reverse proxy does the same in production.
+ * The front calls the API under `/api`; in development Vite forwards it to the Nest server,
+ * same origin, so the session cookie needs no CORS setup. Nothing is rewritten on the way: the
+ * API answers under `/api` too (reference document, section 10.2), and online it serves this
+ * front itself, so a path means the same thing everywhere.
  *
  * The API port comes from the root `.env`, the same `PORT` the API itself reads, so the two
  * cannot drift apart; `API_URL` overrides the whole target when the API runs elsewhere.
@@ -55,7 +56,6 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           target: env.API_URL ?? `http://localhost:${env.PORT ?? 3000}`,
-          rewrite: (path) => path.replace(/^\/api/, ''),
         },
       },
     },

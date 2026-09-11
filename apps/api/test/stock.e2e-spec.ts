@@ -73,12 +73,12 @@ describe('Stock (e2e)', () => {
   });
 
   it('requires a session', async () => {
-    await request(ctx.app.getHttpServer()).get(`/campaigns/${campaignId}/stock`).expect(401);
+    await request(ctx.app.getHttpServer()).get(`/api/campaigns/${campaignId}/stock`).expect(401);
   });
 
   it('sums live entries only: one batch fired, one still in the kiln', async () => {
     const res = await request(ctx.app.getHttpServer())
-      .get(`/campaigns/${campaignId}/stock`)
+      .get(`/api/campaigns/${campaignId}/stock`)
       .set('Cookie', cookie)
       .expect(200);
     expect(res.body).toEqual({
@@ -95,7 +95,7 @@ describe('Stock (e2e)', () => {
 
   it('404s on an unknown campaign', async () => {
     await request(ctx.app.getHttpServer())
-      .get('/campaigns/00000000-0000-7000-8000-000000000000/stock')
+      .get('/api/campaigns/00000000-0000-7000-8000-000000000000/stock')
       .set('Cookie', cookie)
       .expect(404);
   });

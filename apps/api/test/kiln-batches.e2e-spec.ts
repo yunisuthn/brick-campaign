@@ -53,7 +53,7 @@ describe('Kiln batches (e2e)', () => {
     await ctx.close();
   });
 
-  const path = () => `/campaigns/${campaignId}/kiln-batches`;
+  const path = () => `/api/campaigns/${campaignId}/kiln-batches`;
 
   it('requires a session', async () => {
     await request(ctx.app.getHttpServer()).get(path()).expect(401);

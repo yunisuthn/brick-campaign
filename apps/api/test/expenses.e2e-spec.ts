@@ -74,7 +74,7 @@ describe('Expenses (e2e)', () => {
     await ctx.close();
   });
 
-  const path = () => `/campaigns/${campaignId}/expenses`;
+  const path = () => `/api/campaigns/${campaignId}/expenses`;
 
   it('requires a session', async () => {
     await request(ctx.app.getHttpServer()).get(path()).expect(401);
@@ -153,7 +153,7 @@ describe('Expenses (e2e)', () => {
     expect(fixed.body).toEqual({ ...fuel.body, amount: 320_000 });
 
     // The batch reads its cost back: the linked fuel plus the works at the campaign rates.
-    const batchPath = `/campaigns/${campaignId}/kiln-batches/${batchId}`;
+    const batchPath = `/api/campaigns/${campaignId}/kiln-batches/${batchId}`;
     const costed = await request(server).get(batchPath).set('Cookie', cookie).expect(200);
     expect(costed.body.cost).toEqual({ expenses: 320_000, labour: 320_000, total: 640_000 });
 

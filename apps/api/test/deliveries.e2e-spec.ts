@@ -78,7 +78,7 @@ describe('Deliveries (e2e)', () => {
     await ctx.close();
   });
 
-  const path = () => `/campaigns/${campaignId}/sales/${saleId}/deliveries`;
+  const path = () => `/api/campaigns/${campaignId}/sales/${saleId}/deliveries`;
 
   it('requires a session', async () => {
     await request(ctx.app.getHttpServer()).get(path()).expect(401);
@@ -141,20 +141,20 @@ describe('Deliveries (e2e)', () => {
 
     // The sale reads the trips back: 2 500 + 37 500 cover the 5 000 ordered, surplus included.
     const sale = await request(server)
-      .get(`/campaigns/${campaignId}/sales/${saleId}`)
+      .get(`/api/campaigns/${campaignId}/sales/${saleId}`)
       .set('Cookie', cookie)
       .expect(200);
     expect(sale.body).toMatchObject({ deliveredQuantity: 40000, status: 'delivered' });
 
     const stock = await request(server)
-      .get(`/campaigns/${campaignId}/stock`)
+      .get(`/api/campaigns/${campaignId}/stock`)
       .set('Cookie', cookie)
       .expect(200);
     expect(stock.body).toMatchObject({ unloaded: 40000, delivered: 40000, fired: 0 });
 
     // The sale cannot go while trips point at it.
     await request(server)
-      .delete(`/campaigns/${campaignId}/sales/${saleId}`)
+      .delete(`/api/campaigns/${campaignId}/sales/${saleId}`)
       .set('Cookie', cookie)
       .expect(409);
 
@@ -163,7 +163,7 @@ describe('Deliveries (e2e)', () => {
     const after = await request(server).get(path()).set('Cookie', cookie).expect(200);
     expect(after.body).toEqual([first.body]);
     const reopened = await request(server)
-      .get(`/campaigns/${campaignId}/sales/${saleId}`)
+      .get(`/api/campaigns/${campaignId}/sales/${saleId}`)
       .set('Cookie', cookie)
       .expect(200);
     expect(reopened.body).toMatchObject({ deliveredQuantity: 2500, status: 'ordered' });
@@ -171,7 +171,7 @@ describe('Deliveries (e2e)', () => {
 
   it('404s on a sale of another campaign', async () => {
     await request(ctx.app.getHttpServer())
-      .get(`/campaigns/00000000-0000-7000-8000-000000000000/sales/${saleId}/deliveries`)
+      .get(`/api/campaigns/00000000-0000-7000-8000-000000000000/sales/${saleId}/deliveries`)
       .set('Cookie', cookie)
       .expect(404);
   });

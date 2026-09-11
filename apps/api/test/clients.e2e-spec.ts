@@ -17,12 +17,12 @@ describe('Clients (e2e)', () => {
   });
 
   it('requires a session', async () => {
-    await request(ctx.app.getHttpServer()).get('/clients').expect(401);
+    await request(ctx.app.getHttpServer()).get('/api/clients').expect(401);
   });
 
   it('rejects a blank locality with 400', async () => {
     await request(ctx.app.getHttpServer())
-      .post('/clients')
+      .post('/api/clients')
       .set('Cookie', cookie)
       .send({ name: `${prefix} x`, locality: ' ' })
       .expect(400);
@@ -33,21 +33,21 @@ describe('Clients (e2e)', () => {
     const body = { name: `${prefix} Rakoto`, locality: 'Ambohidratrimo' };
 
     const created = await request(server)
-      .post('/clients')
+      .post('/api/clients')
       .set('Cookie', cookie)
       .send(body)
       .expect(201);
     expect(created.body).toEqual({ id: expect.any(String), phone: null, ...body });
     const id: string = created.body.id;
 
-    const list = await request(server).get('/clients').set('Cookie', cookie).expect(200);
+    const list = await request(server).get('/api/clients').set('Cookie', cookie).expect(200);
     expect(list.body).toContainEqual(created.body);
 
-    const read = await request(server).get(`/clients/${id}`).set('Cookie', cookie).expect(200);
+    const read = await request(server).get(`/api/clients/${id}`).set('Cookie', cookie).expect(200);
     expect(read.body).toEqual(created.body);
 
     const updated = await request(server)
-      .patch(`/clients/${id}`)
+      .patch(`/api/clients/${id}`)
       .set('Cookie', cookie)
       .send({ phone: '034 12 345 67', locality: 'Talatamaty' })
       .expect(200);

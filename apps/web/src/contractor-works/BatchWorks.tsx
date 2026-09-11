@@ -12,9 +12,7 @@ export function BatchWorks({ campaignId, batchId }: { campaignId: string; batchI
 
   return (
     <section aria-labelledby="works">
-      <h2 id="works" style={{ fontSize: '1.125rem' }}>
-        Prestations
-      </h2>
+      <h2 id="works">Prestations</h2>
       <p>
         <Link to={`/lots/${batchId}/prestations/nouvelle`}>Ajouter une prestation</Link>
       </p>
@@ -24,13 +22,13 @@ export function BatchWorks({ campaignId, batchId }: { campaignId: string; batchI
         (works.data.length === 0 ? (
           <p>Aucune prestation sur ce lot.</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className="rows">
             {works.data.map((work) => (
-              <li key={work.id} style={{ marginBottom: '0.5rem' }}>
-                <Link to={`/prestations/${work.id}`} style={{ fontWeight: 'bold' }}>
+              <li key={work.id}>
+                <Link to={`/prestations/${work.id}`} className="row-name">
                   {work.contractorName}
                 </Link>
-                <span style={{ display: 'block', fontSize: '0.875rem' }}>
+                <span className="sub">
                   {WORK_TYPE_LABELS[work.type]} · {formatDate(work.date)} ·{' '}
                   {formatBricks(work.quantity)}
                 </span>

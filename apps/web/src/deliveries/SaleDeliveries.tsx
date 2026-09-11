@@ -8,10 +8,8 @@ export function SaleDeliveries({ campaignId, saleId }: { campaignId: string; sal
   const deliveries = useDeliveries(campaignId, saleId);
 
   return (
-    <section aria-labelledby="deliveries" style={{ marginTop: '1.5rem' }}>
-      <h2 id="deliveries" style={{ fontSize: '1.125rem' }}>
-        Livraisons
-      </h2>
+    <section aria-labelledby="deliveries">
+      <h2 id="deliveries">Livraisons</h2>
       <p>
         <Link to={`/ventes/${saleId}/livraisons/nouvelle`}>Ajouter un voyage</Link>
       </p>
@@ -23,16 +21,13 @@ export function SaleDeliveries({ campaignId, saleId }: { campaignId: string; sal
         (deliveries.data.length === 0 ? (
           <p>Aucun voyage effectué.</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className="rows">
             {deliveries.data.map((delivery) => (
-              <li key={delivery.id} style={{ marginBottom: '0.5rem' }}>
-                <Link
-                  to={`/ventes/${saleId}/livraisons/${delivery.id}`}
-                  style={{ fontWeight: 'bold' }}
-                >
+              <li key={delivery.id}>
+                <Link to={`/ventes/${saleId}/livraisons/${delivery.id}`} className="row-name">
                   {formatBricks(delivery.quantity)}
                 </Link>
-                <span style={{ display: 'block', fontSize: '0.875rem' }}>
+                <span className="sub">
                   {formatDate(delivery.date)} · {formatAmount(delivery.cost)}
                   {delivery.plate !== null && ` · ${delivery.plate}`}
                 </span>

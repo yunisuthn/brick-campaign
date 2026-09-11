@@ -19,7 +19,7 @@ export function CampaignPage() {
   const campaign = useCampaign(id);
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <p>
         <Link to="/campagnes">Toutes les campagnes</Link>
       </p>
@@ -38,8 +38,6 @@ export function CampaignPage() {
     </main>
   );
 }
-
-const formStyle = { marginTop: '1rem', maxWidth: '24rem' };
 
 /**
  * The rates are fixed here once negotiated, and can be corrected later; a rate fixed after
@@ -73,17 +71,15 @@ function EditRates({ campaign }: { campaign: Campaign }) {
   );
 
   return (
-    <form onSubmit={submit} noValidate style={formStyle} aria-label="Tarifs de la campagne">
+    <form onSubmit={submit} noValidate className="inline-form" aria-label="Tarifs de la campagne">
       <RateFields
         register={form.register}
         errors={{ ...form.formState.errors, ...updateRefusal.fields }}
       />
       {updateRefusal.message && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {updateRefusal.message}
-        </p>
+        <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
       )}
-      <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+      <p className="actions">
         <button type="submit" disabled={update.isPending}>
           Enregistrer les tarifs
         </button>
@@ -120,19 +116,15 @@ function CloseCampaign({ campaign }: { campaign: Campaign }) {
   const submit = form.handleSubmit(({ closedOn }) => close.mutate({ closedOn }));
 
   return (
-    <form onSubmit={submit} noValidate style={formStyle}>
+    <form onSubmit={submit} noValidate className="inline-form">
       <Field
         label="Date de clôture"
         error={form.formState.errors.closedOn ?? closeRefusal.fields.closedOn}
         input={form.register('closedOn', { required: 'La date de clôture est requise.' })}
         type="date"
       />
-      {closeRefusal.message && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Clôture impossible : {closeRefusal.message}
-        </p>
-      )}
-      <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+      {closeRefusal.message && <p role="alert">Clôture impossible : {closeRefusal.message}</p>}
+      <p className="actions">
         <button type="submit" disabled={close.isPending}>
           Confirmer la clôture
         </button>

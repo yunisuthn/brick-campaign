@@ -13,10 +13,8 @@ export function SalePayments({ sale }: { sale: Sale }) {
   const payments = useSalePayments(sale.campaignId, sale.id);
 
   return (
-    <section aria-labelledby="payments" style={{ marginTop: '1.5rem' }}>
-      <h2 id="payments" style={{ fontSize: '1.125rem' }}>
-        Encaissements
-      </h2>
+    <section aria-labelledby="payments">
+      <h2 id="payments">Encaissements</h2>
       <p>
         {formatAmount(sale.receivedAmount)} reçus sur {formatAmount(sale.total)}
         {sale.outstanding > 0 && `, reste ${formatAmount(sale.outstanding)} à encaisser`}.
@@ -34,18 +32,13 @@ export function SalePayments({ sale }: { sale: Sale }) {
         (payments.data.length === 0 ? (
           <p>Rien reçu pour le moment.</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className="rows">
             {payments.data.map((payment) => (
-              <li key={payment.id} style={{ marginBottom: '0.5rem' }}>
-                <Link
-                  to={`/ventes/${sale.id}/encaissements/${payment.id}`}
-                  style={{ fontWeight: 'bold' }}
-                >
+              <li key={payment.id}>
+                <Link to={`/ventes/${sale.id}/encaissements/${payment.id}`} className="row-name">
                   {formatAmount(payment.amount)}
                 </Link>
-                <span style={{ display: 'block', fontSize: '0.875rem' }}>
-                  {formatDate(payment.date)}
-                </span>
+                <span className="sub">{formatDate(payment.date)}</span>
               </li>
             ))}
           </ul>

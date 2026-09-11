@@ -17,7 +17,7 @@ export function NewKilnBatchPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/lots">Tous les lots</Link>
       </p>
@@ -78,9 +78,7 @@ function LoadForm({ campaignId }: { campaignId: string }) {
         inputMode="numeric"
       />
       {createRefusal.message && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Enfournement impossible : {createRefusal.message}
-        </p>
+        <p role="alert">Enfournement impossible : {createRefusal.message}</p>
       )}
       <p>
         <button type="submit" disabled={create.isPending}>

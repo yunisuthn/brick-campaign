@@ -21,7 +21,7 @@ export function ProductionPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/productions">Toutes les productions</Link>
       </p>
@@ -100,9 +100,7 @@ function CorrectionForm({ production, moulders, riceFields }: CorrectionFormProp
     <>
       <h1>
         {moulderName}, {formatDate(production.date)}
-        <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'normal' }}>
-          {formatBricks(production.quantity)}
-        </span>
+        <span className="title-sub">{formatBricks(production.quantity)}</span>
       </h1>
       <form onSubmit={save} noValidate>
         <ProductionFields
@@ -112,16 +110,12 @@ function CorrectionForm({ production, moulders, riceFields }: CorrectionFormProp
           riceFields={riceFields}
         />
         {updateRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {updateRefusal.message}
-          </p>
+          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
         )}
         {cancel.isError && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Annulation impossible : {apiErrorMessage(cancel.error)}
-          </p>
+          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
         )}
-        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
             Enregistrer
           </button>

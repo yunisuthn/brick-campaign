@@ -10,7 +10,7 @@ export function MoulderPage() {
   const moulder = useMoulder(id);
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/mouleurs">Tous les mouleurs</Link>
       </p>
@@ -45,9 +45,7 @@ function MoulderForm({ moulder }: { moulder: Moulder }) {
     <>
       <h1>
         {moulder.name}
-        {!moulder.active && (
-          <span style={{ fontSize: '1rem', fontWeight: 'normal' }}> · retiré</span>
-        )}
+        {!moulder.active && <span className="title-sub"> · retiré</span>}
       </h1>
       <form onSubmit={save} noValidate>
         <MoulderFields
@@ -55,11 +53,9 @@ function MoulderForm({ moulder }: { moulder: Moulder }) {
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
         />
         {updateRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {updateRefusal.message}
-          </p>
+          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
         )}
-        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <p className="actions">
           <button type="submit" disabled={update.isPending || !form.formState.isDirty}>
             Enregistrer
           </button>

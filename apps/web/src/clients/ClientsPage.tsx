@@ -6,7 +6,7 @@ export function ClientsPage() {
   const clients = useClients();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Clients</h1>
       <p>
         <Link to="/clients/nouveau">Nouveau client</Link>
@@ -19,19 +19,11 @@ export function ClientsPage() {
         (clients.data.length === 0 ? (
           <p>Aucun client.</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className="rows">
             {clients.data.map((client) => (
-              <li
-                key={client.id}
-                style={{
-                  padding: '0.75rem 1rem',
-                  marginBottom: '0.5rem',
-                  background: 'white',
-                  borderRadius: '0.5rem',
-                }}
-              >
+              <li key={client.id}>
                 <Link to={`/clients/${client.id}`}>{client.name}</Link>
-                <span style={{ display: 'block', fontSize: '0.875rem' }}>
+                <span className="sub">
                   {client.locality}
                   {client.phone !== null && ` · ${client.phone}`}
                 </span>

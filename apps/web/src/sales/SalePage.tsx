@@ -30,7 +30,7 @@ export function SalePage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/ventes">Toutes les ventes</Link>
       </p>
@@ -63,10 +63,10 @@ function SaleHeading({ sale, clients }: { sale: Sale; clients: ReadonlyArray<Cli
   return (
     <h1>
       {name}
-      <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'normal' }}>
+      <span className="title-sub">
         {formatDate(sale.date)} · {SALE_STATUS_LABELS[sale.status]} · {formatAmount(sale.total)}
       </span>
-      <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'normal' }}>
+      <span className="title-sub">
         {formatBricks(sale.deliveredQuantity)} livrées sur {formatBricks(sale.orderedQuantity)}
       </span>
     </h1>
@@ -105,7 +105,7 @@ function SaleForm({ sale, clients }: { sale: Sale; clients: ReadonlyArray<Client
   const busy = update.isPending || cancel.isPending;
 
   return (
-    <form onSubmit={save} noValidate style={{ marginTop: '1.5rem' }}>
+    <form onSubmit={save} noValidate>
       <SelectField
         label="Client"
         error={form.formState.errors.clientId ?? updateRefusal.fields.clientId}
@@ -139,16 +139,12 @@ function SaleForm({ sale, clients }: { sale: Sale; clients: ReadonlyArray<Client
         inputMode="numeric"
       />
       {updateRefusal.message && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {updateRefusal.message}
-        </p>
+        <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
       )}
       {cancel.isError && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Annulation impossible : {apiErrorMessage(cancel.error)}
-        </p>
+        <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
       )}
-      <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <p className="actions">
         <button type="submit" disabled={busy || !form.formState.isDirty}>
           Enregistrer
         </button>

@@ -26,7 +26,7 @@ export function NewCampaignPage() {
   );
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <h1>Nouvelle campagne</h1>
       <form onSubmit={submit} noValidate>
         <Field
@@ -46,16 +46,12 @@ export function NewCampaignPage() {
           input={form.register('startedOn', { required: 'La date de début est requise.' })}
           type="date"
         />
-        <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem' }}>
+        <p className="sub">
           Un tarif encore en discussion se laisse vide ; il se fixe ensuite depuis la fiche.
         </p>
         <RateFields register={form.register} errors={{ ...errors, ...createRefusal.fields }} />
-        {createRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Création impossible : {createRefusal.message}
-          </p>
-        )}
-        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        {createRefusal.message && <p role="alert">Création impossible : {createRefusal.message}</p>}
+        <p className="actions">
           <button type="submit" disabled={create.isPending}>
             Créer la campagne
           </button>

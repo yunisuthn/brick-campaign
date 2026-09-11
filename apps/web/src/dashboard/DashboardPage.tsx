@@ -11,7 +11,7 @@ export function DashboardPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Tableau de bord{campaign && ` · Campagne ${campaign.year}`}</h1>
       {campaign ? (
         <Overview campaignId={campaign.id} />
@@ -77,25 +77,13 @@ function categories(data: Dashboard): [ExpenseCategory, number][] {
  */
 function Result({ result }: { result: number | null }) {
   return (
-    <section
-      aria-label="Résultat"
-      style={{
-        padding: '0.75rem 1rem',
-        marginBottom: '1rem',
-        background: 'white',
-        borderRadius: '0.5rem',
-      }}
-    >
-      <p style={{ margin: 0, fontSize: '0.875rem' }}>Résultat de la campagne</p>
-      <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold' }}>
+    <section aria-label="Résultat" className="card">
+      <p className="sub">Résultat de la campagne</p>
+      <p className="headline">
         {result === null ? (
-          <em style={{ fontSize: '1rem', fontWeight: 'normal' }}>
-            Inconnu tant qu’un tarif n’est pas fixé
-          </em>
+          <em className="title-sub">Inconnu tant qu’un tarif n’est pas fixé</em>
         ) : (
-          <span style={{ color: result < 0 ? 'var(--error)' : 'var(--ok)' }}>
-            {formatAmount(result)}
-          </span>
+          <span className={result < 0 ? 'bad' : 'done'}>{formatAmount(result)}</span>
         )}
       </p>
     </section>
@@ -104,11 +92,9 @@ function Result({ result }: { result: number | null }) {
 
 function Block({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section aria-label={title} style={{ marginBottom: '1rem' }}>
-      <h2 style={{ fontSize: '1.125rem' }}>{title}</h2>
-      <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0 0.75rem', margin: 0 }}>
-        {children}
-      </dl>
+    <section aria-label={title}>
+      <h2>{title}</h2>
+      <dl className="facts">{children}</dl>
     </section>
   );
 }
@@ -118,7 +104,7 @@ function Amount({ label, value }: { label: string; value: number | null }) {
   return (
     <>
       <dt>{label}</dt>
-      <dd style={{ margin: 0 }}>{value === null ? <em>Tarif à fixer</em> : formatAmount(value)}</dd>
+      <dd>{value === null ? <em>Tarif à fixer</em> : formatAmount(value)}</dd>
     </>
   );
 }

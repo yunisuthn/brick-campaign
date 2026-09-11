@@ -15,7 +15,7 @@ export function ExpensesPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Dépenses{campaign && ` · Campagne ${campaign.year}`}</h1>
       {campaign && (
         <p>
@@ -44,7 +44,6 @@ function ExpenseList({ campaignId }: { campaignId: string }) {
         <label>
           Catégorie
           <select
-            style={{ display: 'block' }}
             value={category}
             onChange={(event) => setCategory(event.target.value as ExpenseCategory | '')}
           >
@@ -71,29 +70,18 @@ function ExpenseList({ campaignId }: { campaignId: string }) {
             <p>
               Total : <strong>{formatAmount(total(expenses.data))}</strong>
             </p>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <ul className="rows">
               {expenses.data.map((expense) => (
-                <li
-                  key={expense.id}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    gap: '1rem',
-                    padding: '0.75rem 1rem',
-                    marginBottom: '0.5rem',
-                    background: 'white',
-                    borderRadius: '0.5rem',
-                  }}
-                >
+                <li key={expense.id} className="row-split">
                   <span>
-                    <Link to={`/depenses/${expense.id}`} style={{ fontWeight: 'bold' }}>
+                    <Link to={`/depenses/${expense.id}`} className="row-name">
                       {expense.label}
                     </Link>
-                    <span style={{ display: 'block', fontSize: '0.875rem' }}>
+                    <span className="sub">
                       {formatDate(expense.date)} · {EXPENSE_CATEGORY_LABELS[expense.category]}
                     </span>
                   </span>
-                  <span style={{ whiteSpace: 'nowrap' }}>{formatAmount(expense.amount)}</span>
+                  <span className="figure">{formatAmount(expense.amount)}</span>
                 </li>
               ))}
             </ul>

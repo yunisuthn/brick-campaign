@@ -10,7 +10,7 @@ export function KilnBatchesPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Lots de cuisson{campaign && ` · Campagne ${campaign.year}`}</h1>
       {campaign ? (
         <Batches campaignId={campaign.id} />
@@ -44,17 +44,9 @@ function Batches({ campaignId }: { campaignId: string }) {
       {batches.data.length === 0 ? (
         <p>Aucun lot enfourné.</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul className="rows">
           {batches.data.map((batch) => (
-            <li
-              key={batch.id}
-              style={{
-                padding: '0.75rem 1rem',
-                marginBottom: '0.5rem',
-                background: 'white',
-                borderRadius: '0.5rem',
-              }}
-            >
+            <li key={batch.id}>
               <BatchRow batch={batch} />
             </li>
           ))}
@@ -68,16 +60,16 @@ function Batches({ campaignId }: { campaignId: string }) {
 function BatchRow({ batch }: { batch: KilnBatch }) {
   return (
     <>
-      <Link to={`/lots/${batch.id}`} style={{ fontWeight: 'bold' }}>
+      <Link to={`/lots/${batch.id}`} className="row-name">
         {formatBricks(batch.quantity)}
       </Link>
-      <span style={{ display: 'block', fontSize: '0.875rem' }}>
+      <span className="sub">
         Enfourné le {formatDate(batch.loadedOn)} ·{' '}
         {batch.unloadedOn === null
           ? 'encore au four'
           : `défourné le ${formatDate(batch.unloadedOn)}`}
       </span>
-      <span style={{ display: 'block', fontSize: '0.875rem' }}>
+      <span className="sub">
         Coût :{' '}
         {batch.cost.total === null ? (
           <em>tarif de prestation à fixer</em>

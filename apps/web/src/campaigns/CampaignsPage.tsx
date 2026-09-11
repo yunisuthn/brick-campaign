@@ -7,7 +7,7 @@ export function CampaignsPage() {
   const campaigns = useCampaigns();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Campagnes</h1>
       <p>
         <Link to="/campagnes/nouvelle">Nouvelle campagne</Link>
@@ -20,9 +20,9 @@ export function CampaignsPage() {
         (campaigns.data.length === 0 ? (
           <p>Aucune campagne.</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className="rows">
             {campaigns.data.map((campaign) => (
-              <li key={campaign.id} style={{ marginBottom: '0.75rem' }}>
+              <li key={campaign.id}>
                 <CampaignCard campaign={campaign} />
               </li>
             ))}
@@ -35,11 +35,8 @@ export function CampaignsPage() {
 /** One campaign at a glance; its year leads to the detail page. */
 function CampaignCard({ campaign }: { campaign: Campaign }) {
   return (
-    <article
-      aria-labelledby={`campaign-${campaign.id}`}
-      style={{ padding: '0.75rem 1rem', background: 'white', borderRadius: '0.5rem' }}
-    >
-      <h2 id={`campaign-${campaign.id}`} style={{ margin: '0 0 0.25rem', fontSize: '1.125rem' }}>
+    <article aria-labelledby={`campaign-${campaign.id}`} className="card">
+      <h2 id={`campaign-${campaign.id}`}>
         <Link to={`/campagnes/${campaign.id}`}>Campagne {campaign.year}</Link>
       </h2>
       <CampaignFacts campaign={campaign} />

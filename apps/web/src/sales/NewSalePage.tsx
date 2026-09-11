@@ -19,7 +19,7 @@ export function NewSalePage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/ventes">Toutes les ventes</Link>
       </p>
@@ -110,9 +110,7 @@ function SaleForm({ campaignId }: { campaignId: string }) {
       />
       <p role="status">Total : {formatAmount(total)}</p>
       {createRefusal.message && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {createRefusal.message}
-        </p>
+        <p role="alert">Enregistrement impossible : {createRefusal.message}</p>
       )}
       <p>
         <button type="submit" disabled={create.isPending}>

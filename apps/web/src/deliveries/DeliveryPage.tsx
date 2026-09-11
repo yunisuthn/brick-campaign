@@ -19,7 +19,7 @@ export function DeliveryPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to={`/ventes/${saleId}`}>Retour à la vente</Link>
       </p>
@@ -80,7 +80,7 @@ function CorrectionForm({ campaignId, delivery }: { campaignId: string; delivery
     <>
       <h1>
         {formatBricks(delivery.quantity)}
-        <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'normal' }}>
+        <span className="title-sub">
           {formatDate(delivery.date)} · {formatAmount(delivery.cost)}
         </span>
       </h1>
@@ -90,16 +90,12 @@ function CorrectionForm({ campaignId, delivery }: { campaignId: string; delivery
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
         />
         {updateRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {updateRefusal.message}
-          </p>
+          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
         )}
         {cancel.isError && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Annulation impossible : {apiErrorMessage(cancel.error)}
-          </p>
+          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
         )}
-        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
             Enregistrer
           </button>

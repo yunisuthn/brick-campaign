@@ -13,7 +13,7 @@ export function NewExpensePage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/depenses">Toutes les dépenses</Link>
       </p>
@@ -82,9 +82,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
         riceFields={riceFields.data}
       />
       {createRefusal.message && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {createRefusal.message}
-        </p>
+        <p role="alert">Enregistrement impossible : {createRefusal.message}</p>
       )}
       <p>
         <button type="submit" disabled={create.isPending}>

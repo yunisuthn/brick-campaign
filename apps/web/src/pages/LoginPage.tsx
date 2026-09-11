@@ -24,38 +24,30 @@ export function LoginPage() {
   );
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem', margin: '0 auto' }}>
+    <main className="page page-centred">
       <h1>Briqueterie</h1>
       <form onSubmit={submit} noValidate>
-        <label style={{ display: 'block', marginBottom: '0.75rem' }}>
+        <label>
           Email
           <input
             type="email"
             autoComplete="username"
             inputMode="email"
-            style={{ display: 'block', width: '100%', boxSizing: 'border-box' }}
+
             {...form.register('email', { required: 'L’email est requis.' })}
           />
         </label>
-        <label style={{ display: 'block', marginBottom: '0.75rem' }}>
+        <label>
           Mot de passe
           <input
             type="password"
             autoComplete="current-password"
-            style={{ display: 'block', width: '100%', boxSizing: 'border-box' }}
+
             {...form.register('password', { required: 'Le mot de passe est requis.' })}
           />
         </label>
-        {fieldProblem && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            {fieldProblem.message}
-          </p>
-        )}
-        {loginRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Connexion impossible : {loginRefusal.message}
-          </p>
-        )}
+        {fieldProblem && <p role="alert">{fieldProblem.message}</p>}
+        {loginRefusal.message && <p role="alert">Connexion impossible : {loginRefusal.message}</p>}
         <button type="submit" disabled={login.isPending}>
           Se connecter
         </button>

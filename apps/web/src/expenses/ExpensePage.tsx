@@ -23,7 +23,7 @@ export function ExpensePage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/depenses">Toutes les dépenses</Link>
       </p>
@@ -104,7 +104,7 @@ function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
     <>
       <h1>
         {expense.label}
-        <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'normal' }}>
+        <span className="title-sub">
           {EXPENSE_CATEGORY_LABELS[expense.category]} · {formatDate(expense.date)} ·{' '}
           {formatAmount(expense.amount)}
         </span>
@@ -117,16 +117,12 @@ function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
           riceFields={riceFields}
         />
         {updateRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {updateRefusal.message}
-          </p>
+          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
         )}
         {cancel.isError && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Annulation impossible : {apiErrorMessage(cancel.error)}
-          </p>
+          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
         )}
-        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
             Enregistrer
           </button>

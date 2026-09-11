@@ -7,7 +7,7 @@ export function RiceFieldsPage() {
   const fields = useRiceFields();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Rizières</h1>
       <p>
         <Link to="/rizieres/nouvelle">Nouvelle rizière</Link>
@@ -20,19 +20,11 @@ export function RiceFieldsPage() {
         (fields.data.length === 0 ? (
           <p>Aucune rizière.</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className="rows">
             {fields.data.map((field) => (
-              <li
-                key={field.id}
-                style={{
-                  padding: '0.75rem 1rem',
-                  marginBottom: '0.5rem',
-                  background: 'white',
-                  borderRadius: '0.5rem',
-                }}
-              >
+              <li key={field.id}>
                 <Link to={`/rizieres/${field.id}`}>{field.name}</Link>
-                <span style={{ display: 'block', fontSize: '0.875rem' }}>
+                <span className="sub">
                   {field.location} · {surfaceText(field.surfaceM2)} · contrat{' '}
                   {CONTRACT_LABELS[field.contractType].toLowerCase()}
                 </span>

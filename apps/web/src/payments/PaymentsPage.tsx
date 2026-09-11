@@ -1,4 +1,4 @@
-import { type CSSProperties, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
@@ -15,7 +15,7 @@ export function PaymentsPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Versements{campaign && ` · Campagne ${campaign.year}`}</h1>
       {campaign && (
         <p>
@@ -81,29 +81,18 @@ function Rows({
   moulderName: ReadonlyMap<string, string>;
 }) {
   return (
-    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+    <ul className="rows">
       {payments.map((payment) => (
-        <li
-          key={payment.id}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            padding: '0.75rem 1rem',
-            marginBottom: '0.5rem',
-            background: 'white',
-            borderRadius: '0.5rem',
-          }}
-        >
+        <li key={payment.id} className="row-split">
           <span>
-            <Link to={`/versements/${payment.id}`} style={{ fontWeight: 'bold' }}>
+            <Link to={`/versements/${payment.id}`} className="row-name">
               {beneficiaryName(payment, moulderName)}
             </Link>
-            <span style={{ display: 'block', fontSize: '0.875rem' }}>
+            <span className="sub">
               {formatDate(payment.date)} · {PAYMENT_TYPE_LABELS[payment.type]}
             </span>
           </span>
-          <span style={{ whiteSpace: 'nowrap' }}>{formatAmount(payment.amount)}</span>
+          <span className="figure">{formatAmount(payment.amount)}</span>
         </li>
       ))}
     </ul>
@@ -116,21 +105,14 @@ interface FilterBarProps {
   onChange: (filters: PaymentFilters) => void;
 }
 
-const filterControl: CSSProperties = { display: 'block' };
-
 /** A beneficiary is filtered either as a moulder or as a contractor name, never both. */
 function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
   const set = (patch: PaymentFilters) => onChange({ ...filters, ...patch });
   return (
-    <form
-      aria-label="Filtres"
-      onSubmit={(event) => event.preventDefault()}
-      style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}
-    >
+    <form aria-label="Filtres" onSubmit={(event) => event.preventDefault()} className="filters">
       <label>
         Mouleur
         <select
-          style={filterControl}
           value={filters.moulderId ?? ''}
           onChange={(event) =>
             set({ moulderId: event.target.value || undefined, contractorName: undefined })
@@ -149,7 +131,6 @@ function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
         Prestataire
         <input
           type="search"
-          style={filterControl}
           value={filters.contractorName ?? ''}
           onChange={(event) =>
             set({ contractorName: event.target.value || undefined, moulderId: undefined })
@@ -160,7 +141,6 @@ function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
         Du
         <input
           type="date"
-          style={filterControl}
           value={filters.from ?? ''}
           onChange={(event) => set({ from: event.target.value || undefined })}
         />
@@ -169,7 +149,6 @@ function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
         Au
         <input
           type="date"
-          style={filterControl}
           value={filters.to ?? ''}
           onChange={(event) => set({ to: event.target.value || undefined })}
         />

@@ -1,4 +1,4 @@
-import { type CSSProperties, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
@@ -11,7 +11,7 @@ export function ProductionsPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Productions{campaign && ` · Campagne ${campaign.year}`}</h1>
       {campaign && (
         <p>
@@ -71,21 +71,14 @@ interface FilterBarProps {
   onChange: (filters: ProductionFilters) => void;
 }
 
-const filterControl: CSSProperties = { display: 'block' };
-
 /** A moulder, a period, or both; an empty control means no filter on that side. */
 function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
   const set = (patch: ProductionFilters) => onChange({ ...filters, ...patch });
   return (
-    <form
-      aria-label="Filtres"
-      onSubmit={(event) => event.preventDefault()}
-      style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}
-    >
+    <form aria-label="Filtres" onSubmit={(event) => event.preventDefault()} className="filters">
       <label>
         Mouleur
         <select
-          style={filterControl}
           value={filters.moulderId ?? ''}
           onChange={(event) => set({ moulderId: event.target.value || undefined })}
         >
@@ -102,7 +95,6 @@ function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
         Du
         <input
           type="date"
-          style={filterControl}
           value={filters.from ?? ''}
           onChange={(event) => set({ from: event.target.value || undefined })}
         />
@@ -111,7 +103,6 @@ function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
         Au
         <input
           type="date"
-          style={filterControl}
           value={filters.to ?? ''}
           onChange={(event) => set({ to: event.target.value || undefined })}
         />
@@ -128,30 +119,19 @@ interface RowsProps {
 
 function Rows({ productions, moulderName, fieldName }: RowsProps) {
   return (
-    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+    <ul className="rows">
       {productions.map((production) => (
-        <li
-          key={production.id}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            padding: '0.75rem 1rem',
-            marginBottom: '0.5rem',
-            background: 'white',
-            borderRadius: '0.5rem',
-          }}
-        >
+        <li key={production.id} className="row-split">
           <span>
-            <Link to={`/productions/${production.id}`} style={{ fontWeight: 'bold' }}>
+            <Link to={`/productions/${production.id}`} className="row-name">
               {moulderName.get(production.moulderId) ?? 'Mouleur inconnu'}
             </Link>
-            <span style={{ display: 'block', fontSize: '0.875rem' }}>
+            <span className="sub">
               {formatDate(production.date)} ·{' '}
               {fieldName.get(production.riceFieldId) ?? 'Rizière inconnue'}
             </span>
           </span>
-          <span style={{ whiteSpace: 'nowrap' }}>{formatBricks(production.quantity)}</span>
+          <span className="figure">{formatBricks(production.quantity)}</span>
         </li>
       ))}
     </ul>

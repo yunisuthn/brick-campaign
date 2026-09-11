@@ -9,11 +9,11 @@ export function MouldersPage() {
   const moulders = useMoulders(includeInactive);
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Mouleurs</h1>
-      <p style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <p className="actions">
         <Link to="/mouleurs/nouveau">Nouveau mouleur</Link>
-        <label style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+        <label className="actions">
           <input
             type="checkbox"
             checked={includeInactive}
@@ -30,21 +30,9 @@ export function MouldersPage() {
         (moulders.data.length === 0 ? (
           <p>Aucun mouleur.</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className="rows">
             {moulders.data.map((moulder) => (
-              <li
-                key={moulder.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: '1rem',
-                  padding: '0.75rem 1rem',
-                  marginBottom: '0.5rem',
-                  background: 'white',
-                  borderRadius: '0.5rem',
-                  opacity: moulder.active ? 1 : 0.6,
-                }}
-              >
+              <li key={moulder.id} className={`row-split${moulder.active ? '' : ' is-retired'}`}>
                 <Link to={`/mouleurs/${moulder.id}`}>{moulder.name}</Link>
                 <span>
                   {membersText(moulder.memberCount)}

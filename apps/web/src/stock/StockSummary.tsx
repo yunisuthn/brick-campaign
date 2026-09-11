@@ -10,20 +10,12 @@ export function StockSummary({ stock }: { stock: Stock }) {
   ];
 
   return (
-    <section
-      aria-label="Stock"
-      style={{
-        margin: '0 0 1rem',
-        padding: '0.75rem 1rem',
-        background: 'white',
-        borderRadius: '0.5rem',
-      }}
-    >
-      <dl style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', margin: 0 }}>
+    <section aria-label="Stock" className="card">
+      <dl className="actions">
         {levels.map((level) => (
           <div key={level.label}>
-            <dt style={{ fontSize: '0.875rem' }}>{level.label}</dt>
-            <dd style={{ margin: 0, fontWeight: 'bold' }}>{formatBricks(level.value)}</dd>
+            <dt className="sub">{level.label}</dt>
+            <dd className="strong">{formatBricks(level.value)}</dd>
           </div>
         ))}
       </dl>

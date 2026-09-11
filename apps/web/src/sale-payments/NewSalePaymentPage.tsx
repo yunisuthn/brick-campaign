@@ -13,7 +13,7 @@ export function NewSalePaymentPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to={`/ventes/${saleId}`}>Retour à la vente</Link>
       </p>
@@ -54,9 +54,7 @@ function PaymentForm({ campaignId, saleId }: { campaignId: string; saleId: strin
         errors={{ ...form.formState.errors, ...createRefusal.fields }}
       />
       {createRefusal.message && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Encaissement impossible : {createRefusal.message}
-        </p>
+        <p role="alert">Encaissement impossible : {createRefusal.message}</p>
       )}
       <p>
         <button type="submit" disabled={create.isPending}>

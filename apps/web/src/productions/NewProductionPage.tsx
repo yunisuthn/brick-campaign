@@ -14,7 +14,7 @@ export function NewProductionPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/productions">Toutes les productions</Link>
       </p>
@@ -73,12 +73,10 @@ function EntryForm({ campaignId }: { campaignId: string }) {
         riceFields={riceFields.data}
       />
       {createRefusal.message && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {createRefusal.message}
-        </p>
+        <p role="alert">Enregistrement impossible : {createRefusal.message}</p>
       )}
       {saved && !create.isError && (
-        <p role="status" style={{ color: 'var(--ok)' }}>
+        <p role="status" className="done">
           {saved}
         </p>
       )}

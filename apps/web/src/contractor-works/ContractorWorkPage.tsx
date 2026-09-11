@@ -22,7 +22,7 @@ export function ContractorWorkPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       {campaign ? <LoadedWork campaignId={campaign.id} id={id} /> : <p>Aucune campagne.</p>}
     </main>
   );
@@ -98,7 +98,7 @@ function CorrectionForm({
       </p>
       <h1>
         {work.contractorName}
-        <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'normal' }}>
+        <span className="title-sub">
           {WORK_TYPE_LABELS[work.type]} · {formatDate(work.date)} · {formatBricks(work.quantity)}
         </span>
       </h1>
@@ -109,16 +109,12 @@ function CorrectionForm({
           contractorNames={contractorNames}
         />
         {updateRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {updateRefusal.message}
-          </p>
+          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
         )}
         {cancel.isError && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Annulation impossible : {apiErrorMessage(cancel.error)}
-          </p>
+          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
         )}
-        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
             Enregistrer
           </button>

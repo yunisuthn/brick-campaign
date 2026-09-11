@@ -9,7 +9,7 @@ export function SalesPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Ventes{campaign && ` · Campagne ${campaign.year}`}</h1>
       {campaign && (
         <p>
@@ -43,29 +43,18 @@ function SaleList({ campaignId }: { campaignId: string }) {
   const clientName = new Map(clients.data.map((client) => [client.id, client.name]));
 
   return (
-    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+    <ul className="rows">
       {sales.data.map((sale) => (
-        <li
-          key={sale.id}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            padding: '0.75rem 1rem',
-            marginBottom: '0.5rem',
-            background: 'white',
-            borderRadius: '0.5rem',
-          }}
-        >
+        <li key={sale.id} className="row-split">
           <span>
-            <Link to={`/ventes/${sale.id}`} style={{ fontWeight: 'bold' }}>
+            <Link to={`/ventes/${sale.id}`} className="row-name">
               {clientName.get(sale.clientId) ?? 'Client inconnu'}
             </Link>
-            <span style={{ display: 'block', fontSize: '0.875rem' }}>
+            <span className="sub">
               {formatDate(sale.date)} · {SALE_STATUS_LABELS[sale.status]} · {progress(sale)}
             </span>
           </span>
-          <span style={{ whiteSpace: 'nowrap' }}>{formatAmount(sale.total)}</span>
+          <span className="figure">{formatAmount(sale.total)}</span>
         </li>
       ))}
     </ul>

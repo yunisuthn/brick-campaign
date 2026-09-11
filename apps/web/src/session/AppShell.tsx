@@ -16,19 +16,9 @@ export function AppShell() {
 
   return (
     <CurrentCampaignProvider>
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          padding: '0.75rem 1rem',
-          background: 'var(--brick)',
-          color: 'white',
-        }}
-      >
+      <header className="shell-header">
         <strong>Briqueterie</strong>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <span className="shell-who">
           <span>{session.data?.email}</span>
           <button type="button" onClick={signOut} disabled={logout.isPending}>
             Déconnexion
@@ -57,23 +47,15 @@ const sections = [
 ];
 
 /**
- * One link per section, the current one in bold; grows with the front plan. The dashboard
- * needs `end`: every path descends from the root, so without it that link would always look
- * like the current one.
+ * One link per section; the stylesheet marks the current one, which react-router flags with
+ * `aria-current`. The dashboard needs `end`: every path descends from the root, so without it
+ * that link would always look like the current one.
  */
 function MainNav() {
   return (
-    <nav
-      aria-label="Sections"
-      style={{ display: 'flex', gap: '1rem', padding: '0.5rem 1rem', flexWrap: 'wrap' }}
-    >
+    <nav aria-label="Sections" className="shell-nav">
       {sections.map((section) => (
-        <NavLink
-          key={section.to}
-          to={section.to}
-          end={section.to === '/'}
-          style={({ isActive }) => ({ fontWeight: isActive ? 'bold' : 'normal' })}
-        >
+        <NavLink key={section.to} to={section.to} end={section.to === '/'}>
           {section.label}
         </NavLink>
       ))}
@@ -86,11 +68,8 @@ function CampaignPicker() {
   const { campaign, campaigns, choose } = useCurrentCampaign();
 
   return (
-    <nav
-      aria-label="Campagne courante"
-      style={{ padding: '0.5rem 1rem', background: 'white', borderBottom: '1px solid #e5ddd4' }}
-    >
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+    <nav aria-label="Campagne courante" className="shell-campaign">
+      <label>
         Campagne courante
         <select
           value={campaign?.id ?? ''}

@@ -27,7 +27,7 @@ export function KilnBatchPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/lots">Tous les lots</Link>
       </p>
@@ -83,7 +83,7 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
     <>
       <h1>
         {formatBricks(batch.quantity)}
-        <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'normal' }}>
+        <span className="title-sub">
           Enfourné le {formatDate(batch.loadedOn)} ·{' '}
           {batch.unloadedOn === null
             ? 'encore au four'
@@ -105,9 +105,7 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
           input={form.register('unloadedOn')}
           type="date"
         />
-        <p style={{ margin: '-0.5rem 0 0.75rem', fontSize: '0.875rem' }}>
-          Laissée vide tant que le lot est au four.
-        </p>
+        <p className="sub">Laissée vide tant que le lot est au four.</p>
         <Field
           label="Quantité (briques)"
           error={form.formState.errors.quantity ?? updateRefusal.fields.quantity}
@@ -119,16 +117,12 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
           inputMode="numeric"
         />
         {updateRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {updateRefusal.message}
-          </p>
+          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
         )}
         {cancel.isError && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Annulation impossible : {apiErrorMessage(cancel.error)}
-          </p>
+          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
         )}
-        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
             Enregistrer
           </button>
@@ -156,15 +150,13 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
 function Cost({ cost }: { cost: KilnBatch['cost'] }) {
   return (
     <section aria-label="Coût du lot">
-      <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0 0.75rem' }}>
+      <dl className="facts">
         <dt>Dépenses</dt>
-        <dd style={{ margin: 0 }}>{formatAmount(cost.expenses)}</dd>
+        <dd>{formatAmount(cost.expenses)}</dd>
         <dt>Main-d’œuvre</dt>
-        <dd style={{ margin: 0 }}>
-          {cost.labour === null ? <em>Tarif à fixer</em> : formatAmount(cost.labour)}
-        </dd>
+        <dd>{cost.labour === null ? <em>Tarif à fixer</em> : formatAmount(cost.labour)}</dd>
         <dt>Total</dt>
-        <dd style={{ margin: 0, fontWeight: 'bold' }}>
+        <dd className="strong">
           {cost.total === null ? <em>Tarif à fixer</em> : formatAmount(cost.total)}
         </dd>
       </dl>

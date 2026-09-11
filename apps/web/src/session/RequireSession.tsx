@@ -13,14 +13,14 @@ export function RequireSession() {
 
   if (session.isPending) {
     return (
-      <main style={{ padding: '1rem' }}>
+      <main className="page-wide">
         <h1>Briqueterie</h1>
       </main>
     );
   }
   if (session.isError) {
     return (
-      <main style={{ padding: '1rem' }}>
+      <main className="page-wide">
         <h1>Briqueterie</h1>
         <p role="alert">API indisponible : {apiErrorMessage(session.error)}</p>
       </main>

@@ -10,7 +10,7 @@ export function ClientPage() {
   const client = useClient(id);
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/clients">Tous les clients</Link>
       </p>
@@ -45,9 +45,7 @@ function ClientForm({ client }: { client: Client }) {
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
         />
         {updateRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {updateRefusal.message}
-          </p>
+          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
         )}
         <p>
           <button type="submit" disabled={update.isPending || !form.formState.isDirty}>

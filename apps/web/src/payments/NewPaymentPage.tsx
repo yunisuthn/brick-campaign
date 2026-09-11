@@ -14,7 +14,7 @@ export function NewPaymentPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/versements">Tous les versements</Link>
       </p>
@@ -83,12 +83,10 @@ function EntryForm({ campaignId }: { campaignId: string }) {
         contractorNames={contractors.data.map((c) => c.contractorName)}
       />
       {createRefusal.message && (
-        <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {createRefusal.message}
-        </p>
+        <p role="alert">Enregistrement impossible : {createRefusal.message}</p>
       )}
       {saved && !create.isError && (
-        <p role="status" style={{ color: 'var(--ok)' }}>
+        <p role="status" className="done">
           {saved}
         </p>
       )}

@@ -14,10 +14,8 @@ export function RiceFieldExpenses({ riceFieldId }: { riceFieldId: string }) {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <section aria-labelledby="rice-field-cost" style={{ marginTop: '1.5rem' }}>
-      <h2 id="rice-field-cost" style={{ fontSize: '1.125rem' }}>
-        Coût sur la campagne{campaign && ` ${campaign.year}`}
-      </h2>
+    <section aria-labelledby="rice-field-cost">
+      <h2 id="rice-field-cost">Coût sur la campagne{campaign && ` ${campaign.year}`}</h2>
       {campaign ? (
         <Linked campaignId={campaign.id} riceFieldId={riceFieldId} />
       ) : (
@@ -45,11 +43,11 @@ function Linked({ campaignId, riceFieldId }: { campaignId: string; riceFieldId: 
       {expenses.data.length === 0 ? (
         <p>Aucune dépense rattachée à cette rizière.</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 0.75rem' }}>
+        <ul className="rows">
           {expenses.data.map((expense) => (
-            <li key={expense.id} style={{ marginBottom: '0.375rem' }}>
+            <li key={expense.id}>
               <Link to={`/depenses/${expense.id}`}>{expense.label}</Link>
-              <span style={{ display: 'block', fontSize: '0.875rem' }}>
+              <span className="sub">
                 {formatDate(expense.date)} · {EXPENSE_CATEGORY_LABELS[expense.category]} ·{' '}
                 {formatAmount(expense.amount)}
               </span>

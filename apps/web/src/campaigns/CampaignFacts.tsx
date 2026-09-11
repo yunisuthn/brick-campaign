@@ -10,25 +10,18 @@ export function rateText(rate: number | null): string {
 export function CampaignFacts({ campaign }: { campaign: Campaign }) {
   return (
     <>
-      <p style={{ margin: '0 0 0.5rem' }}>
+      <p>
         {campaign.closedOn === null
           ? `Ouverte depuis le ${formatDate(campaign.startedOn)}`
           : `Clôturée le ${formatDate(campaign.closedOn)}`}
       </p>
-      <dl
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto 1fr',
-          gap: '0.125rem 0.75rem',
-          margin: 0,
-        }}
-      >
+      <dl className="facts">
         <dt>Moulage</dt>
-        <dd style={{ margin: 0 }}>{rateText(campaign.mouldingRate)}</dd>
+        <dd>{rateText(campaign.mouldingRate)}</dd>
         <dt>Transport</dt>
-        <dd style={{ margin: 0 }}>{rateText(campaign.transportRate)}</dd>
+        <dd>{rateText(campaign.transportRate)}</dd>
         <dt>Enfournement</dt>
-        <dd style={{ margin: 0 }}>{rateText(campaign.kilnLoadingRate)}</dd>
+        <dd>{rateText(campaign.kilnLoadingRate)}</dd>
       </dl>
     </>
   );

@@ -14,7 +14,7 @@ export function BalancesPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem' }}>
+    <main className="page-wide">
       <h1>Soldes{campaign && ` · Campagne ${campaign.year}`}</h1>
       {campaign ? (
         <Balances campaignId={campaign.id} />
@@ -46,9 +46,9 @@ function Balances({ campaignId }: { campaignId: string }) {
         {moulders.data.length === 0 ? (
           <p>Aucun mouleur avec une saisie sur cette campagne.</p>
         ) : (
-          <ul style={listStyle}>
+          <ul className="rows">
             {moulders.data.map((line) => (
-              <li key={line.moulderId} style={cardStyle}>
+              <li key={line.moulderId}>
                 <BalanceCard
                   name={line.name}
                   work={formatBricks(line.bricks)}
@@ -65,9 +65,9 @@ function Balances({ campaignId }: { campaignId: string }) {
         {contractors.data.length === 0 ? (
           <p>Aucune prestation ni versement sur cette campagne.</p>
         ) : (
-          <ul style={listStyle}>
+          <ul className="rows">
             {contractors.data.map((line) => (
-              <li key={line.contractorName} style={cardStyle}>
+              <li key={line.contractorName}>
                 <BalanceCard
                   name={line.contractorName}
                   work={contractorWork(line)}
@@ -82,14 +82,6 @@ function Balances({ campaignId }: { campaignId: string }) {
     </>
   );
 }
-
-const listStyle = { listStyle: 'none', padding: 0, margin: 0 };
-const cardStyle = {
-  padding: '0.75rem 1rem',
-  marginBottom: '0.5rem',
-  background: 'white',
-  borderRadius: '0.5rem',
-};
 
 function contractorWork(line: ContractorBalance): string {
   const parts: string[] = [];
@@ -118,8 +110,8 @@ function BalanceCard({ name, work, balance, missingRate }: BalanceCardProps) {
   return (
     <>
       <strong>{name}</strong>
-      <span style={{ display: 'block', fontSize: '0.875rem' }}>{work}</span>
-      <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0 0.75rem', margin: 0 }}>
+      <span className="sub">{work}</span>
+      <dl className="facts">
         <Line label="Gagné">
           {balance.earned === null ? <em>{missingRate}</em> : formatAmount(balance.earned)}
         </Line>
@@ -140,7 +132,7 @@ function Line({ label, children }: { label: string; children: ReactNode }) {
   return (
     <>
       <dt>{label}</dt>
-      <dd style={{ margin: 0 }}>{children}</dd>
+      <dd>{children}</dd>
     </>
   );
 }

@@ -18,19 +18,15 @@ export function NewRiceFieldPage() {
   );
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <h1>Nouvelle rizière</h1>
       <form onSubmit={submit} noValidate>
         <RiceFieldFields
           register={form.register}
           errors={{ ...form.formState.errors, ...createRefusal.fields }}
         />
-        {createRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Création impossible : {createRefusal.message}
-          </p>
-        )}
-        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        {createRefusal.message && <p role="alert">Création impossible : {createRefusal.message}</p>}
+        <p className="actions">
           <button type="submit" disabled={create.isPending}>
             Créer la rizière
           </button>

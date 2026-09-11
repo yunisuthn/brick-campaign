@@ -22,7 +22,7 @@ export function PaymentPage() {
   const { campaign } = useCurrentCampaign();
 
   return (
-    <main style={{ padding: '1rem', maxWidth: '24rem' }}>
+    <main className="page">
       <p>
         <Link to="/versements">Tous les versements</Link>
       </p>
@@ -105,7 +105,7 @@ function CorrectionForm({ payment, moulders, contractorNames }: CorrectionFormPr
     <>
       <h1>
         {name}, {formatDate(payment.date)}
-        <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'normal' }}>
+        <span className="title-sub">
           {PAYMENT_TYPE_LABELS[payment.type]} · {formatAmount(payment.amount)}
         </span>
       </h1>
@@ -118,16 +118,12 @@ function CorrectionForm({ payment, moulders, contractorNames }: CorrectionFormPr
           contractorNames={contractorNames}
         />
         {updateRefusal.message && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {updateRefusal.message}
-          </p>
+          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
         )}
         {cancel.isError && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
-            Annulation impossible : {apiErrorMessage(cancel.error)}
-          </p>
+          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
         )}
-        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
             Enregistrer
           </button>

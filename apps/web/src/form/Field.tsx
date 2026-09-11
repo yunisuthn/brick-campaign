@@ -1,4 +1,4 @@
-import { type CSSProperties, useId } from 'react';
+import { useId } from 'react';
 import type { FieldError, UseFormRegisterReturn } from 'react-hook-form';
 
 interface FieldProps {
@@ -11,30 +11,22 @@ interface FieldProps {
   suggestions?: ReadonlyArray<string>;
 }
 
-const controlStyle: CSSProperties = { display: 'block', width: '100%', boxSizing: 'border-box' };
-const labelStyle: CSSProperties = { display: 'block', marginBottom: '0.75rem' };
-
 function ErrorLine({ error }: { error: FieldError | undefined }) {
   if (!error) return null;
-  return (
-    <span role="alert" style={{ display: 'block', color: 'var(--error)' }}>
-      {error.message}
-    </span>
-  );
+  return <span role="alert">{error.message}</span>;
 }
 
 /** One labelled input with its own error line: what every short form of the app is made of. */
 export function Field({ label, input, error, type = 'text', inputMode, suggestions }: FieldProps) {
   const listId = useId();
   return (
-    <label style={labelStyle}>
+    <label>
       {label}
       <input
         type={type}
         inputMode={inputMode}
         aria-invalid={!!error}
         list={suggestions && suggestions.length > 0 ? listId : undefined}
-        style={controlStyle}
         {...input}
       />
       {suggestions && suggestions.length > 0 && (
@@ -59,9 +51,9 @@ interface SelectFieldProps {
 /** Same as Field, for a closed list of values. */
 export function SelectField({ label, input, error, options }: SelectFieldProps) {
   return (
-    <label style={labelStyle}>
+    <label>
       {label}
-      <select aria-invalid={!!error} style={controlStyle} {...input}>
+      <select aria-invalid={!!error} {...input}>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

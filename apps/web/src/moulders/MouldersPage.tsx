@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { membersText } from './moulderFields.js';
 import { useMoulders } from './useMoulders.js';
 
@@ -22,7 +23,9 @@ export function MouldersPage() {
         </label>
       </p>
       {moulders.isPending && <p role="status">Chargement…</p>}
-      {moulders.isError && <p role="alert">Chargement impossible : {moulders.error.message}</p>}
+      {moulders.isError && (
+        <p role="alert">Chargement impossible : {apiErrorMessage(moulders.error)}</p>
+      )}
       {moulders.isSuccess &&
         (moulders.data.length === 0 ? (
           <p>Aucun mouleur.</p>

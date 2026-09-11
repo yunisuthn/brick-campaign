@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { CONTRACT_LABELS, surfaceText } from './riceFieldFields.js';
 import { useRiceFields } from './useRiceFields.js';
 
@@ -12,7 +13,9 @@ export function RiceFieldsPage() {
         <Link to="/rizieres/nouvelle">Nouvelle rizière</Link>
       </p>
       {fields.isPending && <p role="status">Chargement…</p>}
-      {fields.isError && <p role="alert">Chargement impossible : {fields.error.message}</p>}
+      {fields.isError && (
+        <p role="alert">Chargement impossible : {apiErrorMessage(fields.error)}</p>
+      )}
       {fields.isSuccess &&
         (fields.data.length === 0 ? (
           <p>Aucune rizière.</p>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatBricks, today } from '../format.js';
 import { useMoulders } from '../moulders/useMoulders.js';
@@ -70,7 +71,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
       />
       {create.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {create.error.message}
+          Enregistrement impossible : {apiErrorMessage(create.error)}
         </p>
       )}
       {saved && !create.isError && (

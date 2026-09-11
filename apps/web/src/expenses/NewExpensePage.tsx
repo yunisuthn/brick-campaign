@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { today } from '../format.js';
 import { useKilnBatches } from '../kiln-batches/useKilnBatches.js';
@@ -79,7 +80,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
       />
       {create.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {create.error.message}
+          Enregistrement impossible : {apiErrorMessage(create.error)}
         </p>
       )}
       <p>

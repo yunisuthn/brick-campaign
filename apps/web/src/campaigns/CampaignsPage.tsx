@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { CampaignFacts } from './CampaignFacts.js';
 import { type Campaign, useCampaigns } from './useCampaigns.js';
 
@@ -12,7 +13,9 @@ export function CampaignsPage() {
         <Link to="/campagnes/nouvelle">Nouvelle campagne</Link>
       </p>
       {campaigns.isPending && <p role="status">Chargement…</p>}
-      {campaigns.isError && <p role="alert">Chargement impossible : {campaigns.error.message}</p>}
+      {campaigns.isError && (
+        <p role="alert">Chargement impossible : {apiErrorMessage(campaigns.error)}</p>
+      )}
       {campaigns.isSuccess &&
         (campaigns.data.length === 0 ? (
           <p>Aucune campagne.</p>

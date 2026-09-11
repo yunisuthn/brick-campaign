@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router';
-import { ApiError } from '../api/client.js';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { BatchWorks } from '../contractor-works/BatchWorks.js';
@@ -43,14 +43,6 @@ function LoadedBatch({ campaignId, id }: { campaignId: string; id: string }) {
   }
   if (!batch.isSuccess) return <p role="status">Chargement…</p>;
   return <BatchForm key={batch.data.id} batch={batch.data} />;
-}
-
-/** Contractor works point at the batch, so the API keeps it until they are cancelled. */
-function cancelErrorMessage(error: Error): string {
-  if (error instanceof ApiError && error.status === 409) {
-    return 'Le lot porte encore des prestations : annulez-les d’abord.';
-  }
-  return `Annulation impossible : ${error.message}`;
 }
 
 /**
@@ -125,12 +117,12 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
         />
         {update.isError && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {update.error.message}
+            Enregistrement impossible : {apiErrorMessage(update.error)}
           </p>
         )}
         {cancel.isError && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            {cancelErrorMessage(cancel.error)}
+            Annulation impossible : {apiErrorMessage(cancel.error)}
           </p>
         )}
         <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>

@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { RiceFieldFields } from './riceFieldFields.js';
 import { type NewRiceField, useCreateRiceField } from './useRiceFields.js';
 
@@ -21,7 +22,7 @@ export function NewRiceFieldPage() {
         <RiceFieldFields register={form.register} errors={form.formState.errors} />
         {create.isError && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Création impossible : {create.error.message}
+            Création impossible : {apiErrorMessage(create.error)}
           </p>
         )}
         <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

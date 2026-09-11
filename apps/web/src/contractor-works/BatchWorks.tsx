@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { formatBricks, formatDate } from '../format.js';
 import { WORK_TYPE_LABELS, useContractorWorks } from './useContractorWorks.js';
 
@@ -17,7 +18,7 @@ export function BatchWorks({ campaignId, batchId }: { campaignId: string; batchI
       <p>
         <Link to={`/lots/${batchId}/prestations/nouvelle`}>Ajouter une prestation</Link>
       </p>
-      {works.isError && <p role="alert">Chargement impossible : {works.error.message}</p>}
+      {works.isError && <p role="alert">Chargement impossible : {apiErrorMessage(works.error)}</p>}
       {works.isPending && <p role="status">Chargement…</p>}
       {works.isSuccess &&
         (works.data.length === 0 ? (

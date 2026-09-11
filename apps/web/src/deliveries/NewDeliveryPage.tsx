@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatBricks, today } from '../format.js';
 import { useStock } from '../stock/useStock.js';
@@ -33,7 +34,8 @@ function TripForm({ campaignId, saleId }: { campaignId: string; saleId: string }
     defaultValues: { date: today(), quantity: '', cost: '', plate: '' },
   });
 
-  if (stock.isError) return <p role="alert">Chargement impossible : {stock.error.message}</p>;
+  if (stock.isError)
+    return <p role="alert">Chargement impossible : {apiErrorMessage(stock.error)}</p>;
   if (!stock.isSuccess) return <p role="status">Chargement…</p>;
 
   const submit = form.handleSubmit((values) =>
@@ -46,7 +48,7 @@ function TripForm({ campaignId, saleId }: { campaignId: string; saleId: string }
       <DeliveryFields register={form.register} errors={form.formState.errors} />
       {create.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {create.error.message}
+          Enregistrement impossible : {apiErrorMessage(create.error)}
         </p>
       )}
       <p>

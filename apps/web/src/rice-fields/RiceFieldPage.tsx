@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { RiceFieldExpenses } from '../expenses/RiceFieldExpenses.js';
 import { RiceFieldFields } from './riceFieldFields.js';
@@ -49,7 +50,7 @@ function RiceFieldForm({ field }: { field: RiceField }) {
         <RiceFieldFields register={form.register} errors={form.formState.errors} />
         {update.isError && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {update.error.message}
+            Enregistrement impossible : {apiErrorMessage(update.error)}
           </p>
         )}
         <p>

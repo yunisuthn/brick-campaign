@@ -52,7 +52,14 @@ describe('NewCampaignPage', () => {
   it('names the year when the API answers that it already has a campaign', async () => {
     server.use(
       http.post('/api/campaigns', () =>
-        HttpResponse.json({ message: 'A campaign for 2026 already exists' }, { status: 409 }),
+        HttpResponse.json(
+          {
+            code: 'campaign_year_taken',
+            message: 'A campaign for 2026 already exists',
+            details: { year: 2026 },
+          },
+          { status: 409 },
+        ),
       ),
     );
     renderRoutes(routes, '/campagnes/nouvelle');
@@ -61,7 +68,7 @@ describe('NewCampaignPage', () => {
     await user.click(screen.getByRole('button', { name: 'Créer la campagne' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Une campagne existe déjà pour 2026.',
+      'Création impossible : Une campagne existe déjà pour 2026.',
     );
   });
 

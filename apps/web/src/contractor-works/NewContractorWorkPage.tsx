@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { today } from '../format.js';
@@ -31,7 +32,7 @@ function WorkForm({ campaignId, batchId }: { campaignId: string; batchId: string
   });
 
   if (contractors.isError) {
-    return <p role="alert">Chargement impossible : {contractors.error.message}</p>;
+    return <p role="alert">Chargement impossible : {apiErrorMessage(contractors.error)}</p>;
   }
   if (!contractors.isSuccess) return <p role="status">Chargement…</p>;
 
@@ -57,7 +58,7 @@ function WorkForm({ campaignId, batchId }: { campaignId: string; batchId: string
       />
       {create.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {create.error.message}
+          Enregistrement impossible : {apiErrorMessage(create.error)}
         </p>
       )}
       <p>

@@ -1,7 +1,12 @@
 import { ApiError } from './client.js';
+import { apiErrorMessage } from './errorMessages.js';
 
-/** A wrong or stale id is a plain "not found", said in the words of the screen; anything else is an API failure. */
+/**
+ * An id that names nothing — unknown, cancelled, or malformed in the address bar — is a plain
+ * "not found", said in the words of the screen. Anything else is an API failure, translated.
+ */
 export function loadErrorMessage(error: Error, notFound: string): string {
-  if (error instanceof ApiError && error.status === 404) return notFound;
-  return `Chargement impossible : ${error.message}`;
+  const missing =
+    error instanceof ApiError && (error.status === 404 || error.code === 'validation_failed');
+  return missing ? notFound : `Chargement impossible : ${apiErrorMessage(error)}`;
 }

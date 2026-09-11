@@ -117,7 +117,14 @@ describe('SalePage', () => {
       ...baseHandlers,
       http.get('/api/campaigns/c1/sales/s1', () => HttpResponse.json(sale)),
       http.delete('/api/campaigns/c1/sales/s1', () =>
-        HttpResponse.json({ message: 'Sale s1 still has 2 delivery(ies)' }, { status: 409 }),
+        HttpResponse.json(
+          {
+            code: 'sale_has_deliveries',
+            message: 'Sale s1 still has 2 delivery(ies)',
+            details: { deliveries: 2 },
+          },
+          { status: 409 },
+        ),
       ),
     );
     const user = userEvent.setup();
@@ -127,7 +134,7 @@ describe('SalePage', () => {
     await user.click(screen.getByRole('button', { name: 'Confirmer l’annulation' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'La vente porte encore des livraisons : annulez-les d’abord.',
+      'Annulation impossible : Cette vente porte encore 2 voyages : annulez-les d’abord.',
     );
   });
 

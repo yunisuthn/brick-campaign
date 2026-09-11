@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router';
-import { ApiError } from '../api/client.js';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { type Client, useClients } from '../clients/useClients.js';
@@ -43,7 +43,8 @@ function LoadedSale({ campaignId, id }: { campaignId: string; id: string }) {
   const clients = useClients();
 
   if (sale.isError) return <p role="alert">{loadErrorMessage(sale.error, 'Vente introuvable.')}</p>;
-  if (clients.isError) return <p role="alert">Chargement impossible : {clients.error.message}</p>;
+  if (clients.isError)
+    return <p role="alert">Chargement impossible : {apiErrorMessage(clients.error)}</p>;
   if (!sale.isSuccess || !clients.isSuccess) return <p role="status">Chargement…</p>;
 
   return (
@@ -69,14 +70,6 @@ function SaleHeading({ sale, clients }: { sale: Sale; clients: ReadonlyArray<Cli
       </span>
     </h1>
   );
-}
-
-/** Deliveries point at the sale: they are cancelled first, or the sale stays. */
-function cancelErrorMessage(error: Error): string {
-  if (error instanceof ApiError && error.status === 409) {
-    return 'La vente porte encore des livraisons : annulez-les d’abord.';
-  }
-  return `Annulation impossible : ${error.message}`;
 }
 
 /** The payment is left out of this form: it has its own, above. */
@@ -144,12 +137,12 @@ function SaleForm({ sale, clients }: { sale: Sale; clients: ReadonlyArray<Client
       />
       {update.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {update.error.message}
+          Enregistrement impossible : {apiErrorMessage(update.error)}
         </p>
       )}
       {cancel.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          {cancelErrorMessage(cancel.error)}
+          Annulation impossible : {apiErrorMessage(cancel.error)}
         </p>
       )}
       <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>

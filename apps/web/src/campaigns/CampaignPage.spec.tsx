@@ -66,11 +66,17 @@ describe('CampaignPage', () => {
     expect(screen.queryByRole('button', { name: 'Clôturer la campagne' })).not.toBeInTheDocument();
   });
 
-  it('shows the API message when the closing date is refused', async () => {
+  it('says in French why the closing date is refused', async () => {
     server.use(
       http.get('/api/campaigns/c1', () => HttpResponse.json(open)),
       http.patch('/api/campaigns/c1', () =>
-        HttpResponse.json({ message: 'closedOn must not be before startedOn' }, { status: 400 }),
+        HttpResponse.json(
+          {
+            code: 'campaign_dates_out_of_order',
+            message: 'closedOn must not be before startedOn',
+          },
+          { status: 400 },
+        ),
       ),
     );
     const user = userEvent.setup();
@@ -80,7 +86,7 @@ describe('CampaignPage', () => {
     await user.click(screen.getByRole('button', { name: 'Confirmer la clôture' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Clôture impossible : closedOn must not be before startedOn',
+      'Clôture impossible : La clôture ne peut pas précéder le début de la campagne.',
     );
     expect(screen.getByText('Ouverte depuis le 10 mai 2026')).toBeInTheDocument();
   });

@@ -93,7 +93,11 @@ describe('KilnBatchPage', () => {
       http.get('/api/campaigns/c1/kiln-batches/b1', () => HttpResponse.json(batch)),
       http.delete('/api/campaigns/c1/kiln-batches/b1', () =>
         HttpResponse.json(
-          { message: 'Kiln batch b1 still has 2 contractor work(s)' },
+          {
+            code: 'kiln_batch_has_works',
+            message: 'Kiln batch b1 still has 2 contractor work(s)',
+            details: { works: 2 },
+          },
           { status: 409 },
         ),
       ),
@@ -105,7 +109,7 @@ describe('KilnBatchPage', () => {
     await user.click(screen.getByRole('button', { name: 'Confirmer l’annulation' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Le lot porte encore des prestations : annulez-les d’abord.',
+      'Annulation impossible : Ce lot porte encore 2 prestations : annulez-les d’abord.',
     );
   });
 

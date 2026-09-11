@@ -44,6 +44,41 @@ describe('api', () => {
     expect(error).toMatchObject({ status: 503, message: 'database down' });
   });
 
+  it('reads the code and the numbers a refusal carries', async () => {
+    server.use(
+      http.post('/api/things', () =>
+        HttpResponse.json(
+          {
+            code: 'raw_stock_too_low',
+            message: 'Only 120 raw bricks in stock, cannot load 500',
+            details: { available: 120, quantity: 500 },
+          },
+          { status: 400 },
+        ),
+      ),
+    );
+    const error = await api.post('/things').catch((e: unknown) => e);
+    expect(error).toMatchObject({
+      status: 400,
+      code: 'raw_stock_too_low',
+      details: { available: 120, quantity: 500 },
+    });
+  });
+
+  it('drops a code it does not know, rather than passing it on as one', async () => {
+    server.use(
+      http.post('/api/things', () =>
+        HttpResponse.json(
+          { code: 'invented_since_this_build', message: 'Refused' },
+          { status: 400 },
+        ),
+      ),
+    );
+    const error = await api.post('/things').catch((e: unknown) => e);
+    expect(error).toMatchObject({ status: 400, message: 'Refused' });
+    expect((error as ApiError).code).toBeUndefined();
+  });
+
   it('resolves to undefined on a 204', async () => {
     server.use(http.delete('/api/things/1', () => new HttpResponse(null, { status: 204 })));
     await expect(api.delete('/things/1')).resolves.toBeUndefined();

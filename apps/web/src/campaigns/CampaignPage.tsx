@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { Field } from '../form/Field.js';
 import { today } from '../format.js';
@@ -74,7 +75,7 @@ function EditRates({ campaign }: { campaign: Campaign }) {
       <RateFields register={form.register} errors={form.formState.errors} />
       {update.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {update.error.message}
+          Enregistrement impossible : {apiErrorMessage(update.error)}
         </p>
       )}
       <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
@@ -121,7 +122,7 @@ function CloseCampaign({ campaign }: { campaign: Campaign }) {
       />
       {close.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Clôture impossible : {close.error.message}
+          Clôture impossible : {apiErrorMessage(close.error)}
         </p>
       )}
       <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useClients } from '../clients/useClients.js';
 import { Field, SelectField } from '../form/Field.js';
@@ -47,7 +48,8 @@ function SaleForm({ campaignId }: { campaignId: string }) {
     defaultValues: { clientId: '', date: today(), orderedQuantity: '', unitPrice: '' },
   });
 
-  if (clients.isError) return <p role="alert">Chargement impossible : {clients.error.message}</p>;
+  if (clients.isError)
+    return <p role="alert">Chargement impossible : {apiErrorMessage(clients.error)}</p>;
   if (!clients.isSuccess) return <p role="status">Chargement…</p>;
 
   const quantity = Number(form.watch('orderedQuantity'));
@@ -106,7 +108,7 @@ function SaleForm({ campaignId }: { campaignId: string }) {
       <p role="status">Total : {formatAmount(total)}</p>
       {create.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {create.error.message}
+          Enregistrement impossible : {apiErrorMessage(create.error)}
         </p>
       )}
       <p>

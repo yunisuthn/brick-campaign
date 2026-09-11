@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
@@ -112,12 +113,12 @@ function CorrectionForm({ payment, moulders, contractorNames }: CorrectionFormPr
         />
         {update.isError && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {update.error.message}
+            Enregistrement impossible : {apiErrorMessage(update.error)}
           </p>
         )}
         {cancel.isError && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Annulation impossible : {cancel.error.message}
+            Annulation impossible : {apiErrorMessage(cancel.error)}
           </p>
         )}
         <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>

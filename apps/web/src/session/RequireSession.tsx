@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useSession } from './useSession.js';
 
 /**
@@ -21,7 +22,7 @@ export function RequireSession() {
     return (
       <main style={{ padding: '1rem' }}>
         <h1>Briqueterie</h1>
-        <p role="alert">API indisponible : {session.error.message}</p>
+        <p role="alert">API indisponible : {apiErrorMessage(session.error)}</p>
       </main>
     );
   }

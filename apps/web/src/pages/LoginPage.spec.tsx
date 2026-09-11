@@ -44,12 +44,17 @@ describe('LoginPage', () => {
     signedOut();
     server.use(
       http.post('/api/auth/login', () =>
-        HttpResponse.json({ message: 'Invalid credentials' }, { status: 401 }),
+        HttpResponse.json(
+          { code: 'invalid_credentials', message: 'Invalid credentials' },
+          { status: 401 },
+        ),
       ),
     );
     renderRoutes(routes, '/connexion');
     await fillAndSubmit('a@b.c', 'wrong');
-    expect(await screen.findByRole('alert')).toHaveTextContent('Email ou mot de passe incorrect.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Connexion impossible : Adresse ou mot de passe incorrect.',
+    );
 
     server.use(
       http.post('/api/auth/login', () =>

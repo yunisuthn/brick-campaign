@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatAmount, formatDate } from '../format.js';
 import {
@@ -56,7 +57,9 @@ function ExpenseList({ campaignId }: { campaignId: string }) {
           </select>
         </label>
       </p>
-      {expenses.isError && <p role="alert">Chargement impossible : {expenses.error.message}</p>}
+      {expenses.isError && (
+        <p role="alert">Chargement impossible : {apiErrorMessage(expenses.error)}</p>
+      )}
       {expenses.isPending && <p role="status">Chargement…</p>}
       {expenses.isSuccess &&
         (expenses.data.length === 0 ? (

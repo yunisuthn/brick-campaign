@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { Field } from '../form/Field.js';
 import { formatAmount, formatDate, today } from '../format.js';
 import { type Sale, useUpdateSale } from './useSales.js';
@@ -51,7 +52,7 @@ export function SalePayment({ sale }: { sale: Sale }) {
           />
           {update.isError && (
             <p role="alert" style={{ color: 'var(--error)' }}>
-              Encaissement impossible : {update.error.message}
+              Encaissement impossible : {apiErrorMessage(update.error)}
             </p>
           )}
           <p>
@@ -67,7 +68,7 @@ export function SalePayment({ sale }: { sale: Sale }) {
           </p>
           {update.isError && (
             <p role="alert" style={{ color: 'var(--error)' }}>
-              Reprise impossible : {update.error.message}
+              Reprise impossible : {apiErrorMessage(update.error)}
             </p>
           )}
           <p>

@@ -105,7 +105,11 @@ describe('NewKilnBatchPage', () => {
       ...stockHandlers(10000),
       http.post('/api/campaigns/c1/kiln-batches', () =>
         HttpResponse.json(
-          { message: 'Only 10000 raw bricks in stock, cannot load 40000' },
+          {
+            code: 'raw_stock_too_low',
+            message: 'Only 10000 raw bricks in stock, cannot load 40000',
+            details: { available: 10000, quantity: 40000 },
+          },
           { status: 400 },
         ),
       ),
@@ -117,7 +121,7 @@ describe('NewKilnBatchPage', () => {
     await user.click(screen.getByRole('button', { name: 'Enfourner' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Enfournement impossible : Only 10000 raw bricks in stock, cannot load 40000',
+      'Enfournement impossible : Il ne reste que 10 000 briques crues en stock, impossible d’en enfourner 40 000.',
     );
   });
 });

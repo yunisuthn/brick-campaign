@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
 import { useDeliveries } from './useDeliveries.js';
 
@@ -14,7 +15,9 @@ export function SaleDeliveries({ campaignId, saleId }: { campaignId: string; sal
       <p>
         <Link to={`/ventes/${saleId}/livraisons/nouvelle`}>Ajouter un voyage</Link>
       </p>
-      {deliveries.isError && <p role="alert">Chargement impossible : {deliveries.error.message}</p>}
+      {deliveries.isError && (
+        <p role="alert">Chargement impossible : {apiErrorMessage(deliveries.error)}</p>
+      )}
       {deliveries.isPending && <p role="status">Chargement…</p>}
       {deliveries.isSuccess &&
         (deliveries.data.length === 0 ? (

@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
-import { ApiError } from '../api/client.js';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { Field } from '../form/Field.js';
 import { RateFields } from './rateFields.js';
 import { type NewCampaign, useCreateCampaign } from './useCampaigns.js';
@@ -50,7 +50,7 @@ export function NewCampaignPage() {
         <RateFields register={form.register} errors={errors} />
         {create.isError && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            {createErrorMessage(create.error, form.getValues('year'))}
+            Création impossible : {apiErrorMessage(create.error)}
           </p>
         )}
         <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
@@ -62,12 +62,4 @@ export function NewCampaignPage() {
       </form>
     </main>
   );
-}
-
-/** The year is unique per campaign: a 409 names it. Anything else shows the API message. */
-function createErrorMessage(error: Error, year: number): string {
-  if (error instanceof ApiError && error.status === 409) {
-    return `Une campagne existe déjà pour ${year}.`;
-  }
-  return `Création impossible : ${error.message}`;
 }

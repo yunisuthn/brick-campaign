@@ -104,11 +104,18 @@ describe('NewProductionPage', () => {
     ]);
   });
 
-  it('shows the API message when the entry is refused', async () => {
+  it('says in French why the entry is refused', async () => {
     server.use(
       ...referenceHandlers(),
       http.post('/api/campaigns/c1/productions', () =>
-        HttpResponse.json({ message: 'Validation failed' }, { status: 400 }),
+        HttpResponse.json(
+          {
+            code: 'validation_failed',
+            message: 'Validation failed',
+            issues: [{ path: 'quantity', message: 'Too small: expected number to be >0' }],
+          },
+          { status: 400 },
+        ),
       ),
     );
     const user = userEvent.setup();
@@ -120,7 +127,7 @@ describe('NewProductionPage', () => {
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Enregistrement impossible : Validation failed',
+      'Enregistrement impossible : La saisie est incomplète ou mal formée.',
     );
   });
 });

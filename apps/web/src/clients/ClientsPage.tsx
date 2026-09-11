@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useClients } from './useClients.js';
 
 export function ClientsPage() {
@@ -11,7 +12,9 @@ export function ClientsPage() {
         <Link to="/clients/nouveau">Nouveau client</Link>
       </p>
       {clients.isPending && <p role="status">Chargement…</p>}
-      {clients.isError && <p role="alert">Chargement impossible : {clients.error.message}</p>}
+      {clients.isError && (
+        <p role="alert">Chargement impossible : {apiErrorMessage(clients.error)}</p>
+      )}
       {clients.isSuccess &&
         (clients.data.length === 0 ? (
           <p>Aucun client.</p>

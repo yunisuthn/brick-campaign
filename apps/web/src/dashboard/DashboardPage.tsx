@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from '../expenses/useExpenses.js';
 import { formatAmount } from '../format.js';
@@ -28,7 +29,7 @@ function Overview({ campaignId }: { campaignId: string }) {
   const dashboard = useDashboard(campaignId);
 
   if (dashboard.isError) {
-    return <p role="alert">Chargement impossible : {dashboard.error.message}</p>;
+    return <p role="alert">Chargement impossible : {apiErrorMessage(dashboard.error)}</p>;
   }
   if (!dashboard.isSuccess) return <p role="status">Chargement…</p>;
   const data = dashboard.data;

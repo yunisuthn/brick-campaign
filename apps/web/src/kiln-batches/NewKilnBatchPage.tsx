@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { Field } from '../form/Field.js';
 import { formatBricks, today } from '../format.js';
@@ -43,7 +44,8 @@ function LoadForm({ campaignId }: { campaignId: string }) {
   const navigate = useNavigate();
   const form = useForm<KilnBatchForm>({ defaultValues: { loadedOn: today(), quantity: '' } });
 
-  if (stock.isError) return <p role="alert">Chargement impossible : {stock.error.message}</p>;
+  if (stock.isError)
+    return <p role="alert">Chargement impossible : {apiErrorMessage(stock.error)}</p>;
   if (!stock.isSuccess) return <p role="status">Chargement…</p>;
 
   const submit = form.handleSubmit((values) =>
@@ -74,7 +76,7 @@ function LoadForm({ campaignId }: { campaignId: string }) {
       />
       {create.isError && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enfournement impossible : {create.error.message}
+          Enfournement impossible : {apiErrorMessage(create.error)}
         </p>
       )}
       <p>

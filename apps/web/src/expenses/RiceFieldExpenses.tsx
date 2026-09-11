@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatAmount, formatDate } from '../format.js';
 import { EXPENSE_CATEGORY_LABELS, useExpenses } from './useExpenses.js';
@@ -30,7 +31,8 @@ function Linked({ campaignId, riceFieldId }: { campaignId: string; riceFieldId: 
   const expenses = useExpenses(campaignId, { riceFieldId });
   const addPath = `/depenses/nouvelle?category=rice_field&riceFieldId=${riceFieldId}`;
 
-  if (expenses.isError) return <p role="alert">Chargement impossible : {expenses.error.message}</p>;
+  if (expenses.isError)
+    return <p role="alert">Chargement impossible : {apiErrorMessage(expenses.error)}</p>;
   if (!expenses.isSuccess) return <p role="status">Chargement…</p>;
 
   const total = expenses.data.reduce((sum, expense) => sum + expense.amount, 0);

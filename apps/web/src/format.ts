@@ -27,7 +27,12 @@ export function today(): string {
 
 const count = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
 
+/** Whole counts, French grouping: `39 999`. */
+export function formatCount(value: number): string {
+  return count.format(value);
+}
+
 /** Bricks are counted, never fractional: `1 200 briques`. */
 export function formatBricks(quantity: number): string {
-  return `${count.format(quantity)} ${quantity === 1 ? 'brique' : 'briques'}`;
+  return `${formatCount(quantity)} ${quantity === 1 ? 'brique' : 'briques'}`;
 }

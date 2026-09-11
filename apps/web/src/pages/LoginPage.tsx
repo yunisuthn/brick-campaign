@@ -1,13 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { Navigate, useLocation, useNavigate } from 'react-router';
-import { ApiError } from '../api/client.js';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { type Credentials, useLogin, useSession } from '../session/useSession.js';
-
-/** The API does not say which of the two is wrong, neither does the screen. */
-function loginErrorMessage(error: Error): string {
-  if (error instanceof ApiError && error.status === 401) return 'Email ou mot de passe incorrect.';
-  return `Connexion impossible : ${error.message}`;
-}
 
 export function LoginPage() {
   const session = useSession();
@@ -54,7 +48,7 @@ export function LoginPage() {
         )}
         {login.isError && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            {loginErrorMessage(login.error)}
+            Connexion impossible : {apiErrorMessage(login.error)}
           </p>
         )}
         <button type="submit" disabled={login.isPending}>

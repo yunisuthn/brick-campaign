@@ -62,6 +62,10 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       environment: 'jsdom',
+      // One jsdom per worker instead of one per file: building it 47 times was more than half
+      // the run. Files still run one after the other and the setup resets the API mocks, the
+      // DOM and localStorage between tests, so nothing carries over.
+      isolate: false,
       setupFiles: ['./src/test/setup.ts'],
       include: ['src/**/*.spec.{ts,tsx}'],
       // A form filled key by key takes seconds; the five-second default cut such tests off

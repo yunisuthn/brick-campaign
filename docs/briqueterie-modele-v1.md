@@ -188,7 +188,7 @@ L'application ne tourne qu'en développement : le front passe par le proxy Vite,
 ### 10.3 Lot C — finition
 
 8. **Fusion de `feat/front` dans `main`.**
-9. **Tests du front** : 120 s pour 45 fichiers parce que jsdom est reconstruit à chaque fichier. Un environnement partagé par processus, l'isolation gardée, les ramène à quelques dizaines de secondes.
+9. **Tests du front** : 120 s pour 45 fichiers parce que jsdom est reconstruit à chaque fichier. Fait le 11 septembre 2026, 13 s désormais. La voie qui gardait l'isolation par fichier (`pool: 'vmThreads'`) n'expose pas les globaux dont MSW a besoin et ne démarre pas ; c'est donc l'environnement partagé (`isolate: false`) qui est retenu. Les fichiers s'exécutent toujours l'un après l'autre et la mise en place remet à zéro les simulacres d'API, le DOM et `localStorage` entre chaque test : ce qui fuirait d'un fichier à l'autre est un état de module, à surveiller si un test devient capricieux.
 10. **Revue de sécurité** avant la mise en ligne.
 
 ### 10.4 Points ouverts

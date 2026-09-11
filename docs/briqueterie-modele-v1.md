@@ -180,7 +180,7 @@ Une saisie refusée affiche aujourd'hui « Création impossible : Validation fai
 
 L'application ne tourne qu'en développement : le front passe par le proxy Vite, `docker-compose.yml` ne lève que Postgres, et le dépôt n'a pas de README. Pour une saisie le soir depuis un lieu connecté (section 1) :
 
-4. **L'API sert le front construit** : même origine, cookie de session sans CORS, ce que le proxy Vite imite déjà en développement.
+4. **L'API sert le front construit** : même origine, cookie de session sans CORS, ce que le proxy Vite imite déjà en développement. Tranché le 11 septembre 2026 : un seul conteneur, pas de reverse proxy à tenir en plus, et le front et l'API ne peuvent plus se retrouver en versions différentes puisqu'ils partent ensemble. L'API prend le préfixe `/api`, celui que le front appelle déjà ; le proxy Vite cesse de le retirer, si bien que les chemins sont les mêmes en développement, en test et en ligne. Tout chemin qui n'est pas sous `/api` rend la coquille du front.
 5. **Image de production** et compose qui la lance avec Postgres, migrations appliquées au démarrage.
 6. **Hébergement et sauvegarde quotidienne de la base.** Une saison de saisies n'existe nulle part ailleurs.
 7. **README** : installer, développer, tester, déployer, créer les deux comptes.

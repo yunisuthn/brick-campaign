@@ -10,11 +10,13 @@ describe('DashboardService', () => {
   const productionAggregate = vi.fn();
   const contractorWorkGroupBy = vi.fn();
   const paymentAggregate = vi.fn();
+  const salePaymentAggregate = vi.fn();
   const deliveryAggregate = vi.fn();
   const stockOverview = vi.fn();
   const prisma = {
     campaign: { findUnique: campaignFindUnique },
     sale: { findMany: saleFindMany },
+    salePayment: { aggregate: salePaymentAggregate },
     expense: { groupBy: expenseGroupBy },
     production: { aggregate: productionAggregate },
     contractorWork: { groupBy: contractorWorkGroupBy },
@@ -48,6 +50,7 @@ describe('DashboardService', () => {
     productionAggregate.mockResolvedValue({ _sum: { quantity: null } });
     contractorWorkGroupBy.mockResolvedValue([]);
     paymentAggregate.mockResolvedValue({ _sum: { amount: null } });
+    salePaymentAggregate.mockResolvedValue({ _sum: { amount: null } });
     deliveryAggregate.mockResolvedValue({ _sum: { cost: null } });
     stockOverview.mockResolvedValue(stockDto);
   });
@@ -69,12 +72,14 @@ describe('DashboardService', () => {
     expect(deliveryAggregate).toHaveBeenCalledWith(
       expect.objectContaining({ where: { sale: { campaignId }, cancelledAt: null } }),
     );
+    expect(salePaymentAggregate).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { sale: { campaignId }, cancelledAt: null } }),
+    );
   });
 
   it('feeds the database sums to the rule', async () => {
-    saleFindMany.mockResolvedValue([
-      { orderedQuantity: 40000, unitPrice: 250, amountReceived: 10_000_000 },
-    ]);
+    saleFindMany.mockResolvedValue([{ orderedQuantity: 40000, unitPrice: 250 }]);
+    salePaymentAggregate.mockResolvedValue({ _sum: { amount: 10_000_000 } });
     expenseGroupBy.mockResolvedValue([
       { category: 'akofa', _sum: { amount: 320_000 } },
       { category: 'rice_field', _sum: { amount: 500_000 } },

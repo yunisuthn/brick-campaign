@@ -11,6 +11,7 @@ describe('Dashboard (e2e)', () => {
 
   async function cleanUp() {
     const campaign = { year };
+    await ctx.prisma.salePayment.deleteMany({ where: { sale: { campaign } } });
     await ctx.prisma.delivery.deleteMany({ where: { sale: { campaign } } });
     await ctx.prisma.sale.deleteMany({ where: { campaign } });
     await ctx.prisma.expense.deleteMany({ where: { campaign } });
@@ -141,9 +142,15 @@ describe('Dashboard (e2e)', () => {
         date: day('08-01'),
         orderedQuantity: 5000,
         unitPrice: 250,
-        paidOn: day('08-10'),
-        amountReceived: 1_250_000,
       },
+    });
+    await prisma.salePayment.createMany({
+      data: [
+        { saleId: paidSale.id, date: day('08-10'), amount: 1_000_000 },
+        { saleId: paidSale.id, date: day('08-12'), amount: 250_000 },
+        // Cancelled: the dashboard must not count it.
+        { saleId: paidSale.id, date: day('08-13'), amount: 99_999, ...cancelled },
+      ],
     });
     await prisma.sale.createMany({
       data: [

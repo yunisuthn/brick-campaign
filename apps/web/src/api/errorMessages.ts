@@ -1,5 +1,5 @@
 import type { ErrorCode, ErrorDetails } from 'contracts';
-import { formatCount, formatDate } from '../format.js';
+import { formatAmount, formatCount, formatDate } from '../format.js';
 import { ApiError } from './client.js';
 
 type Sentence = string | ((details: ErrorDetails) => string);
@@ -33,6 +33,13 @@ const sentences: Record<ErrorCode, Sentence> = {
 
   raw_stock_too_low: stockSentence('crues', 'impossible d’en enfourner'),
   fired_stock_too_low: stockSentence('cuites', 'impossible d’en livrer'),
+  sale_overpaid: (details) => {
+    const remaining = numberOf(details, 'remaining');
+    if (remaining === null) return 'Cet encaissement dépasse ce qui reste à payer.';
+    return remaining === 0
+      ? 'Cette vente est déjà payée en entier.'
+      : `Il ne reste que ${formatAmount(remaining)} à encaisser sur cette vente.`;
+  },
 
   session_required: 'Session expirée, reconnectez-vous.',
   invalid_credentials: 'Adresse ou mot de passe incorrect.',
@@ -48,6 +55,7 @@ const sentences: Record<ErrorCode, Sentence> = {
   contractor_work_not_found: 'Cette prestation n’existe plus.',
   sale_not_found: 'Cette vente n’existe plus.',
   delivery_not_found: 'Ce voyage n’existe plus.',
+  sale_payment_not_found: 'Cet encaissement n’existe plus.',
   expense_not_found: 'Cette dépense n’existe plus.',
 
   campaign_year_taken: (details) => {
@@ -60,6 +68,13 @@ const sentences: Record<ErrorCode, Sentence> = {
     holdSentence(numberOf(details, 'works'), 'prestation', 'prestations', 'Ce lot porte encore'),
   sale_has_deliveries: (details) =>
     holdSentence(numberOf(details, 'deliveries'), 'voyage', 'voyages', 'Cette vente porte encore'),
+  sale_has_payments: (details) =>
+    holdSentence(
+      numberOf(details, 'payments'),
+      'encaissement',
+      'encaissements',
+      'Cette vente porte encore',
+    ),
 };
 
 /**

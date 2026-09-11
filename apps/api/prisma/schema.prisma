@@ -208,18 +208,35 @@ model Sale {
   date            DateTime  @db.Date
   orderedQuantity Int       @map("ordered_quantity")
   unitPrice       Int       @map("unit_price")
-  paidOn          DateTime? @map("paid_on") @db.Date
-  amountReceived  Int?      @map("amount_received")
   cancelledAt     DateTime? @map("cancelled_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  campaign   Campaign   @relation(fields: [campaignId], references: [id])
-  client     Client     @relation(fields: [clientId], references: [id])
+  campaign   Campaign      @relation(fields: [campaignId], references: [id])
+  client     Client        @relation(fields: [clientId], references: [id])
   deliveries Delivery[]
+  payments   SalePayment[]
 
   @@index([campaignId, clientId])
   @@map("sales")
+}
+
+// One instalment received against a sale. A client taking forty thousand bricks pays as the
+// trips go (reference document, section 10.5), so what was received is a sum over these rows
+// and never a column on the sale.
+model SalePayment {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  saleId      String    @map("sale_id") @db.Uuid
+  date        DateTime  @db.Date
+  amount      Int
+  cancelledAt DateTime? @map("cancelled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  sale Sale @relation(fields: [saleId], references: [id])
+
+  @@index([saleId])
+  @@map("sale_payments")
 }
 
 // One truck trip for a sale (2 300-2 500 bricks per trip in practice, not enforced). Takes its

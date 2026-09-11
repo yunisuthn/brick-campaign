@@ -22,6 +22,7 @@ export const errorStatuses = {
   moulder_inactive: 400,
   raw_stock_too_low: 400,
   fired_stock_too_low: 400,
+  sale_overpaid: 400,
 
   // 401 — no session, or the wrong credentials.
   session_required: 401,
@@ -39,12 +40,14 @@ export const errorStatuses = {
   contractor_work_not_found: 404,
   sale_not_found: 404,
   delivery_not_found: 404,
+  sale_payment_not_found: 404,
   expense_not_found: 404,
 
   // 409 — the row exists and something else holds it.
   campaign_year_taken: 409,
   kiln_batch_has_works: 409,
   sale_has_deliveries: 409,
+  sale_has_payments: 409,
 } as const;
 
 export type ErrorCode = keyof typeof errorStatuses;

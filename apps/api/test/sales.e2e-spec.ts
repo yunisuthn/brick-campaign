@@ -69,7 +69,7 @@ describe('Sales (e2e)', () => {
       .expect(400);
   });
 
-  it('creates a sale unpaid, records the payment, corrects, lists and cancels', async () => {
+  it('creates a sale owing everything, corrects it, lists it and cancels it', async () => {
     const server = ctx.app.getHttpServer();
 
     const created = await request(server)
@@ -84,36 +84,26 @@ describe('Sales (e2e)', () => {
       date: '2091-08-01',
       orderedQuantity: 5000,
       unitPrice: 250,
-      payment: null,
       deliveredQuantity: 0,
+      receivedAmount: 0,
       total: 1_250_000,
+      outstanding: 1_250_000,
       status: 'ordered',
     });
     const id: string = created.body.id;
 
-    await request(server)
-      .patch(`${path()}/${id}`)
-      .set('Cookie', cookie)
-      .send({ payment: { paidOn: '2091-07-31', amountReceived: 1_250_000 } })
-      .expect(400);
-    const paid = await request(server)
-      .patch(`${path()}/${id}`)
-      .set('Cookie', cookie)
-      .send({ payment: { paidOn: '2091-08-20', amountReceived: 1_250_000 } })
-      .expect(200);
-    expect(paid.body).toEqual({
-      ...created.body,
-      payment: { paidOn: '2091-08-20', amountReceived: 1_250_000 },
-      status: 'paid',
-    });
-
-    // A price fix keeps the payment and moves the total.
+    // A price fix moves the total and what is still owed, and touches nothing else.
     const fixed = await request(server)
       .patch(`${path()}/${id}`)
       .set('Cookie', cookie)
       .send({ unitPrice: 260 })
       .expect(200);
-    expect(fixed.body).toEqual({ ...paid.body, unitPrice: 260, total: 1_300_000 });
+    expect(fixed.body).toEqual({
+      ...created.body,
+      unitPrice: 260,
+      total: 1_300_000,
+      outstanding: 1_300_000,
+    });
 
     const list = await request(server).get(path()).set('Cookie', cookie).expect(200);
     expect(list.body).toEqual([fixed.body]);

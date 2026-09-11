@@ -24,28 +24,41 @@ export class DashboardService {
   async overview(campaignId: string): Promise<DashboardDto> {
     const rates = await this.rates(campaignId);
     const live = { campaignId, cancelledAt: null };
-    const [sales, expenses, productions, contractorWorks, payments, deliveries, stock] =
-      await Promise.all([
-        this.prisma.sale.findMany({
-          where: live,
-          select: { orderedQuantity: true, unitPrice: true, amountReceived: true },
-        }),
-        this.prisma.expense.groupBy({ by: ['category'], where: live, _sum: { amount: true } }),
-        this.prisma.production.aggregate({ where: live, _sum: { quantity: true } }),
-        this.prisma.contractorWork.groupBy({ by: ['type'], where: live, _sum: { quantity: true } }),
-        this.prisma.payment.aggregate({ where: live, _sum: { amount: true } }),
-        this.prisma.delivery.aggregate({
-          where: { sale: { campaignId }, cancelledAt: null },
-          _sum: { cost: true },
-        }),
-        this.stock.overview(campaignId),
-      ]);
+    const [
+      sales,
+      salePayments,
+      expenses,
+      productions,
+      contractorWorks,
+      payments,
+      deliveries,
+      stock,
+    ] = await Promise.all([
+      this.prisma.sale.findMany({
+        where: live,
+        select: { orderedQuantity: true, unitPrice: true },
+      }),
+      this.prisma.salePayment.aggregate({
+        where: { sale: { campaignId }, cancelledAt: null },
+        _sum: { amount: true },
+      }),
+      this.prisma.expense.groupBy({ by: ['category'], where: live, _sum: { amount: true } }),
+      this.prisma.production.aggregate({ where: live, _sum: { quantity: true } }),
+      this.prisma.contractorWork.groupBy({ by: ['type'], where: live, _sum: { quantity: true } }),
+      this.prisma.payment.aggregate({ where: live, _sum: { amount: true } }),
+      this.prisma.delivery.aggregate({
+        where: { sale: { campaignId }, cancelledAt: null },
+        _sum: { cost: true },
+      }),
+      this.stock.overview(campaignId),
+    ]);
     return {
       campaignId,
       stock,
       ...campaignResult(rates, {
         // Kept per sale: the total is a sum of products, not a product of sums.
         sales,
+        salePayments: [{ amount: salePayments._sum.amount ?? 0 }],
         expenses: expenses.map((g) => ({ category: g.category, amount: g._sum.amount ?? 0 })),
         productions: [{ quantity: productions._sum.quantity ?? 0 }],
         contractorWorks: contractorWorks.map((g) => ({

@@ -12,11 +12,13 @@ describe('DeliveriesService', () => {
   const findFirst = vi.fn();
   const update = vi.fn();
   const aggregate = vi.fn();
+  const paymentAggregate = vi.fn();
   const firedStock = vi.fn();
   const prisma = {
     campaign: { findUnique: campaignFindUnique },
     sale: { findFirst: saleFindFirst },
     delivery: { create, findFirst, update, aggregate },
+    salePayment: { aggregate: paymentAggregate },
   } as unknown as PrismaService;
   const refs = new EntryReferences(prisma);
   const stock = { firedStock } as unknown as StockService;
@@ -31,8 +33,6 @@ describe('DeliveriesService', () => {
     date: new Date('2026-08-01T00:00:00Z'),
     orderedQuantity: 5000,
     unitPrice: 250,
-    paidOn: null,
-    amountReceived: null,
   };
   const input = { date: '2026-08-05', quantity: 2500, cost: 60000, plate: null };
   const row = {
@@ -52,6 +52,7 @@ describe('DeliveriesService', () => {
     });
     saleFindFirst.mockResolvedValue(sale);
     aggregate.mockResolvedValue({ _sum: { quantity: null } });
+    paymentAggregate.mockResolvedValue({ _sum: { amount: null } });
     firedStock.mockResolvedValue(40000);
   });
 

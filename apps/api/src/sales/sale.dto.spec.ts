@@ -8,34 +8,31 @@ const valid = {
 };
 
 describe('createSaleSchema', () => {
-  it('defaults the payment to null: the sale is created unpaid', () => {
-    expect(createSaleSchema.parse(valid)).toEqual({ ...valid, payment: null });
-  });
-
-  it('accepts a payment with both a date and an amount', () => {
-    const payment = { paidOn: '2026-08-20', amountReceived: 1_250_000 };
-    expect(createSaleSchema.parse({ ...valid, payment })).toEqual({ ...valid, payment });
+  it('takes what the client owes, and nothing about what came in', () => {
+    expect(createSaleSchema.parse(valid)).toEqual(valid);
   });
 
   it.each([
     ['a malformed client id', { clientId: 'client-1' }],
     ['a zero quantity', { orderedQuantity: 0 }],
     ['a fractional price', { unitPrice: 250.5 }],
-    ['a payment without an amount', { payment: { paidOn: '2026-08-20' } }],
-    ['a payment without a date', { payment: { amountReceived: 1000 } }],
-    ['a zero amount received', { payment: { paidOn: '2026-08-20', amountReceived: 0 } }],
+    ['a date that is not a calendar day', { date: '1 août 2026' }],
   ])('rejects %s', (_label, override) => {
     expect(createSaleSchema.safeParse({ ...valid, ...override }).success).toBe(false);
+  });
+
+  it('ignores a payment offered here: instalments have their own route', () => {
+    const parsed = createSaleSchema.parse({
+      ...valid,
+      payment: { paidOn: '2026-08-20', amountReceived: 1_250_000 },
+    });
+    expect(parsed).toEqual(valid);
   });
 });
 
 describe('updateSaleSchema', () => {
-  it('leaves out the payment when only the price changes, so a fix never unpays a sale', () => {
+  it('touches only the field it is given', () => {
     expect(updateSaleSchema.parse({ unitPrice: 260 })).toEqual({ unitPrice: 260 });
-  });
-
-  it('takes a payment back with payment: null', () => {
-    expect(updateSaleSchema.parse({ payment: null })).toEqual({ payment: null });
   });
 
   it('rejects an empty body', () => {

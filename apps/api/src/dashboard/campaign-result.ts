@@ -11,11 +11,9 @@ export interface CampaignRates extends ContractorRates {
 
 /** Live entries of the campaign, or their sums: a grouped row counts like a single entry. */
 export interface CampaignEntries {
-  sales: ReadonlyArray<{
-    orderedQuantity: number;
-    unitPrice: number;
-    amountReceived: number | null;
-  }>;
+  sales: ReadonlyArray<{ orderedQuantity: number; unitPrice: number }>;
+  /** What clients handed over, instalment by instalment (reference document, section 10.5). */
+  salePayments: ReadonlyArray<{ amount: number }>;
   expenses: ReadonlyArray<{ category: ExpenseCategory; amount: number }>;
   productions: ReadonlyArray<{ quantity: number }>;
   contractorWorks: ReadonlyArray<{ type: ContractorWorkType; quantity: number }>;
@@ -68,7 +66,7 @@ const EXPENSE_CATEGORIES: readonly ExpenseCategory[] = [
  */
 export function campaignResult(rates: CampaignRates, entries: CampaignEntries): CampaignResult {
   const revenue = entries.sales.reduce((sum, s) => sum + s.orderedQuantity * s.unitPrice, 0);
-  const received = entries.sales.reduce((sum, s) => sum + (s.amountReceived ?? 0), 0);
+  const received = entries.salePayments.reduce((sum, p) => sum + p.amount, 0);
 
   const byCategory = Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [c, 0])) as Record<
     ExpenseCategory,

@@ -4,6 +4,7 @@ describe('campaignResult', () => {
   const rates = { mouldingRate: 20, transportRate: 5, kilnLoadingRate: 3 };
   const nothing = {
     sales: [],
+    salePayments: [],
     expenses: [],
     productions: [],
     contractorWorks: [],
@@ -38,9 +39,10 @@ describe('campaignResult', () => {
     const result = campaignResult(rates, {
       ...nothing,
       sales: [
-        { orderedQuantity: 5000, unitPrice: 250, amountReceived: 1_250_000 },
-        { orderedQuantity: 10000, unitPrice: 240, amountReceived: null },
+        { orderedQuantity: 5000, unitPrice: 250 },
+        { orderedQuantity: 10000, unitPrice: 240 },
       ],
+      salePayments: [{ amount: 1_000_000 }, { amount: 250_000 }],
     });
     expect(result).toMatchObject({
       revenue: 3_650_000,
@@ -52,7 +54,8 @@ describe('campaignResult', () => {
   it('counts the labour owed, paid or not, so an advance moves the outstanding but not the result', () => {
     const entries = {
       ...nothing,
-      sales: [{ orderedQuantity: 40000, unitPrice: 250, amountReceived: 10_000_000 }],
+      sales: [{ orderedQuantity: 40000, unitPrice: 250 }],
+      salePayments: [{ amount: 10_000_000 }],
       expenses: [
         { category: 'akofa' as const, amount: 300_000 },
         { category: 'akofa' as const, amount: 20_000 },
@@ -99,6 +102,7 @@ describe('campaignResult', () => {
 describe('campaignResult with a rate not fixed', () => {
   const nothing = {
     sales: [],
+    salePayments: [],
     expenses: [],
     productions: [],
     contractorWorks: [],
@@ -111,7 +115,8 @@ describe('campaignResult with a rate not fixed', () => {
       { mouldingRate: null, transportRate: 5, kilnLoadingRate: 3 },
       {
         ...nothing,
-        sales: [{ orderedQuantity: 5000, unitPrice: 250, amountReceived: 1_250_000 }],
+        sales: [{ orderedQuantity: 5000, unitPrice: 250 }],
+        salePayments: [{ amount: 1_250_000 }],
         expenses: [{ category: 'akofa' as const, amount: 20_000 }],
         productions: [{ quantity: 10000 }],
         contractorWorks: [{ type: 'transport' as const, quantity: 10000 }],

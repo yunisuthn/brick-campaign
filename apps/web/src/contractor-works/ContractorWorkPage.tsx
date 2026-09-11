@@ -5,6 +5,7 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, formatDate } from '../format.js';
 import { type ContractorWorkForm, ContractorWorkFields } from './contractorWorkFields.js';
 import {
@@ -74,6 +75,8 @@ function CorrectionForm({
     },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const save = form.handleSubmit((values) =>
     update.mutate(
       {
@@ -102,12 +105,12 @@ function CorrectionForm({
       <form onSubmit={save} noValidate>
         <ContractorWorkFields
           register={form.register}
-          errors={form.formState.errors}
+          errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           contractorNames={contractorNames}
         />
-        {update.isError && (
+        {updateRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {apiErrorMessage(update.error)}
+            Enregistrement impossible : {updateRefusal.message}
           </p>
         )}
         {cancel.isError && (

@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
 import { type DeliveryForm, DeliveryFields, toNewDelivery } from './deliveryFields.js';
 import {
@@ -65,6 +66,8 @@ function CorrectionForm({ campaignId, delivery }: { campaignId: string; delivery
     },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const save = form.handleSubmit((values) =>
     update.mutate(toNewDelivery(values), {
       onSuccess: (saved) => form.reset({ ...values, quantity: String(saved.quantity) }),
@@ -82,10 +85,13 @@ function CorrectionForm({ campaignId, delivery }: { campaignId: string; delivery
         </span>
       </h1>
       <form onSubmit={save} noValidate>
-        <DeliveryFields register={form.register} errors={form.formState.errors} />
-        {update.isError && (
+        <DeliveryFields
+          register={form.register}
+          errors={{ ...form.formState.errors, ...updateRefusal.fields }}
+        />
+        {updateRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {apiErrorMessage(update.error)}
+            Enregistrement impossible : {updateRefusal.message}
           </p>
         )}
         {cancel.isError && (

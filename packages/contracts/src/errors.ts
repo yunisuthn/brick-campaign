@@ -52,10 +52,21 @@ export type ErrorCode = keyof typeof errorStatuses;
 /** Numbers and dates the French sentence needs: how many bricks are left, which year is taken. */
 export type ErrorDetails = Record<string, string | number | null>;
 
+/** What a DTO schema objected to, kept coarse: enough to say it in French, and no more. */
+export type IssueKind = 'invalid_type' | 'too_small' | 'too_big' | 'invalid_format' | 'other';
+
 export interface ValidationIssue {
-  /** Dotted path of the field inside the body, `''` when the whole body is at fault. */
+  /** Dotted path of the field inside the body, empty when the whole body is at fault. */
   path: string;
+  /** English, for the logs. The front builds its own sentence from the fields below. */
   message: string;
+  kind: IssueKind;
+  /** What the bound counts (`string`, `int`, …), or the type that was expected. */
+  origin?: string;
+  /** The bound that was crossed: a length for a string, a value for a number. */
+  limit?: number;
+  /** Whether the bound itself is allowed: `positive()` reports 0, exclusive. */
+  inclusive?: boolean;
 }
 
 /** The body of any non-2xx answer. `issues` comes with `validation_failed` and nothing else. */

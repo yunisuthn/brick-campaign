@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, today } from '../format.js';
 import { useMoulders } from '../moulders/useMoulders.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
@@ -46,9 +47,11 @@ function EntryForm({ campaignId }: { campaignId: string }) {
 
   if (moulders.isError || riceFields.isError) {
     const error = moulders.error ?? riceFields.error;
-    return <p role="alert">Chargement impossible : {error?.message}</p>;
+    return <p role="alert">Chargement impossible : {error && apiErrorMessage(error)}</p>;
   }
   if (!moulders.isSuccess || !riceFields.isSuccess) return <p role="status">Chargement…</p>;
+
+  const createRefusal = apiFormErrors(create, form);
 
   const submit = form.handleSubmit((values) =>
     create.mutate(toNewProduction(values), {
@@ -65,13 +68,13 @@ function EntryForm({ campaignId }: { campaignId: string }) {
     <form onSubmit={submit} noValidate>
       <ProductionFields
         register={form.register}
-        errors={form.formState.errors}
+        errors={{ ...form.formState.errors, ...createRefusal.fields }}
         moulders={moulders.data}
         riceFields={riceFields.data}
       />
-      {create.isError && (
+      {createRefusal.message && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {apiErrorMessage(create.error)}
+          Enregistrement impossible : {createRefusal.message}
         </p>
       )}
       {saved && !create.isError && (

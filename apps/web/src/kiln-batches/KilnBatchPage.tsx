@@ -6,6 +6,7 @@ import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { BatchWorks } from '../contractor-works/BatchWorks.js';
 import { Field } from '../form/Field.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
 import {
   type KilnBatch,
@@ -63,6 +64,8 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
     },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const save = form.handleSubmit((values) =>
     update.mutate(
       {
@@ -92,13 +95,13 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
       <form onSubmit={save} noValidate>
         <Field
           label="Date d’enfournement"
-          error={form.formState.errors.loadedOn}
+          error={form.formState.errors.loadedOn ?? updateRefusal.fields.loadedOn}
           input={form.register('loadedOn', { required: 'La date d’enfournement est requise.' })}
           type="date"
         />
         <Field
           label="Date de défournement"
-          error={form.formState.errors.unloadedOn}
+          error={form.formState.errors.unloadedOn ?? updateRefusal.fields.unloadedOn}
           input={form.register('unloadedOn')}
           type="date"
         />
@@ -107,7 +110,7 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
         </p>
         <Field
           label="Quantité (briques)"
-          error={form.formState.errors.quantity}
+          error={form.formState.errors.quantity ?? updateRefusal.fields.quantity}
           input={form.register('quantity', {
             validate: (value) =>
               (/^\d+$/.test(value.trim()) && Number(value) >= MIN_KILN_BATCH_QUANTITY) ||
@@ -115,9 +118,9 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
           })}
           inputMode="numeric"
         />
-        {update.isError && (
+        {updateRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {apiErrorMessage(update.error)}
+            Enregistrement impossible : {updateRefusal.message}
           </p>
         )}
         {cancel.isError && (

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatAmount, formatBricks } from '../format.js';
 import {
@@ -32,7 +33,10 @@ function Balances({ campaignId }: { campaignId: string }) {
   const contractors = useContractorBalances(campaignId);
 
   const failed = [moulders, contractors].find((query) => query.isError);
-  if (failed) return <p role="alert">Chargement impossible : {failed.error?.message}</p>;
+  if (failed)
+    return (
+      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+    );
   if (!moulders.isSuccess || !contractors.isSuccess) return <p role="status">Chargement…</p>;
 
   return (

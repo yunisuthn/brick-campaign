@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Navigate, useLocation, useNavigate } from 'react-router';
-import { apiErrorMessage } from '../api/errorMessages.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { type Credentials, useLogin, useSession } from '../session/useSession.js';
 
 export function LoginPage() {
@@ -13,6 +13,11 @@ export function LoginPage() {
 
   // Already signed in (typed the URL by hand, or came back): nothing to do here.
   if (session.data) return <Navigate to={from} replace />;
+
+  const loginRefusal = apiFormErrors(login, form);
+  const { errors } = form.formState;
+  const fieldProblem =
+    errors.email ?? errors.password ?? loginRefusal.fields.email ?? loginRefusal.fields.password;
 
   const submit = form.handleSubmit((credentials) =>
     login.mutate(credentials, { onSuccess: () => navigate(from, { replace: true }) }),
@@ -41,14 +46,14 @@ export function LoginPage() {
             {...form.register('password', { required: 'Le mot de passe est requis.' })}
           />
         </label>
-        {(form.formState.errors.email ?? form.formState.errors.password) && (
+        {fieldProblem && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            {form.formState.errors.email?.message ?? form.formState.errors.password?.message}
+            {fieldProblem.message}
           </p>
         )}
-        {login.isError && (
+        {loginRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Connexion impossible : {apiErrorMessage(login.error)}
+            Connexion impossible : {loginRefusal.message}
           </p>
         )}
         <button type="submit" disabled={login.isPending}>

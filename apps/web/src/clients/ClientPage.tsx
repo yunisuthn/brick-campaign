@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
-import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { ClientFields } from './clientFields.js';
 import { type Client, type NewClient, useClient, useUpdateClient } from './useClients.js';
 
@@ -30,6 +30,8 @@ function ClientForm({ client }: { client: Client }) {
     defaultValues: { name: client.name, phone: client.phone, locality: client.locality },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const save = form.handleSubmit((input) =>
     update.mutate(input, { onSuccess: (saved) => form.reset(saved) }),
   );
@@ -38,10 +40,13 @@ function ClientForm({ client }: { client: Client }) {
     <>
       <h1>{client.name}</h1>
       <form onSubmit={save} noValidate>
-        <ClientFields register={form.register} errors={form.formState.errors} />
-        {update.isError && (
+        <ClientFields
+          register={form.register}
+          errors={{ ...form.formState.errors, ...updateRefusal.fields }}
+        />
+        {updateRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {apiErrorMessage(update.error)}
+            Enregistrement impossible : {updateRefusal.message}
           </p>
         )}
         <p>

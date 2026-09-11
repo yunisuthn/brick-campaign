@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { today } from '../format.js';
 import { type ContractorWorkForm, ContractorWorkFields } from './contractorWorkFields.js';
 import { type ContractorWorkType, useCreateContractorWork } from './useContractorWorks.js';
@@ -36,6 +37,8 @@ function WorkForm({ campaignId, batchId }: { campaignId: string; batchId: string
   }
   if (!contractors.isSuccess) return <p role="status">Chargement…</p>;
 
+  const createRefusal = apiFormErrors(create, form);
+
   const submit = form.handleSubmit((values) =>
     create.mutate(
       {
@@ -53,12 +56,12 @@ function WorkForm({ campaignId, batchId }: { campaignId: string; batchId: string
     <form onSubmit={submit} noValidate>
       <ContractorWorkFields
         register={form.register}
-        errors={form.formState.errors}
+        errors={{ ...form.formState.errors, ...createRefusal.fields }}
         contractorNames={contractors.data.map((c) => c.contractorName)}
       />
-      {create.isError && (
+      {createRefusal.message && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {apiErrorMessage(create.error)}
+          Enregistrement impossible : {createRefusal.message}
         </p>
       )}
       <p>

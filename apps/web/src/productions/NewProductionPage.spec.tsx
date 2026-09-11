@@ -104,7 +104,7 @@ describe('NewProductionPage', () => {
     ]);
   });
 
-  it('says in French why the entry is refused', async () => {
+  it('puts a value the API refuses under the field it names', async () => {
     server.use(
       ...referenceHandlers(),
       http.post('/api/campaigns/c1/productions', () =>
@@ -112,7 +112,42 @@ describe('NewProductionPage', () => {
           {
             code: 'validation_failed',
             message: 'Validation failed',
-            issues: [{ path: 'quantity', message: 'Too small: expected number to be >0' }],
+            issues: [
+              {
+                path: 'quantity',
+                message: 'Too small: expected number to be >0',
+                kind: 'too_small',
+                origin: 'int',
+                limit: 0,
+                inclusive: false,
+              },
+            ],
+          },
+          { status: 400 },
+        ),
+      ),
+    );
+    const user = userEvent.setup();
+    mount();
+
+    await user.selectOptions(await screen.findByLabelText('Mouleur'), 'm1');
+    await user.selectOptions(screen.getByLabelText('Rizière'), 'r1');
+    await user.type(screen.getByLabelText('Quantité (briques)'), '500');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Au moins 1.');
+    expect(screen.queryByText(/Enregistrement impossible/)).not.toBeInTheDocument();
+  });
+
+  it('says above the form what no field can carry', async () => {
+    server.use(
+      ...referenceHandlers(),
+      http.post('/api/campaigns/c1/productions', () =>
+        HttpResponse.json(
+          {
+            code: 'validation_failed',
+            message: 'Validation failed',
+            issues: [{ path: '', message: 'At least one field is required', kind: 'other' }],
           },
           { status: 400 },
         ),

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { Field } from '../form/Field.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, today } from '../format.js';
 import { useStock } from '../stock/useStock.js';
 import { MIN_KILN_BATCH_QUANTITY, useCreateKilnBatch } from './useKilnBatches.js';
@@ -48,6 +49,8 @@ function LoadForm({ campaignId }: { campaignId: string }) {
     return <p role="alert">Chargement impossible : {apiErrorMessage(stock.error)}</p>;
   if (!stock.isSuccess) return <p role="status">Chargement…</p>;
 
+  const createRefusal = apiFormErrors(create, form);
+
   const submit = form.handleSubmit((values) =>
     create.mutate(
       { loadedOn: values.loadedOn, unloadedOn: null, quantity: Number(values.quantity) },
@@ -60,13 +63,13 @@ function LoadForm({ campaignId }: { campaignId: string }) {
       <p role="status">Stock crue : {formatBricks(stock.data.raw)}.</p>
       <Field
         label="Date d’enfournement"
-        error={form.formState.errors.loadedOn}
+        error={form.formState.errors.loadedOn ?? createRefusal.fields.loadedOn}
         input={form.register('loadedOn', { required: 'La date est requise.' })}
         type="date"
       />
       <Field
         label="Quantité (briques)"
-        error={form.formState.errors.quantity}
+        error={form.formState.errors.quantity ?? createRefusal.fields.quantity}
         input={form.register('quantity', {
           validate: (value) =>
             (/^\d+$/.test(value.trim()) && Number(value) >= MIN_KILN_BATCH_QUANTITY) ||
@@ -74,9 +77,9 @@ function LoadForm({ campaignId }: { campaignId: string }) {
         })}
         inputMode="numeric"
       />
-      {create.isError && (
+      {createRefusal.message && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enfournement impossible : {apiErrorMessage(create.error)}
+          Enfournement impossible : {createRefusal.message}
         </p>
       )}
       <p>

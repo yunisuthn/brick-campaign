@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
-import { apiErrorMessage } from '../api/errorMessages.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { ClientFields } from './clientFields.js';
 import { type NewClient, useCreateClient } from './useClients.js';
 
@@ -8,6 +8,8 @@ export function NewClientPage() {
   const create = useCreateClient();
   const navigate = useNavigate();
   const form = useForm<NewClient>({ defaultValues: { name: '', phone: null, locality: '' } });
+
+  const createRefusal = apiFormErrors(create, form);
 
   const submit = form.handleSubmit((input) =>
     create.mutate(input, { onSuccess: () => navigate('/clients') }),
@@ -17,10 +19,13 @@ export function NewClientPage() {
     <main style={{ padding: '1rem', maxWidth: '24rem' }}>
       <h1>Nouveau client</h1>
       <form onSubmit={submit} noValidate>
-        <ClientFields register={form.register} errors={form.formState.errors} />
-        {create.isError && (
+        <ClientFields
+          register={form.register}
+          errors={{ ...form.formState.errors, ...createRefusal.fields }}
+        />
+        {createRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Création impossible : {apiErrorMessage(create.error)}
+            Création impossible : {createRefusal.message}
           </p>
         )}
         <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

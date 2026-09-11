@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
-import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { RiceFieldExpenses } from '../expenses/RiceFieldExpenses.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { RiceFieldFields } from './riceFieldFields.js';
 import {
   type NewRiceField,
@@ -39,6 +39,8 @@ function RiceFieldForm({ field }: { field: RiceField }) {
     },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const save = form.handleSubmit((input) =>
     update.mutate(input, { onSuccess: (saved) => form.reset(saved) }),
   );
@@ -47,10 +49,13 @@ function RiceFieldForm({ field }: { field: RiceField }) {
     <>
       <h1>{field.name}</h1>
       <form onSubmit={save} noValidate>
-        <RiceFieldFields register={form.register} errors={form.formState.errors} />
-        {update.isError && (
+        <RiceFieldFields
+          register={form.register}
+          errors={{ ...form.formState.errors, ...updateRefusal.fields }}
+        />
+        {updateRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {apiErrorMessage(update.error)}
+            Enregistrement impossible : {updateRefusal.message}
           </p>
         )}
         <p>

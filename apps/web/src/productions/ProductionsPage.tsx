@@ -1,5 +1,6 @@
 import { type CSSProperties, useState } from 'react';
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatBricks, formatDate } from '../format.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
@@ -46,7 +47,9 @@ function ProductionList({ campaignId }: { campaignId: string }) {
   return (
     <>
       <FilterBar moulders={moulders.data ?? []} filters={filters} onChange={setFilters} />
-      {failed && <p role="alert">Chargement impossible : {failed.error?.message}</p>}
+      {failed && (
+        <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+      )}
       {!failed && !loaded && <p role="status">Chargement…</p>}
       {loaded && productions.data.length === 0 && (
         <p>{filtered ? 'Aucune production pour ces critères.' : 'Aucune production saisie.'}</p>

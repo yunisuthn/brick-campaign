@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, formatDate } from '../format.js';
 import { useMoulders } from '../moulders/useMoulders.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
@@ -39,7 +40,10 @@ function LoadedProduction({ campaignId, id }: { campaignId: string; id: string }
     return <p role="alert">{loadErrorMessage(production.error, 'Saisie introuvable.')}</p>;
   }
   const failed = [moulders, riceFields].find((query) => query.isError);
-  if (failed) return <p role="alert">Chargement impossible : {failed.error?.message}</p>;
+  if (failed)
+    return (
+      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+    );
   if (!production.isSuccess || !moulders.isSuccess || !riceFields.isSuccess) {
     return <p role="status">Chargement…</p>;
   }
@@ -80,6 +84,8 @@ function CorrectionForm({ production, moulders, riceFields }: CorrectionFormProp
     },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const save = form.handleSubmit((values) =>
     update.mutate(toNewProduction(values), {
       onSuccess: (saved) => form.reset({ ...values, quantity: String(saved.quantity) }),
@@ -101,13 +107,13 @@ function CorrectionForm({ production, moulders, riceFields }: CorrectionFormProp
       <form onSubmit={save} noValidate>
         <ProductionFields
           register={form.register}
-          errors={form.formState.errors}
+          errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           moulders={moulders}
           riceFields={riceFields}
         />
-        {update.isError && (
+        {updateRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {apiErrorMessage(update.error)}
+            Enregistrement impossible : {updateRefusal.message}
           </p>
         )}
         {cancel.isError && (

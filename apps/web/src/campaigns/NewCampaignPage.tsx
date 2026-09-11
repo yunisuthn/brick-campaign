@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
-import { apiErrorMessage } from '../api/errorMessages.js';
 import { Field } from '../form/Field.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { RateFields } from './rateFields.js';
 import { type NewCampaign, useCreateCampaign } from './useCampaigns.js';
 
@@ -19,6 +19,8 @@ export function NewCampaignPage() {
   });
   const { errors } = form.formState;
 
+  const createRefusal = apiFormErrors(create, form);
+
   const submit = form.handleSubmit((input) =>
     create.mutate(input, { onSuccess: (campaign) => navigate(`/campagnes/${campaign.id}`) }),
   );
@@ -29,7 +31,7 @@ export function NewCampaignPage() {
       <form onSubmit={submit} noValidate>
         <Field
           label="Année"
-          error={errors.year}
+          error={errors.year ?? createRefusal.fields.year}
           input={form.register('year', {
             valueAsNumber: true,
             validate: (value) =>
@@ -40,17 +42,17 @@ export function NewCampaignPage() {
         />
         <Field
           label="Date de début"
-          error={errors.startedOn}
+          error={errors.startedOn ?? createRefusal.fields.startedOn}
           input={form.register('startedOn', { required: 'La date de début est requise.' })}
           type="date"
         />
         <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem' }}>
           Un tarif encore en discussion se laisse vide ; il se fixe ensuite depuis la fiche.
         </p>
-        <RateFields register={form.register} errors={errors} />
-        {create.isError && (
+        <RateFields register={form.register} errors={{ ...errors, ...createRefusal.fields }} />
+        {createRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Création impossible : {apiErrorMessage(create.error)}
+            Création impossible : {createRefusal.message}
           </p>
         )}
         <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

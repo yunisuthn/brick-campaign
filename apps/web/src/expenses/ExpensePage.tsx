@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, formatDate } from '../format.js';
 import { type KilnBatch, useKilnBatches } from '../kiln-batches/useKilnBatches.js';
 import { type RiceField, useRiceFields } from '../rice-fields/useRiceFields.js';
@@ -40,7 +41,10 @@ function LoadedExpense({ campaignId, id }: { campaignId: string; id: string }) {
     return <p role="alert">{loadErrorMessage(expense.error, 'Dépense introuvable.')}</p>;
   }
   const failed = [riceFields, batches].find((query) => query.isError);
-  if (failed) return <p role="alert">Chargement impossible : {failed.error?.message}</p>;
+  if (failed)
+    return (
+      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+    );
   if (!expense.isSuccess || !riceFields.isSuccess || !batches.isSuccess) {
     return <p role="status">Chargement…</p>;
   }
@@ -78,6 +82,8 @@ function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
     },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const save = form.handleSubmit((values) =>
     update.mutate(
       {
@@ -106,13 +112,13 @@ function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
       <form onSubmit={save} noValidate>
         <ExpenseFields
           register={form.register}
-          errors={form.formState.errors}
+          errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           batches={batches}
           riceFields={riceFields}
         />
-        {update.isError && (
+        {updateRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {apiErrorMessage(update.error)}
+            Enregistrement impossible : {updateRefusal.message}
           </p>
         )}
         {cancel.isError && (

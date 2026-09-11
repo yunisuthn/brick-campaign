@@ -5,6 +5,7 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, formatDate } from '../format.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
 import { type PaymentForm, PaymentFields, toNewPayment } from './paymentFields.js';
@@ -40,7 +41,10 @@ function LoadedPayment({ campaignId, id }: { campaignId: string; id: string }) {
     return <p role="alert">{loadErrorMessage(payment.error, 'Versement introuvable.')}</p>;
   }
   const failed = [moulders, contractors].find((query) => query.isError);
-  if (failed) return <p role="alert">Chargement impossible : {failed.error?.message}</p>;
+  if (failed)
+    return (
+      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+    );
   if (!payment.isSuccess || !moulders.isSuccess || !contractors.isSuccess) {
     return <p role="status">Chargement…</p>;
   }
@@ -83,6 +87,8 @@ function CorrectionForm({ payment, moulders, contractorNames }: CorrectionFormPr
     },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const save = form.handleSubmit((values) =>
     update.mutate(toNewPayment(values), {
       onSuccess: (saved) => form.reset({ ...values, amount: String(saved.amount) }),
@@ -107,13 +113,13 @@ function CorrectionForm({ payment, moulders, contractorNames }: CorrectionFormPr
         <PaymentFields
           register={form.register}
           watch={form.watch}
-          errors={form.formState.errors}
+          errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           moulders={moulders}
           contractorNames={contractorNames}
         />
-        {update.isError && (
+        {updateRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {apiErrorMessage(update.error)}
+            Enregistrement impossible : {updateRefusal.message}
           </p>
         )}
         {cancel.isError && (

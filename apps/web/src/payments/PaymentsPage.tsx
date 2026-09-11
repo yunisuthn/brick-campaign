@@ -1,5 +1,6 @@
 import { type CSSProperties, useState } from 'react';
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatAmount, formatDate } from '../format.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
@@ -45,7 +46,9 @@ function PaymentList({ campaignId }: { campaignId: string }) {
   return (
     <>
       <FilterBar moulders={moulders.data ?? []} filters={filters} onChange={setFilters} />
-      {failed && <p role="alert">Chargement impossible : {failed.error?.message}</p>}
+      {failed && (
+        <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+      )}
       {!failed && !loaded && <p role="status">Chargement…</p>}
       {loaded && payments.data.length === 0 && (
         <p>{filtered ? 'Aucun versement pour ces critères.' : 'Aucun versement saisi.'}</p>

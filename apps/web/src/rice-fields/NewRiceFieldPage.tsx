@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
-import { apiErrorMessage } from '../api/errorMessages.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { RiceFieldFields } from './riceFieldFields.js';
 import { type NewRiceField, useCreateRiceField } from './useRiceFields.js';
 
@@ -11,6 +11,8 @@ export function NewRiceFieldPage() {
     defaultValues: { name: '', location: '', surfaceM2: null, contractType: 'seasonal' },
   });
 
+  const createRefusal = apiFormErrors(create, form);
+
   const submit = form.handleSubmit((input) =>
     create.mutate(input, { onSuccess: () => navigate('/rizieres') }),
   );
@@ -19,10 +21,13 @@ export function NewRiceFieldPage() {
     <main style={{ padding: '1rem', maxWidth: '24rem' }}>
       <h1>Nouvelle rizière</h1>
       <form onSubmit={submit} noValidate>
-        <RiceFieldFields register={form.register} errors={form.formState.errors} />
-        {create.isError && (
+        <RiceFieldFields
+          register={form.register}
+          errors={{ ...form.formState.errors, ...createRefusal.fields }}
+        />
+        {createRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Création impossible : {apiErrorMessage(create.error)}
+            Création impossible : {createRefusal.message}
           </p>
         )}
         <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

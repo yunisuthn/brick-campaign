@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
 import { StockSummary } from '../stock/StockSummary.js';
@@ -28,7 +29,10 @@ function Batches({ campaignId }: { campaignId: string }) {
   const batches = useKilnBatches(campaignId);
 
   const failed = [stock, batches].find((query) => query.isError);
-  if (failed) return <p role="alert">Chargement impossible : {failed.error?.message}</p>;
+  if (failed)
+    return (
+      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+    );
   if (!stock.isSuccess || !batches.isSuccess) return <p role="status">Chargement…</p>;
 
   return (

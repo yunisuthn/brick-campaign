@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
-import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { MoulderFields } from './moulderFields.js';
 import { type Moulder, type NewMoulder, useMoulder, useUpdateMoulder } from './useMoulders.js';
 
@@ -34,6 +34,8 @@ function MoulderForm({ moulder }: { moulder: Moulder }) {
     defaultValues: { name: moulder.name, memberCount: moulder.memberCount },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const save = form.handleSubmit((input) =>
     update.mutate(input, { onSuccess: (saved) => form.reset(saved) }),
   );
@@ -48,10 +50,13 @@ function MoulderForm({ moulder }: { moulder: Moulder }) {
         )}
       </h1>
       <form onSubmit={save} noValidate>
-        <MoulderFields register={form.register} errors={form.formState.errors} />
-        {update.isError && (
+        <MoulderFields
+          register={form.register}
+          errors={{ ...form.formState.errors, ...updateRefusal.fields }}
+        />
+        {updateRefusal.message && (
           <p role="alert" style={{ color: 'var(--error)' }}>
-            Enregistrement impossible : {apiErrorMessage(update.error)}
+            Enregistrement impossible : {updateRefusal.message}
           </p>
         )}
         <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

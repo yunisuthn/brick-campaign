@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
-import { apiErrorMessage } from '../api/errorMessages.js';
 import { Field } from '../form/Field.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, formatDate, today } from '../format.js';
 import { type Sale, useUpdateSale } from './useSales.js';
 
@@ -21,6 +21,8 @@ export function SalePayment({ sale }: { sale: Sale }) {
     defaultValues: { paidOn: today(), amountReceived: String(sale.total) },
   });
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const record = form.handleSubmit((values) =>
     update.mutate({
       payment: { paidOn: values.paidOn, amountReceived: Number(values.amountReceived) },
@@ -36,13 +38,13 @@ export function SalePayment({ sale }: { sale: Sale }) {
         <form onSubmit={record} noValidate>
           <Field
             label="Date du paiement"
-            error={form.formState.errors.paidOn}
+            error={form.formState.errors.paidOn ?? updateRefusal.fields.paidOn}
             input={form.register('paidOn', { required: 'La date est requise.' })}
             type="date"
           />
           <Field
             label="Montant encaissé (Ar)"
-            error={form.formState.errors.amountReceived}
+            error={form.formState.errors.amountReceived ?? updateRefusal.fields.amountReceived}
             input={form.register('amountReceived', {
               validate: (value) =>
                 (/^\d+$/.test(value.trim()) && Number(value) > 0) ||
@@ -50,9 +52,9 @@ export function SalePayment({ sale }: { sale: Sale }) {
             })}
             inputMode="numeric"
           />
-          {update.isError && (
+          {updateRefusal.message && (
             <p role="alert" style={{ color: 'var(--error)' }}>
-              Encaissement impossible : {apiErrorMessage(update.error)}
+              Encaissement impossible : {updateRefusal.message}
             </p>
           )}
           <p>
@@ -66,9 +68,9 @@ export function SalePayment({ sale }: { sale: Sale }) {
           <p>
             {formatAmount(sale.payment.amountReceived)} reçus le {formatDate(sale.payment.paidOn)}.
           </p>
-          {update.isError && (
+          {updateRefusal.message && (
             <p role="alert" style={{ color: 'var(--error)' }}>
-              Reprise impossible : {apiErrorMessage(update.error)}
+              Reprise impossible : {updateRefusal.message}
             </p>
           )}
           <p>

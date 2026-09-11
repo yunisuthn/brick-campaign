@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useClients } from '../clients/useClients.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
@@ -32,7 +33,10 @@ function SaleList({ campaignId }: { campaignId: string }) {
   const clients = useClients();
 
   const failed = [sales, clients].find((query) => query.isError);
-  if (failed) return <p role="alert">Chargement impossible : {failed.error?.message}</p>;
+  if (failed)
+    return (
+      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+    );
   if (!sales.isSuccess || !clients.isSuccess) return <p role="status">Chargement…</p>;
   if (sales.data.length === 0) return <p>Aucune vente enregistrée.</p>;
 

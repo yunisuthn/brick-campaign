@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
-import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { Field } from '../form/Field.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { today } from '../format.js';
 import { CampaignFacts } from './CampaignFacts.js';
 import { RateFields } from './rateFields.js';
@@ -66,16 +66,21 @@ function EditRates({ campaign }: { campaign: Campaign }) {
     );
   }
 
+  const updateRefusal = apiFormErrors(update, form);
+
   const submit = form.handleSubmit((rates) =>
     update.mutate(rates, { onSuccess: () => setOpen(false) }),
   );
 
   return (
     <form onSubmit={submit} noValidate style={formStyle} aria-label="Tarifs de la campagne">
-      <RateFields register={form.register} errors={form.formState.errors} />
-      {update.isError && (
+      <RateFields
+        register={form.register}
+        errors={{ ...form.formState.errors, ...updateRefusal.fields }}
+      />
+      {updateRefusal.message && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {apiErrorMessage(update.error)}
+          Enregistrement impossible : {updateRefusal.message}
         </p>
       )}
       <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
@@ -110,19 +115,21 @@ function CloseCampaign({ campaign }: { campaign: Campaign }) {
     );
   }
 
+  const closeRefusal = apiFormErrors(close, form);
+
   const submit = form.handleSubmit(({ closedOn }) => close.mutate({ closedOn }));
 
   return (
     <form onSubmit={submit} noValidate style={formStyle}>
       <Field
         label="Date de clôture"
-        error={form.formState.errors.closedOn}
+        error={form.formState.errors.closedOn ?? closeRefusal.fields.closedOn}
         input={form.register('closedOn', { required: 'La date de clôture est requise.' })}
         type="date"
       />
-      {close.isError && (
+      {closeRefusal.message && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Clôture impossible : {apiErrorMessage(close.error)}
+          Clôture impossible : {closeRefusal.message}
         </p>
       )}
       <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

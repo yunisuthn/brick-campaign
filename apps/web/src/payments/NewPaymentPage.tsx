@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, today } from '../format.js';
 import { useMoulders } from '../moulders/useMoulders.js';
 import { type PaymentForm, PaymentFields, toNewPayment } from './paymentFields.js';
@@ -53,9 +54,11 @@ function EntryForm({ campaignId }: { campaignId: string }) {
 
   if (moulders.isError || contractors.isError) {
     const error = moulders.error ?? contractors.error;
-    return <p role="alert">Chargement impossible : {error?.message}</p>;
+    return <p role="alert">Chargement impossible : {error && apiErrorMessage(error)}</p>;
   }
   if (!moulders.isSuccess || !contractors.isSuccess) return <p role="status">Chargement…</p>;
+
+  const createRefusal = apiFormErrors(create, form);
 
   const submit = form.handleSubmit((values) =>
     create.mutate(toNewPayment(values), {
@@ -75,13 +78,13 @@ function EntryForm({ campaignId }: { campaignId: string }) {
       <PaymentFields
         register={form.register}
         watch={form.watch}
-        errors={form.formState.errors}
+        errors={{ ...form.formState.errors, ...createRefusal.fields }}
         moulders={moulders.data}
         contractorNames={contractors.data.map((c) => c.contractorName)}
       />
-      {create.isError && (
+      {createRefusal.message && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {apiErrorMessage(create.error)}
+          Enregistrement impossible : {createRefusal.message}
         </p>
       )}
       {saved && !create.isError && (

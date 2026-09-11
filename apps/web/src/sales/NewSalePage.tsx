@@ -4,6 +4,7 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useClients } from '../clients/useClients.js';
 import { Field, SelectField } from '../form/Field.js';
+import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, today } from '../format.js';
 import { useCreateSale } from './useSales.js';
 
@@ -56,6 +57,8 @@ function SaleForm({ campaignId }: { campaignId: string }) {
   const price = Number(form.watch('unitPrice'));
   const total = Number.isFinite(quantity * price) ? quantity * price : 0;
 
+  const createRefusal = apiFormErrors(create, form);
+
   const submit = form.handleSubmit((values) =>
     create.mutate(
       {
@@ -72,7 +75,7 @@ function SaleForm({ campaignId }: { campaignId: string }) {
     <form onSubmit={submit} noValidate>
       <SelectField
         label="Client"
-        error={form.formState.errors.clientId}
+        error={form.formState.errors.clientId ?? createRefusal.fields.clientId}
         input={form.register('clientId', { required: 'Le client est requis.' })}
         options={[
           { value: '', label: 'Choisir…' },
@@ -81,13 +84,13 @@ function SaleForm({ campaignId }: { campaignId: string }) {
       />
       <Field
         label="Date"
-        error={form.formState.errors.date}
+        error={form.formState.errors.date ?? createRefusal.fields.date}
         input={form.register('date', { required: 'La date est requise.' })}
         type="date"
       />
       <Field
         label="Quantité commandée (briques)"
-        error={form.formState.errors.orderedQuantity}
+        error={form.formState.errors.orderedQuantity ?? createRefusal.fields.orderedQuantity}
         input={form.register('orderedQuantity', {
           validate: (value) =>
             (/^\d+$/.test(value.trim()) && Number(value) > 0) ||
@@ -97,7 +100,7 @@ function SaleForm({ campaignId }: { campaignId: string }) {
       />
       <Field
         label="Prix unitaire (Ar la brique)"
-        error={form.formState.errors.unitPrice}
+        error={form.formState.errors.unitPrice ?? createRefusal.fields.unitPrice}
         input={form.register('unitPrice', {
           validate: (value) =>
             (/^\d+$/.test(value.trim()) && Number(value) > 0) ||
@@ -106,9 +109,9 @@ function SaleForm({ campaignId }: { campaignId: string }) {
         inputMode="numeric"
       />
       <p role="status">Total : {formatAmount(total)}</p>
-      {create.isError && (
+      {createRefusal.message && (
         <p role="alert" style={{ color: 'var(--error)' }}>
-          Enregistrement impossible : {apiErrorMessage(create.error)}
+          Enregistrement impossible : {createRefusal.message}
         </p>
       )}
       <p>

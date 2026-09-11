@@ -123,16 +123,16 @@ Ajouté le 9 septembre 2026, une fois les sept chantiers de l'API livrés. Même
 
 ### 9.2 Choix techniques
 
-| Sujet         | Choix                                       | Justification                                                                                                                                    |
-| ------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Application   | `apps/web` : React, Vite, TypeScript        | Stack fixée en section 6, même monorepo, même lint et prettier                                                                                   |
-| Routage       | React Router                                | Routes courtes sous la campagne courante (`/productions`, `/ventes/:id`), le sélecteur d'en-tête fixe la campagne (tranché le 10 septembre 2026) |
-| Données       | TanStack Query                              | Cache par ressource, invalidation après chaque saisie, état de chargement uniforme                                                               |
-| Formulaires   | React Hook Form                             | Formulaires nombreux et courts, validation de forme sans dupliquer les règles                                                                    |
-| Session       | Cookie de l'API, `GET /auth/me` au départ   | Rien à stocker côté front ; un 401 renvoie à la connexion                                                                                        |
-| Style         | CSS modules, pas de librairie de composants | Une dizaine d'écrans simples ; une dépendance de moins à porter                                                                                  |
-| Tests         | Vitest + Testing Library, MSW pour l'API    | Tester les écrans contre des réponses d'API réalistes, sans serveur                                                                              |
-| Développement | Proxy Vite vers l'API, port lu dans `.env`  | Même origine, le cookie de session passe sans configuration CORS                                                                                 |
+| Sujet         | Choix                                                        | Justification                                                                                                                                                                 |
+| ------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Application   | `apps/web` : React, Vite, TypeScript                         | Stack fixée en section 6, même monorepo, même lint et prettier                                                                                                                |
+| Routage       | React Router                                                 | Routes courtes sous la campagne courante (`/productions`, `/ventes/:id`), le sélecteur d'en-tête fixe la campagne (tranché le 10 septembre 2026)                              |
+| Données       | TanStack Query                                               | Cache par ressource, invalidation après chaque saisie, état de chargement uniforme                                                                                            |
+| Formulaires   | React Hook Form                                              | Formulaires nombreux et courts, validation de forme sans dupliquer les règles                                                                                                 |
+| Session       | Cookie de l'API, `GET /auth/me` au départ                    | Rien à stocker côté front ; un 401 renvoie à la connexion                                                                                                                     |
+| Style         | Une feuille de style globale, pas de librairie de composants | Revu le 12 septembre 2026, voir section 10.6. Une dizaine d'écrans simples et une dépendance de moins à porter, la raison n'a pas bougé ; ce sont les CSS modules qui tombent |
+| Tests         | Vitest + Testing Library, MSW pour l'API                     | Tester les écrans contre des réponses d'API réalistes, sans serveur                                                                                                           |
+| Développement | Proxy Vite vers l'API, port lu dans `.env`                   | Même origine, le cookie de session passe sans configuration CORS                                                                                                              |
 
 Les schémas Zod des DTO restent dans l'API. Si le front en a besoin, ils seront extraits dans `packages/contracts` à ce moment-là, pas avant.
 
@@ -219,3 +219,25 @@ vivant ne s'annule pas, comme elle ne s'annule pas tant qu'un voyage pointe sur 
 11. **API** : l'entité, la migration qui reverse chaque paiement existant en un encaissement,
     les routes sous la vente, le statut dérivé, les sommes du tableau de bord.
 12. **Front** : les encaissements d'une vente, leur saisie, leur correction, leur annulation.
+
+### 10.6 Le style de l’interface
+
+Tranché le 12 septembre 2026. La section 9.2 annonçait des CSS modules ; il n'en a jamais été
+écrit un seul. Les onze chantiers du front ont mis leurs styles en ligne, et le même style se
+retrouve aujourd’hui dans quarante-cinq fichiers : la couleur d’une erreur trente-cinq fois,
+la largeur d’une page vingt-trois fois. Ce qui devait être scopé ne l’a jamais été parce que,
+dans cette application, presque rien n'est propre à un écran.
+
+**Une feuille de style globale, et les éléments stylés pour eux-mêmes.** Un champ, un
+sélecteur, un bouton, un titre se ressemblent partout : ils sont décrits une fois, par leur
+nom de balise, et la plupart des composants ne portent alors aucune classe. Les rares motifs
+partagés — la page, la liste, la ligne de boutons, le texte secondaire — prennent une classe
+chacun. Un CSS module par écran aurait demandé d'importer la même chose quarante-cinq fois, ou
+de la recopier.
+
+**Les tailles sont celles d'un pouce, pas d'une souris.** La saisie se fait le soir, sur un
+téléphone, d’une main (section 9.1) : les champs et les boutons font au moins 44 pixels de
+haut, et les zones cliquables ne se touchent pas.
+
+13. **Feuille de style** : les éléments, les quelques classes partagées, et les styles en
+    ligne retirés des écrans.

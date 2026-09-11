@@ -21,7 +21,7 @@ Activité saisonnière de fabrication et de vente de briques cuites.
 2. Mouleurs, productions, versements, calcul du dû
 3. Prestations transport-four / enfournement (nom libre)
 4. Lots de cuisson
-5. Clients, ventes, livraisons
+5. Clients, ventes, livraisons, encaissements
 6. Dépenses par catégorie
 7. Tableau de bord par campagne
 
@@ -31,7 +31,6 @@ Activité saisonnière de fabrication et de vente de briques cuites.
 - Rôles et permissions
 - Types de briques
 - Comptage de la casse à la cuisson
-- Paiements clients partiels
 - Ajustements d'inventaire
 - Application native Android
 
@@ -47,7 +46,8 @@ Activité saisonnière de fabrication et de vente de briques cuites.
 | **Versement**      | date, campagne, bénéficiaire (mouleur ou nom libre de prestation), type (vatsy / avance / solde), montant                                 | Remplace la colonne « payé » du cahier.                                                                                                                                                    |
 | **Lot de cuisson** | campagne, date enfournement, date défournement (nullable), quantité                                                                       | Fait passer la quantité de « crue » à « cuite ».                                                                                                                                           |
 | **Client**         | nom, téléphone, localité                                                                                                                  |                                                                                                                                                                                            |
-| **Vente**          | campagne, client, date, quantité commandée, prix unitaire, date paiement (nullable), montant encaissé                                     | Statut dérivé : commandée / livrée / payée.                                                                                                                                                |
+| **Vente**          | campagne, client, date, quantité commandée, prix unitaire                                                                                 | Statut dérivé : commandée / livrée / partiellement payée / payée. Aucun montant reçu ici, il se somme sur les encaissements.                                                               |
+| **Encaissement**   | vente, date, montant                                                                                                                      | Une vente = plusieurs encaissements (tranché le 11 septembre 2026, section 10.5).                                                                                                          |
 | **Livraison**      | vente, date, quantité, coût (carburant + chauffeur), immatriculation (opt.)                                                               | Une vente = plusieurs voyages.                                                                                                                                                             |
 | **Dépense**        | campagne, date, catégorie, montant, libellé, lot (opt.), rizière (opt.)                                                                   | Catégories : rizière, akofa, tai-charbon, carburant, réparation, nourriture, autre.                                                                                                        |
 | **Utilisateur**    | email, mot de passe haché                                                                                                                 | Deux comptes, pas de rôle.                                                                                                                                                                 |
@@ -63,7 +63,9 @@ Toutes dérivées à la lecture. Aucune n'est stockée.
 - **Dû à un prestataire** = Σ Prestation × tarif du type − Σ Versements (par nom)
 - **Coût d'un lot** = Σ Dépenses rattachées + Σ Prestations du lot × tarifs
 - **Chiffre d'affaires** = Σ quantité commandée × prix unitaire
-- **Encaissé** = Σ montant encaissé
+- **Encaissé d'une vente** = Σ encaissements de la vente
+- **Vente payée** ⇔ Σ encaissements ≥ quantité commandée × prix unitaire ; partiellement payée tant que la somme se tient entre zéro et ce total
+- **Encaissé** = Σ encaissements
 - **Résultat de campagne** = Encaissé − Σ Dépenses − Σ main-d'œuvre due (versée ou non) − Σ coûts de livraison
 
 Le tableau de bord distingue toujours chiffre d'affaires, encaissé et reste à encaisser.
@@ -195,3 +197,25 @@ L'application ne tourne qu'en développement : le front passe par le proxy Vite,
 
 - Tarif d'enfournement à la brique : toujours supposé oui (section 8).
 - Hébergeur non choisi (chantier 6).
+
+### 10.5 Lot D — encaissements partiels
+
+Décidé le 11 septembre 2026 : l'hébergement attend, les fonctionnalités passent devant. La v1
+supposait, section 1, que « le client paie en une fois quand tout est livré ». De toutes les
+hypothèses du document c'est celle qui tombera la première : un client qui prend quarante mille
+briques paie au fil des voyages. Une vente ne porte donc plus une date et un montant, mais
+autant d'encaissements datés qu'il en arrive.
+
+**Un encaissement ne peut pas dépasser ce qui reste à payer.** Même raison qu'un lot qu'on
+refuse d'enfourner au-delà du stock crue (section 5) : une somme reçue supérieure au total
+signale une erreur de montant ou de prix, qui se corrige là où elle est, plutôt qu'un
+trop-perçu qui se propagerait ensuite dans le résultat de la campagne. Le reste à encaisser ne
+peut alors jamais devenir négatif.
+
+Un encaissement tombe dans la campagne et jamais avant la vente qu'il règle, comme un voyage.
+Il se corrige et s'annule, il ne se supprime pas. Une vente qui porte encore un encaissement
+vivant ne s'annule pas, comme elle ne s'annule pas tant qu'un voyage pointe sur elle.
+
+11. **API** : l'entité, la migration qui reverse chaque paiement existant en un encaissement,
+    les routes sous la vente, le statut dérivé, les sommes du tableau de bord.
+12. **Front** : les encaissements d'une vente, leur saisie, leur correction, leur annulation.

@@ -241,3 +241,24 @@ haut, et les zones cliquables ne se touchent pas.
 
 13. **Feuille de style** : les éléments, les quelques classes partagées, et les styles en
     ligne retirés des écrans.
+
+### 10.7 La navigation sur téléphone
+
+Tranché le 12 septembre 2026. Les onze sections tiennent sur une ligne au-delà de 640 pixels,
+mesuré en section 10.6 ; en dessous elles passent à la ligne trois fois en haut de chaque écran,
+avant tout contenu. Refusé lors de la décision de style (section 10.6), repris maintenant seul.
+
+**Une barre basse à quatre destinations, sous le pouce, en dessous de 640 pixels.** Accueil (le
+tableau de bord, page d'accueil d'une campagne depuis le chantier 10), Productions, Ventes,
+Plus. Les deux premières saisies du soir ont leur onglet ; Versements, Lots et Dépenses le
+partagent avec les référentiels sous « Plus », une page qui liste ce qui reste : Campagnes,
+Mouleurs, Rizières, Clients, Versements, Lots, Dépenses, Soldes. Au-delà de 640 pixels la barre
+du haut existante reste seule : elle n'a jamais posé de problème à cette largeur.
+
+Deux écrans de navigation plutôt qu'un qui s'adapte : la barre du haut garde tous ses liens sur
+une grande fenêtre où la place ne manque pas, et la barre basse n'en isole que quatre là où elle
+compte le plus. Aucun état à synchroniser entre les deux : ce sont les mêmes routes, une classe
+CSS choisit laquelle des deux barres le navigateur affiche.
+
+14. **Barre basse** : quatre onglets, page « Plus » pour le reste, la barre du haut cachée en
+    dessous de 640 pixels.

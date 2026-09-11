@@ -150,10 +150,48 @@ Les schémas Zod des DTO restent dans l'API. Si le front en a besoin, ils seront
 
 ### 9.4 Points ouverts du front
 
-- Le tableau de bord est-il la page d'accueil d'une campagne, ou la liste des saisies du jour ? Supposé : le tableau de bord.
-- Les messages d'erreur 400 de l'API sont en anglais et affichés tels quels. À traduire côté API ou côté front, à trancher.
+Aucun. Les deux derniers sont tranchés ci-dessous.
 
 Tranchés au chantier 3 (10 septembre 2026) :
 
 - Format des montants : `1 250 000 Ar`, dates « 10 mai 2026 ».
 - Campagne courante gardée en `localStorage`, pas en session : sur un téléphone l'onglet se ferme sans arrêt et la campagne est la même toute la saison. Sans choix, la campagne ouverte la plus récente est prise par défaut.
+
+Tranchés le 11 septembre 2026, les onze chantiers livrés :
+
+- Le tableau de bord est la page d'accueil d'une campagne (chantier 10). La liste des saisies du jour n'a pas été réclamée à l'essai.
+- Les erreurs de l'API s'affichent en français, traduites côté front à partir d'un code renvoyé par l'API (section 10.1).
+
+## 10. Après le front — ce qui reste avant la mise en ligne
+
+Ajouté le 11 septembre 2026, les sept chantiers de l'API (section 7) et les onze du front (section 9.3) étant livrés. Trois lots restent, dans cet ordre. Même règle qu'avant : chaque chantier terminé, testé et committé avant le suivant.
+
+### 10.1 Lot A — les erreurs dans la langue de l'interface
+
+Une saisie refusée affiche aujourd'hui « Création impossible : Validation failed », et un identifiant périmé « Chargement impossible : Campaign 8f3a… not found ». Le détail que l'API place dans `issues` n'est jamais lu par le front.
+
+**Tranché : le code vient de l'API, les mots viennent du front.** Chaque erreur métier de l'API porte un code stable (`campaign_not_found`, `date_outside_campaign`, `moulder_inactive`…) à côté de son message anglais, qui reste pour les journaux et les tests e2e. Le front traduit ce code. La langue de l'interface appartient à l'interface, comme le format des montants et des dates tranché au chantier 3, et l'API garde une surface qu'un autre client lirait de la même façon. Le prix est assumé : chaque exception doit recevoir son code, et un code sans traduction doit se voir en test plutôt qu'à l'écran.
+
+1. **Codes d'erreur dans l'API** : un code sur chaque exception métier, le tableau `issues` de la validation inchangé, e2e qui vérifient le code et non la phrase.
+2. **Traduction dans le front** : une table code → phrase française, un repli visible quand un code manque, les messages de chargement et d'enregistrement passés dessus.
+3. **Chaque erreur sous son champ** : les `issues` de validation rattachées au champ par leur `path`, ce qui ne vise aucun champ restant en tête de formulaire.
+
+### 10.2 Lot B — la mise en ligne
+
+L'application ne tourne qu'en développement : le front passe par le proxy Vite, `docker-compose.yml` ne lève que Postgres, et le dépôt n'a pas de README. Pour une saisie le soir depuis un lieu connecté (section 1) :
+
+4. **L'API sert le front construit** : même origine, cookie de session sans CORS, ce que le proxy Vite imite déjà en développement.
+5. **Image de production** et compose qui la lance avec Postgres, migrations appliquées au démarrage.
+6. **Hébergement et sauvegarde quotidienne de la base.** Une saison de saisies n'existe nulle part ailleurs.
+7. **README** : installer, développer, tester, déployer, créer les deux comptes.
+
+### 10.3 Lot C — finition
+
+8. **Fusion de `feat/front` dans `main`.**
+9. **Tests du front** : 120 s pour 45 fichiers parce que jsdom est reconstruit à chaque fichier. Un environnement partagé par processus, l'isolation gardée, les ramène à quelques dizaines de secondes.
+10. **Revue de sécurité** avant la mise en ligne.
+
+### 10.4 Points ouverts
+
+- Tarif d'enfournement à la brique : toujours supposé oui (section 8).
+- Hébergeur non choisi (chantier 6).

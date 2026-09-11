@@ -1,0 +1,15 @@
+# Everything the build makes for itself, and everything it must never see.
+node_modules
+**/node_modules
+dist
+**/dist
+coverage
+**/coverage
+.git
+.github
+.env
+.env.*
+!.env.example
+apps/api/src/generated
+*.log
+*.tsbuildinfo

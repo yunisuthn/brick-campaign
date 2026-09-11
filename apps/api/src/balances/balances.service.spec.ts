@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { BalancesService } from './balances.service.js';
 
@@ -79,7 +79,7 @@ describe('BalancesService', () => {
         due: 0,
       });
       moulderFindUnique.mockResolvedValue(null);
-      await expect(service.moulder('campaign-id', 'x')).rejects.toBeInstanceOf(NotFoundException);
+      await rejectsWithCode(service.moulder('campaign-id', 'x'), 'moulder_not_found');
     });
   });
 
@@ -109,15 +109,13 @@ describe('BalancesService', () => {
     it('404s on a name with no entry in the campaign', async () => {
       contractorWorkFindMany.mockResolvedValue([]);
       paymentFindMany.mockResolvedValue([]);
-      await expect(service.contractor('campaign-id', 'Nobody')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await rejectsWithCode(service.contractor('campaign-id', 'Nobody'), 'contractor_not_found');
     });
   });
 
   it('throws 404 when the campaign does not exist', async () => {
     campaignFindUnique.mockResolvedValue(null);
-    await expect(service.moulders('missing')).rejects.toBeInstanceOf(NotFoundException);
-    await expect(service.contractors('missing')).rejects.toBeInstanceOf(NotFoundException);
+    await rejectsWithCode(service.moulders('missing'), 'campaign_not_found');
+    await rejectsWithCode(service.contractors('missing'), 'campaign_not_found');
   });
 });

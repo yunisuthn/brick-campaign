@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -57,7 +58,7 @@ export class ExpensesService {
       where: { id, campaignId, cancelledAt: null },
       select: expenseSelect,
     });
-    if (!row) throw new NotFoundException(`Expense ${id} not found`);
+    if (!row) throw apiError('expense_not_found', `Expense ${id} not found`);
     return toDto(row);
   }
 

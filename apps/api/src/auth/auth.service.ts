@@ -1,5 +1,6 @@
-import { Injectable, OnModuleInit, UnauthorizedException } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { apiError } from '../common/api-error.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hashPassword, normaliseEmail, verifyPassword } from './password.js';
 import { SessionClaims, SessionUser } from './session.js';
@@ -25,7 +26,7 @@ export class AuthService implements OnModuleInit {
       select: { id: true, email: true, passwordHash: true },
     });
     const valid = await verifyPassword(user?.passwordHash ?? this.dummyHash, password);
-    if (!user || !valid) throw new UnauthorizedException('Invalid credentials');
+    if (!user || !valid) throw apiError('invalid_credentials', 'Invalid credentials');
     return { id: user.id, email: user.email };
   }
 

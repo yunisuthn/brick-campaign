@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -56,7 +57,7 @@ export class ContractorWorksService {
       where: { id, campaignId, cancelledAt: null },
       select: contractorWorkSelect,
     });
-    if (!row) throw new NotFoundException(`Contractor work ${id} not found`);
+    if (!row) throw apiError('contractor_work_not_found', `Contractor work ${id} not found`);
     return toDto(row);
   }
 

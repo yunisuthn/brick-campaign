@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { type ContractorBalance, contractorBalance } from './contractor-balance.js';
 import { type MoulderBalance, moulderBalance } from './moulder-balance.js';
@@ -52,7 +53,7 @@ export class BalancesService {
       where: { id: moulderId },
       select: { id: true, name: true },
     });
-    if (!moulder) throw new NotFoundException(`Moulder ${moulderId} not found`);
+    if (!moulder) throw apiError('moulder_not_found', `Moulder ${moulderId} not found`);
     const [productions, payments] = await Promise.all([
       this.productions(campaignId, moulderId),
       this.moulderPayments(campaignId, moulderId),
@@ -92,7 +93,10 @@ export class BalancesService {
       this.contractorPayments(campaignId, contractorName),
     ]);
     if (works.length === 0 && payments.length === 0) {
-      throw new NotFoundException(`No entry for contractor ${contractorName} in this campaign`);
+      throw apiError(
+        'contractor_not_found',
+        `No entry for contractor ${contractorName} in this campaign`,
+      );
     }
     return { contractorName, ...contractorBalance(rates, works, payments) };
   }
@@ -102,7 +106,7 @@ export class BalancesService {
       where: { id: campaignId },
       select: { mouldingRate: true, transportRate: true, kilnLoadingRate: true },
     });
-    if (!campaign) throw new NotFoundException(`Campaign ${campaignId} not found`);
+    if (!campaign) throw apiError('campaign_not_found', `Campaign ${campaignId} not found`);
     return campaign;
   }
 

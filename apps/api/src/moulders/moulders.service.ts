@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type {
@@ -34,7 +35,7 @@ export class MouldersService {
 
   async findOne(id: string): Promise<MoulderDto> {
     const moulder = await this.prisma.moulder.findUnique({ where: { id }, select: moulderSelect });
-    if (!moulder) throw new NotFoundException(`Moulder ${id} not found`);
+    if (!moulder) throw apiError('moulder_not_found', `Moulder ${id} not found`);
     return moulder;
   }
 

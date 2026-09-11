@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { formatDateOnly } from '../common/date-only.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { type CampaignWindow, isWithinCampaign } from './campaign-window.js';
@@ -17,7 +18,7 @@ export class EntryReferences {
       where: { id: campaignId },
       select: { startedOn: true, closedOn: true },
     });
-    if (!campaign) throw new NotFoundException(`Campaign ${campaignId} not found`);
+    if (!campaign) throw apiError('campaign_not_found', `Campaign ${campaignId} not found`);
     return {
       startedOn: formatDateOnly(campaign.startedOn),
       closedOn: campaign.closedOn === null ? null : formatDateOnly(campaign.closedOn),
@@ -26,7 +27,10 @@ export class EntryReferences {
 
   assertWithinCampaign(campaign: CampaignWindow, date: string): void {
     if (!isWithinCampaign(campaign, date)) {
-      throw new BadRequestException('date must fall within the campaign');
+      throw apiError('date_outside_campaign', 'date must fall within the campaign', {
+        startedOn: campaign.startedOn,
+        closedOn: campaign.closedOn,
+      });
     }
   }
 
@@ -36,18 +40,18 @@ export class EntryReferences {
       where: { id },
       select: { active: true },
     });
-    if (!moulder) throw new BadRequestException(`Unknown moulder ${id}`);
-    if (!moulder.active) throw new BadRequestException(`Moulder ${id} is inactive`);
+    if (!moulder) throw apiError('unknown_moulder', `Unknown moulder ${id}`);
+    if (!moulder.active) throw apiError('moulder_inactive', `Moulder ${id} is inactive`);
   }
 
   async assertRiceField(id: string): Promise<void> {
     const field = await this.prisma.riceField.findUnique({ where: { id }, select: { id: true } });
-    if (!field) throw new BadRequestException(`Unknown rice field ${id}`);
+    if (!field) throw apiError('unknown_rice_field', `Unknown rice field ${id}`);
   }
 
   async assertClient(id: string): Promise<void> {
     const client = await this.prisma.client.findUnique({ where: { id }, select: { id: true } });
-    if (!client) throw new BadRequestException(`Unknown client ${id}`);
+    if (!client) throw apiError('unknown_client', `Unknown client ${id}`);
   }
 
   /** The batch must be live and belong to the same campaign as the entry. */
@@ -56,6 +60,6 @@ export class EntryReferences {
       where: { id, campaignId, cancelledAt: null },
       select: { id: true },
     });
-    if (!batch) throw new BadRequestException(`Unknown kiln batch ${id} in this campaign`);
+    if (!batch) throw apiError('unknown_kiln_batch', `Unknown kiln batch ${id} in this campaign`);
   }
 }

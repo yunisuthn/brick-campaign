@@ -6,6 +6,7 @@ import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { hashPassword } from '../src/auth/password.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { hasCode } from './e2e.helpers.js';
 
 describe('Auth (e2e)', () => {
   const email = `e2e-${Date.now()}@example.com`;
@@ -31,19 +32,24 @@ describe('Auth (e2e)', () => {
     await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email: 'not-an-email', password })
-      .expect(400);
+      .expect(400)
+      .expect(hasCode('validation_failed'));
   });
 
   it('rejects wrong credentials with 401 and no cookie', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email, password: 'wrong-password' })
-      .expect(401);
+      .expect(401)
+      .expect(hasCode('invalid_credentials'));
     expect(res.headers['set-cookie']).toBeUndefined();
   });
 
   it('refuses /auth/me without a session', async () => {
-    await request(app.getHttpServer()).get('/auth/me').expect(401);
+    await request(app.getHttpServer())
+      .get('/auth/me')
+      .expect(401)
+      .expect(hasCode('session_required'));
   });
 
   it('logs in, reads the session, logs out, and is refused again', async () => {

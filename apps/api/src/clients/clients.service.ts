@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { ClientDto, CreateClientDto, UpdateClientDto } from './client.dto.js';
@@ -24,7 +25,7 @@ export class ClientsService {
 
   async findOne(id: string): Promise<ClientDto> {
     const client = await this.prisma.client.findUnique({ where: { id }, select: clientSelect });
-    if (!client) throw new NotFoundException(`Client ${id} not found`);
+    if (!client) throw apiError('client_not_found', `Client ${id} not found`);
     return client;
   }
 

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import { Prisma } from '../generated/prisma/client.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { CampaignsService } from './campaigns.service.js';
@@ -48,15 +48,16 @@ describe('CampaignsService', () => {
     });
 
     it('rejects a closing date before the start date without touching the database', async () => {
-      await expect(service.create({ ...input, closedOn: '2026-04-30' })).rejects.toBeInstanceOf(
-        BadRequestException,
+      await rejectsWithCode(
+        service.create({ ...input, closedOn: '2026-04-30' }),
+        'campaign_dates_out_of_order',
       );
       expect(create).not.toHaveBeenCalled();
     });
 
     it('maps a unique violation on year to 409', async () => {
       create.mockRejectedValue(uniqueViolation);
-      await expect(service.create(input)).rejects.toBeInstanceOf(ConflictException);
+      await rejectsWithCode(service.create(input), 'campaign_year_taken');
     });
 
     it('lets other database errors through', async () => {
@@ -68,7 +69,7 @@ describe('CampaignsService', () => {
   describe('findOne', () => {
     it('throws 404 for an unknown id', async () => {
       findUnique.mockResolvedValue(null);
-      await expect(service.findOne('missing')).rejects.toBeInstanceOf(NotFoundException);
+      await rejectsWithCode(service.findOne('missing'), 'campaign_not_found');
     });
   });
 
@@ -91,33 +92,31 @@ describe('CampaignsService', () => {
 
     it('rejects a closing date before the stored start date', async () => {
       findUnique.mockResolvedValue(row);
-      await expect(
+      await rejectsWithCode(
         service.update('campaign-id', { closedOn: '2026-04-30' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'campaign_dates_out_of_order',
+      );
       expect(update).not.toHaveBeenCalled();
     });
 
     it('rejects moving the start date after the stored closing date', async () => {
       findUnique.mockResolvedValue({ ...row, closedOn: new Date('2026-11-30T00:00:00.000Z') });
-      await expect(
+      await rejectsWithCode(
         service.update('campaign-id', { startedOn: '2026-12-01' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'campaign_dates_out_of_order',
+      );
     });
 
     it('throws 404 before updating an unknown campaign', async () => {
       findUnique.mockResolvedValue(null);
-      await expect(service.update('missing', { mouldingRate: 25 })).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await rejectsWithCode(service.update('missing', { mouldingRate: 25 }), 'campaign_not_found');
       expect(update).not.toHaveBeenCalled();
     });
 
     it('maps a year collision to 409', async () => {
       findUnique.mockResolvedValue(row);
       update.mockRejectedValue(uniqueViolation);
-      await expect(service.update('campaign-id', { year: 2025 })).rejects.toBeInstanceOf(
-        ConflictException,
-      );
+      await rejectsWithCode(service.update('campaign-id', { year: 2025 }), 'campaign_year_taken');
     });
   });
 });

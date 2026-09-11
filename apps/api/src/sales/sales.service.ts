@@ -1,9 +1,5 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -70,7 +66,7 @@ export class SalesService {
       where: { id, campaignId, cancelledAt: null },
       select: saleSelect,
     });
-    if (!row) throw new NotFoundException(`Sale ${id} not found`);
+    if (!row) throw apiError('sale_not_found', `Sale ${id} not found`);
     return toDto(row, await this.deliveredFor(id));
   }
 
@@ -105,7 +101,11 @@ export class SalesService {
       where: { saleId: id, cancelledAt: null },
     });
     if (liveDeliveries > 0) {
-      throw new ConflictException(`Sale ${id} still has ${liveDeliveries} delivery(ies)`);
+      throw apiError(
+        'sale_has_deliveries',
+        `Sale ${id} still has ${liveDeliveries} delivery(ies)`,
+        { deliveries: liveDeliveries },
+      );
     }
     await this.prisma.sale.update({ where: { id }, data: { cancelledAt: new Date() } });
   }
@@ -131,7 +131,7 @@ export class SalesService {
 
 function assertPaidAfterSale(date: string, payment: SalePaymentDto | null): void {
   if (payment !== null && payment.paidOn < date) {
-    throw new BadRequestException('paidOn must not be before the sale date');
+    throw apiError('sale_payment_before_sale', 'paidOn must not be before the sale date');
   }
 }
 

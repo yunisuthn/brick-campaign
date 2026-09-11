@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import type { StockService } from '../stock/stock.service.js';
 import { DashboardService } from './dashboard.service.js';
@@ -99,7 +99,7 @@ describe('DashboardService', () => {
 
   it('throws 404 for an unknown campaign before summing anything', async () => {
     campaignFindUnique.mockResolvedValue(null);
-    await expect(service.overview('missing')).rejects.toBeInstanceOf(NotFoundException);
+    await rejectsWithCode(service.overview('missing'), 'campaign_not_found');
     expect(saleFindMany).not.toHaveBeenCalled();
   });
 });

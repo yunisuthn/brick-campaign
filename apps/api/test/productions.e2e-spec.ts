@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { bootstrapE2e, type E2eContext, uniqueTag } from './e2e.helpers.js';
+import { bootstrapE2e, type E2eContext, uniqueTag, hasCode } from './e2e.helpers.js';
 
 describe('Productions (e2e)', () => {
   const prefix = uniqueTag();
@@ -61,7 +61,8 @@ describe('Productions (e2e)', () => {
     await request(ctx.app.getHttpServer())
       .get('/campaigns/00000000-0000-7000-8000-000000000000/productions')
       .set('Cookie', cookie)
-      .expect(404);
+      .expect(404)
+      .expect(hasCode('campaign_not_found'));
   });
 
   it('rejects a date before the campaign start and a retired moulder with 400', async () => {
@@ -70,12 +71,14 @@ describe('Productions (e2e)', () => {
       .post(path())
       .set('Cookie', cookie)
       .send({ date: '2097-04-30', moulderId, riceFieldId, quantity: 1000 })
-      .expect(400);
+      .expect(400)
+      .expect(hasCode('date_outside_campaign'));
     await request(server)
       .post(path())
       .set('Cookie', cookie)
       .send({ date: '2097-06-01', moulderId: retiredMoulderId, riceFieldId, quantity: 1000 })
-      .expect(400);
+      .expect(400)
+      .expect(hasCode('moulder_inactive'));
   });
 
   it('creates, lists with filters, corrects, cancels and hides the cancelled entry', async () => {

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import type { StockService } from '../stock/stock.service.js';
@@ -63,17 +63,22 @@ describe('KilnBatchesService', () => {
 
     it('refuses to load more than the raw stock, naming the available quantity', async () => {
       rawStock.mockResolvedValue(39999);
-      await expect(service.create(campaignId, input)).rejects.toThrow('Only 39999 raw bricks');
+      await rejectsWithCode(service.create(campaignId, input), 'raw_stock_too_low', {
+        available: 39999,
+        quantity: 40000,
+      });
       expect(create).not.toHaveBeenCalled();
     });
 
     it('rejects a loading date outside the campaign and an unloading before loading', async () => {
-      await expect(
+      await rejectsWithCode(
         service.create(campaignId, { ...input, loadedOn: '2026-04-30' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
-      await expect(
+        'date_outside_campaign',
+      );
+      await rejectsWithCode(
         service.create(campaignId, { ...input, unloadedOn: '2026-06-30' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'batch_dates_out_of_order',
+      );
       expect(create).not.toHaveBeenCalled();
     });
   });
@@ -116,7 +121,7 @@ describe('KilnBatchesService', () => {
     it('throws 404 for an unknown campaign on the list', async () => {
       findMany.mockResolvedValue([]);
       campaignFindUnique.mockResolvedValue(null);
-      await expect(service.findAll('missing')).rejects.toBeInstanceOf(NotFoundException);
+      await rejectsWithCode(service.findAll('missing'), 'campaign_not_found');
     });
   });
 
@@ -128,9 +133,10 @@ describe('KilnBatchesService', () => {
         service.update(campaignId, 'batch-id', { unloadedOn: '2026-07-10' }),
       ).resolves.toMatchObject({ unloadedOn: '2026-07-10' });
       expect(rawStock).not.toHaveBeenCalled();
-      await expect(
+      await rejectsWithCode(
         service.update(campaignId, 'batch-id', { unloadedOn: '2026-06-30' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'batch_dates_out_of_order',
+      );
     });
 
     it('re-checks the stock without counting the batch itself when its quantity grows', async () => {
@@ -139,16 +145,18 @@ describe('KilnBatchesService', () => {
       update.mockResolvedValue({ ...row, quantity: 45000 });
       await service.update(campaignId, 'batch-id', { quantity: 45000 });
       expect(rawStock).toHaveBeenCalledWith(campaignId, 'batch-id');
-      await expect(
+      await rejectsWithCode(
         service.update(campaignId, 'batch-id', { quantity: 45001 }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'raw_stock_too_low',
+      );
     });
 
     it('throws 404 on a cancelled or unknown batch', async () => {
       findFirst.mockResolvedValue(null);
-      await expect(
+      await rejectsWithCode(
         service.update(campaignId, 'batch-id', { quantity: 40000 }),
-      ).rejects.toBeInstanceOf(NotFoundException);
+        'kiln_batch_not_found',
+      );
     });
   });
 
@@ -167,9 +175,7 @@ describe('KilnBatchesService', () => {
     it('refuses with 409 while live contractor works point at the batch', async () => {
       findFirst.mockResolvedValue(row);
       contractorWorkCount.mockResolvedValue(2);
-      await expect(service.cancel(campaignId, 'batch-id')).rejects.toBeInstanceOf(
-        ConflictException,
-      );
+      await rejectsWithCode(service.cancel(campaignId, 'batch-id'), 'kiln_batch_has_works');
       expect(update).not.toHaveBeenCalled();
     });
   });

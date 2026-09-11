@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateRiceFieldDto, RiceFieldDto, UpdateRiceFieldDto } from './rice-field.dto.js';
@@ -28,7 +29,7 @@ export class RiceFieldsService {
       where: { id },
       select: riceFieldSelect,
     });
-    if (!field) throw new NotFoundException(`Rice field ${id} not found`);
+    if (!field) throw apiError('rice_field_not_found', `Rice field ${id} not found`);
     return field;
   }
 

@@ -1,9 +1,5 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -65,7 +61,7 @@ export class KilnBatchesService {
       where: { id, campaignId, cancelledAt: null },
       select: kilnBatchSelect,
     });
-    if (!row) throw new NotFoundException(`Kiln batch ${id} not found`);
+    if (!row) throw apiError('kiln_batch_not_found', `Kiln batch ${id} not found`);
     const costs = await this.costsByBatch(campaignId, id);
     return toDto(row, costs.get(id) ?? NO_COST);
   }
@@ -101,7 +97,11 @@ export class KilnBatchesService {
       where: { kilnBatchId: id, cancelledAt: null },
     });
     if (liveWorks > 0) {
-      throw new ConflictException(`Kiln batch ${id} still has ${liveWorks} contractor work(s)`);
+      throw apiError(
+        'kiln_batch_has_works',
+        `Kiln batch ${id} still has ${liveWorks} contractor work(s)`,
+        { works: liveWorks },
+      );
     }
     await this.prisma.kilnBatch.update({ where: { id }, data: { cancelledAt: new Date() } });
   }
@@ -148,7 +148,7 @@ export class KilnBatchesService {
       where: { id: campaignId },
       select: { transportRate: true, kilnLoadingRate: true },
     });
-    if (!campaign) throw new NotFoundException(`Campaign ${campaignId} not found`);
+    if (!campaign) throw apiError('campaign_not_found', `Campaign ${campaignId} not found`);
     return campaign;
   }
 
@@ -160,8 +160,10 @@ export class KilnBatchesService {
   ): Promise<void> {
     const available = await this.stock.rawStock(campaignId, excludingBatchId);
     if (quantity > available) {
-      throw new BadRequestException(
+      throw apiError(
+        'raw_stock_too_low',
         `Only ${available} raw bricks in stock, cannot load ${quantity}`,
+        { available, quantity },
       );
     }
   }
@@ -169,7 +171,7 @@ export class KilnBatchesService {
 
 function assertDatesOrdered(loadedOn: string, unloadedOn: string | null): void {
   if (unloadedOn !== null && unloadedOn < loadedOn) {
-    throw new BadRequestException('unloadedOn must not be before loadedOn');
+    throw apiError('batch_dates_out_of_order', 'unloadedOn must not be before loadedOn');
   }
 }
 

@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { StockService } from './stock.service.js';
 
@@ -102,7 +102,7 @@ describe('StockService', () => {
 
     it('throws 404 for an unknown campaign', async () => {
       campaignFindUnique.mockResolvedValue(null);
-      await expect(service.overview('missing')).rejects.toBeInstanceOf(NotFoundException);
+      await rejectsWithCode(service.overview('missing'), 'campaign_not_found');
     });
   });
 });

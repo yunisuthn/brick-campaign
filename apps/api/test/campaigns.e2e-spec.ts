@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { bootstrapE2e, type E2eContext } from './e2e.helpers.js';
+import { bootstrapE2e, type E2eContext, hasCode } from './e2e.helpers.js';
 
 describe('Campaigns (e2e)', () => {
   // Years nobody will enter for real; wiped before and after so a crashed run leaves no residue.
@@ -27,8 +27,12 @@ describe('Campaigns (e2e)', () => {
 
   it('requires a session on every route', async () => {
     const server = ctx.app.getHttpServer();
-    await request(server).get('/campaigns').expect(401);
-    await request(server).post('/campaigns').send(body).expect(401);
+    await request(server).get('/campaigns').expect(401).expect(hasCode('session_required'));
+    await request(server)
+      .post('/campaigns')
+      .send(body)
+      .expect(401)
+      .expect(hasCode('session_required'));
   });
 
   it('rejects an invalid body with the failing paths', async () => {
@@ -37,17 +41,23 @@ describe('Campaigns (e2e)', () => {
       .set('Cookie', cookie)
       .send({ ...body, startedOn: 'May 2099', mouldingRate: -1 })
       .expect(400);
+    expect(res.body.code).toBe('validation_failed');
     const paths = res.body.issues.map((i: { path: string }) => i.path);
     expect(paths).toEqual(expect.arrayContaining(['startedOn', 'mouldingRate']));
   });
 
   it('rejects a malformed id with 400 and an unknown id with 404', async () => {
     const server = ctx.app.getHttpServer();
-    await request(server).get('/campaigns/not-a-uuid').set('Cookie', cookie).expect(400);
+    await request(server)
+      .get('/campaigns/not-a-uuid')
+      .set('Cookie', cookie)
+      .expect(400)
+      .expect(hasCode('validation_failed'));
     await request(server)
       .get('/campaigns/00000000-0000-7000-8000-000000000000')
       .set('Cookie', cookie)
-      .expect(404);
+      .expect(404)
+      .expect(hasCode('campaign_not_found'));
   });
 
   it('creates, refuses the same year twice, lists, reads, updates and closes', async () => {
@@ -61,7 +71,12 @@ describe('Campaigns (e2e)', () => {
     expect(created.body).toEqual({ id: expect.any(String), closedOn: null, ...body });
     const id: string = created.body.id;
 
-    await request(server).post('/campaigns').set('Cookie', cookie).send(body).expect(409);
+    await request(server)
+      .post('/campaigns')
+      .set('Cookie', cookie)
+      .send(body)
+      .expect(409)
+      .expect(hasCode('campaign_year_taken'));
 
     await request(server)
       .post('/campaigns')
@@ -79,7 +94,8 @@ describe('Campaigns (e2e)', () => {
       .patch(`/campaigns/${id}`)
       .set('Cookie', cookie)
       .send({ closedOn: '2099-04-30' })
-      .expect(400);
+      .expect(400)
+      .expect(hasCode('campaign_dates_out_of_order'));
 
     const closed = await request(server)
       .patch(`/campaigns/${id}`)
@@ -92,7 +108,8 @@ describe('Campaigns (e2e)', () => {
       .patch(`/campaigns/${id}`)
       .set('Cookie', cookie)
       .send({ year: years[1] })
-      .expect(409);
+      .expect(409)
+      .expect(hasCode('campaign_year_taken'));
   });
 
   it('creates a campaign with the rates still to be fixed, then fixes one', async () => {

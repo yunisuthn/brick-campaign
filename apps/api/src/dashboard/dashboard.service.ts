@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { type StockDto, StockService } from '../stock/stock.service.js';
 import { type CampaignResult, campaignResult } from './campaign-result.js';
@@ -62,7 +63,7 @@ export class DashboardService {
       where: { id: campaignId },
       select: { mouldingRate: true, transportRate: true, kilnLoadingRate: true },
     });
-    if (!campaign) throw new NotFoundException(`Campaign ${campaignId} not found`);
+    if (!campaign) throw apiError('campaign_not_found', `Campaign ${campaignId} not found`);
     return campaign;
   }
 }

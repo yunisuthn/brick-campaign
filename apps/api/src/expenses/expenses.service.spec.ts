@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { ExpensesService } from './expenses.service.js';
@@ -63,20 +63,23 @@ describe('ExpensesService', () => {
         expect.objectContaining({ where: { id: 'batch-id', campaignId, cancelledAt: null } }),
       );
       kilnBatchFindFirst.mockResolvedValue(null);
-      await expect(
+      await rejectsWithCode(
         service.create(campaignId, { ...input, kilnBatchId: 'batch-id' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'unknown_kiln_batch',
+      );
       riceFieldFindUnique.mockResolvedValue(null);
-      await expect(
+      await rejectsWithCode(
         service.create(campaignId, { ...input, riceFieldId: 'field-id' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'unknown_rice_field',
+      );
       expect(create).toHaveBeenCalledTimes(1);
     });
 
     it('rejects a date outside the campaign', async () => {
-      await expect(
+      await rejectsWithCode(
         service.create(campaignId, { ...input, date: '2026-04-30' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'date_outside_campaign',
+      );
       expect(create).not.toHaveBeenCalled();
     });
   });
@@ -103,12 +106,11 @@ describe('ExpensesService', () => {
 
     it('throws 404 on a cancelled or unknown expense', async () => {
       findFirst.mockResolvedValue(null);
-      await expect(service.update(campaignId, 'expense-id', { amount: 1 })).rejects.toBeInstanceOf(
-        NotFoundException,
+      await rejectsWithCode(
+        service.update(campaignId, 'expense-id', { amount: 1 }),
+        'expense_not_found',
       );
-      await expect(service.cancel(campaignId, 'expense-id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await rejectsWithCode(service.cancel(campaignId, 'expense-id'), 'expense_not_found');
       expect(update).not.toHaveBeenCalled();
     });
   });

@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { MouldersService } from './moulders.service.js';
 
@@ -23,10 +23,8 @@ describe('MouldersService', () => {
 
   it('throws 404 for an unknown id on read and before update', async () => {
     findUnique.mockResolvedValue(null);
-    await expect(service.findOne('missing')).rejects.toBeInstanceOf(NotFoundException);
-    await expect(service.update('missing', { active: false })).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await rejectsWithCode(service.findOne('missing'), 'moulder_not_found');
+    await rejectsWithCode(service.update('missing', { active: false }), 'moulder_not_found');
     expect(update).not.toHaveBeenCalled();
   });
 });

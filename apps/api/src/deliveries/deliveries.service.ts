@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -55,7 +56,7 @@ export class DeliveriesService {
       where: { id, saleId, cancelledAt: null, sale: { campaignId, cancelledAt: null } },
       select: deliverySelect,
     });
-    if (!row) throw new NotFoundException(`Delivery ${id} not found`);
+    if (!row) throw apiError('delivery_not_found', `Delivery ${id} not found`);
     return toDto(row);
   }
 
@@ -92,7 +93,8 @@ export class DeliveriesService {
   /** A trip happens inside the campaign and never before the sale it serves. */
   private async assertDate(campaignId: string, saleDate: string, date: string): Promise<void> {
     this.refs.assertWithinCampaign(await this.refs.campaignWindow(campaignId), date);
-    if (date < saleDate) throw new BadRequestException('date must not be before the sale date');
+    if (date < saleDate)
+      throw apiError('delivery_before_sale', 'date must not be before the sale date');
   }
 
   /** Same decision as for kiln batches: delivering more than the fired stock is refused, the missing entry is fixed first. */
@@ -103,8 +105,10 @@ export class DeliveriesService {
   ): Promise<void> {
     const available = await this.stock.firedStock(campaignId, excludingDeliveryId);
     if (quantity > available) {
-      throw new BadRequestException(
+      throw apiError(
+        'fired_stock_too_low',
         `Only ${available} fired bricks in stock, cannot deliver ${quantity}`,
+        { available, quantity },
       );
     }
   }

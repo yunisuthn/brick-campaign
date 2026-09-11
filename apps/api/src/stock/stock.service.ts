@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { type StockCounts, type StockLevels, stockLevels } from './stock.rules.js';
 
@@ -37,7 +38,7 @@ export class StockService {
       where: { id: campaignId },
       select: { id: true },
     });
-    if (!campaign) throw new NotFoundException(`Campaign ${campaignId} not found`);
+    if (!campaign) throw apiError('campaign_not_found', `Campaign ${campaignId} not found`);
     const [produced, loaded, unloaded, delivered] = await Promise.all([
       this.produced(campaignId),
       this.loaded(campaignId),

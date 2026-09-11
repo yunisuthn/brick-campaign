@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { ProductionsService } from './productions.service.js';
@@ -55,18 +55,19 @@ describe('ProductionsService', () => {
 
     it('throws 404 when the campaign does not exist', async () => {
       campaignFindUnique.mockResolvedValue(null);
-      await expect(service.create('missing', input)).rejects.toBeInstanceOf(NotFoundException);
+      await rejectsWithCode(service.create('missing', input), 'campaign_not_found');
     });
 
     it('checks the date, the moulder and the rice field before writing', async () => {
-      await expect(
+      await rejectsWithCode(
         service.create(campaignId, { ...input, date: '2026-04-30' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'date_outside_campaign',
+      );
       moulderFindUnique.mockResolvedValue({ active: false });
-      await expect(service.create(campaignId, input)).rejects.toBeInstanceOf(BadRequestException);
+      await rejectsWithCode(service.create(campaignId, input), 'moulder_inactive');
       moulderFindUnique.mockResolvedValue({ active: true });
       riceFieldFindUnique.mockResolvedValue(null);
-      await expect(service.create(campaignId, input)).rejects.toBeInstanceOf(BadRequestException);
+      await rejectsWithCode(service.create(campaignId, input), 'unknown_rice_field');
       expect(create).not.toHaveBeenCalled();
     });
   });
@@ -74,9 +75,7 @@ describe('ProductionsService', () => {
   describe('findOne', () => {
     it('looks up within the campaign and ignores cancelled entries', async () => {
       findFirst.mockResolvedValue(null);
-      await expect(service.findOne(campaignId, 'production-id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await rejectsWithCode(service.findOne(campaignId, 'production-id'), 'production_not_found');
       expect(findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'production-id', campaignId, cancelledAt: null },
@@ -101,9 +100,10 @@ describe('ProductionsService', () => {
 
     it('re-checks the campaign window when the date changes', async () => {
       findFirst.mockResolvedValue(row);
-      await expect(
+      await rejectsWithCode(
         service.update(campaignId, 'production-id', { date: '2026-04-01' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'date_outside_campaign',
+      );
       expect(update).not.toHaveBeenCalled();
     });
   });
@@ -121,9 +121,7 @@ describe('ProductionsService', () => {
 
     it('throws 404 on an already cancelled entry', async () => {
       findFirst.mockResolvedValue(null);
-      await expect(service.cancel(campaignId, 'production-id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await rejectsWithCode(service.cancel(campaignId, 'production-id'), 'production_not_found');
       expect(update).not.toHaveBeenCalled();
     });
   });

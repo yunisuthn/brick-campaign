@@ -6,6 +6,7 @@ import type { App } from 'supertest/types';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { hashPassword } from '../src/auth/password.js';
+import type { ErrorCode } from '../src/common/api-error.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
 /**
@@ -46,5 +47,15 @@ export async function bootstrapE2e(): Promise<E2eContext> {
       await prisma.user.delete({ where: { email } });
       await app.close();
     },
+  };
+}
+
+/**
+ * Supertest check on a refusal: the code is what the front reads (reference document, section
+ * 10.1), so it is what the e2e pin. The English message stays free to change.
+ */
+export function hasCode(code: ErrorCode) {
+  return (res: { body: unknown }) => {
+    expect(res.body).toMatchObject({ code });
   };
 }

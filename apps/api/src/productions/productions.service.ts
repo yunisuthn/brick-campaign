@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -64,7 +65,7 @@ export class ProductionsService {
       where: { id, campaignId, cancelledAt: null },
       select: productionSelect,
     });
-    if (!row) throw new NotFoundException(`Production ${id} not found`);
+    if (!row) throw apiError('production_not_found', `Production ${id} not found`);
     return toDto(row);
   }
 

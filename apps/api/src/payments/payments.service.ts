@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -72,7 +73,7 @@ export class PaymentsService {
       where: { id, campaignId, cancelledAt: null },
       select: paymentSelect,
     });
-    if (!row) throw new NotFoundException(`Payment ${id} not found`);
+    if (!row) throw apiError('payment_not_found', `Payment ${id} not found`);
     return toDto(row);
   }
 

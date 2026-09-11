@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { ClientsService } from './clients.service.js';
 
@@ -14,10 +14,8 @@ describe('ClientsService', () => {
 
   it('throws 404 for an unknown id on read and before update', async () => {
     findUnique.mockResolvedValue(null);
-    await expect(service.findOne('missing')).rejects.toBeInstanceOf(NotFoundException);
-    await expect(service.update('missing', { locality: 'Elsewhere' })).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await rejectsWithCode(service.findOne('missing'), 'client_not_found');
+    await rejectsWithCode(service.update('missing', { locality: 'Elsewhere' }), 'client_not_found');
     expect(update).not.toHaveBeenCalled();
   });
 });

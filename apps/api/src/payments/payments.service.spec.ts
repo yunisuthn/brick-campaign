@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { PaymentsService } from './payments.service.js';
@@ -73,13 +73,15 @@ describe('PaymentsService', () => {
     });
 
     it('rejects a date outside the campaign and an inactive moulder', async () => {
-      await expect(
+      await rejectsWithCode(
         service.create(campaignId, { ...base, date: '2026-04-30', moulderId: 'moulder-id' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'date_outside_campaign',
+      );
       moulderFindUnique.mockResolvedValue({ active: false });
-      await expect(
+      await rejectsWithCode(
         service.create(campaignId, { ...base, moulderId: 'moulder-id' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'moulder_inactive',
+      );
       expect(create).not.toHaveBeenCalled();
     });
   });
@@ -113,8 +115,9 @@ describe('PaymentsService', () => {
 
     it('throws 404 on a cancelled or unknown payment', async () => {
       findFirst.mockResolvedValue(null);
-      await expect(service.update(campaignId, 'payment-id', { amount: 1 })).rejects.toBeInstanceOf(
-        NotFoundException,
+      await rejectsWithCode(
+        service.update(campaignId, 'payment-id', { amount: 1 }),
+        'payment_not_found',
       );
       expect(update).not.toHaveBeenCalled();
     });

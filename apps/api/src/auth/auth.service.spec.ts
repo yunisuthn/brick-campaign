@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service.js';
 import { hashPassword } from './password.js';
@@ -33,9 +33,7 @@ describe('AuthService.login', () => {
 
   it('rejects a wrong password', async () => {
     findUnique.mockResolvedValue(user);
-    await expect(service.login(user.email, 'wrong-password')).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    );
+    await rejectsWithCode(service.login(user.email, 'wrong-password'), 'invalid_credentials');
   });
 
   it('rejects an unknown email with the same error as a wrong password', async () => {
@@ -43,7 +41,7 @@ describe('AuthService.login', () => {
     const unknown = await service.login('nobody@example.com', 'whatever').catch((e) => e);
     findUnique.mockResolvedValue(user);
     const wrong = await service.login(user.email, 'wrong-password').catch((e) => e);
-    expect(unknown).toBeInstanceOf(UnauthorizedException);
+    expect(unknown.getResponse()).toMatchObject({ code: 'invalid_credentials' });
     expect(unknown.getResponse()).toEqual(wrong.getResponse());
   });
 });

@@ -1,9 +1,5 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { apiError } from '../common/api-error.js';
 import { formatDateOnly, parseDateOnly } from '../common/date-only.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -50,7 +46,7 @@ export class CampaignsService {
 
   async findOne(id: string): Promise<CampaignDto> {
     const row = await this.prisma.campaign.findUnique({ where: { id }, select: campaignSelect });
-    if (!row) throw new NotFoundException(`Campaign ${id} not found`);
+    if (!row) throw apiError('campaign_not_found', `Campaign ${id} not found`);
     return toDto(row);
   }
 
@@ -78,14 +74,14 @@ export class CampaignsService {
 /** `YYYY-MM-DD` strings compare correctly as text, no Date needed. */
 function assertDatesOrdered(startedOn: string, closedOn: string | null): void {
   if (closedOn !== null && closedOn < startedOn) {
-    throw new BadRequestException('closedOn must not be before startedOn');
+    throw apiError('campaign_dates_out_of_order', 'closedOn must not be before startedOn');
   }
 }
 
 function rethrowYearConflict(year: number): (error: unknown) => never {
   return (error) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new ConflictException(`A campaign for ${year} already exists`);
+      throw apiError('campaign_year_taken', `A campaign for ${year} already exists`, { year });
     }
     throw error;
   };

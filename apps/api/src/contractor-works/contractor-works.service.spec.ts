@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { ContractorWorksService } from './contractor-works.service.js';
@@ -43,10 +43,11 @@ describe('ContractorWorksService', () => {
       ...input,
     });
     kilnBatchFindFirst.mockResolvedValue(null);
-    await expect(service.create(campaignId, input)).rejects.toBeInstanceOf(BadRequestException);
-    await expect(
+    await rejectsWithCode(service.create(campaignId, input), 'unknown_kiln_batch');
+    await rejectsWithCode(
       service.create(campaignId, { ...input, date: '2026-04-30' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+      'date_outside_campaign',
+    );
     expect(create).toHaveBeenCalledTimes(1);
   });
 
@@ -61,8 +62,8 @@ describe('ContractorWorksService', () => {
 
   it('throws 404 on a cancelled or unknown entry', async () => {
     findFirst.mockResolvedValue(null);
-    await expect(service.findOne(campaignId, 'work-id')).rejects.toBeInstanceOf(NotFoundException);
-    await expect(service.cancel(campaignId, 'work-id')).rejects.toBeInstanceOf(NotFoundException);
+    await rejectsWithCode(service.findOne(campaignId, 'work-id'), 'contractor_work_not_found');
+    await rejectsWithCode(service.cancel(campaignId, 'work-id'), 'contractor_work_not_found');
     expect(update).not.toHaveBeenCalled();
   });
 });

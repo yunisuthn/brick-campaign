@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { rejectsWithCode } from '../../test/api-error.expect.js';
 import { EntryReferences } from '../entries/entry-references.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { SalesService } from './sales.service.js';
@@ -72,17 +72,19 @@ describe('SalesService', () => {
     });
 
     it('rejects a date outside the campaign, an unknown client and a payment before the sale', async () => {
-      await expect(
+      await rejectsWithCode(
         service.create(campaignId, { ...input, date: '2026-04-30' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'date_outside_campaign',
+      );
       clientFindUnique.mockResolvedValueOnce(null);
-      await expect(service.create(campaignId, input)).rejects.toThrow('Unknown client');
-      await expect(
+      await rejectsWithCode(service.create(campaignId, input), 'unknown_client');
+      await rejectsWithCode(
         service.create(campaignId, {
           ...input,
           payment: { paidOn: '2026-07-31', amountReceived: 1_250_000 },
         }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'sale_payment_before_sale',
+      );
       expect(create).not.toHaveBeenCalled();
     });
   });
@@ -126,11 +128,12 @@ describe('SalesService', () => {
         status: 'paid',
       });
       expect(clientFindUnique).not.toHaveBeenCalled();
-      await expect(
+      await rejectsWithCode(
         service.update(campaignId, 'sale-id', {
           payment: { paidOn: '2026-07-31', amountReceived: 1_250_000 },
         }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+        'sale_payment_before_sale',
+      );
     });
 
     it('takes a payment back with payment: null', async () => {
@@ -152,9 +155,10 @@ describe('SalesService', () => {
 
     it('throws 404 on a cancelled or unknown sale', async () => {
       findFirst.mockResolvedValue(null);
-      await expect(
+      await rejectsWithCode(
         service.update(campaignId, 'sale-id', { unitPrice: 260 }),
-      ).rejects.toBeInstanceOf(NotFoundException);
+        'sale_not_found',
+      );
     });
   });
 
@@ -173,7 +177,7 @@ describe('SalesService', () => {
     it('refuses with 409 while live deliveries point at the sale', async () => {
       findFirst.mockResolvedValue(row);
       deliveryCount.mockResolvedValue(2);
-      await expect(service.cancel(campaignId, 'sale-id')).rejects.toBeInstanceOf(ConflictException);
+      await rejectsWithCode(service.cancel(campaignId, 'sale-id'), 'sale_has_deliveries');
       expect(update).not.toHaveBeenCalled();
     });
   });

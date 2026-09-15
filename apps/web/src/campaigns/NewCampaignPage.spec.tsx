@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { renderRoutes } from '../test/render.js';
@@ -10,13 +10,19 @@ const routes = [
   { path: '/campagnes/nouvelle', element: <NewCampaignPage /> },
 ];
 
+async function addPrice(user: ReturnType<typeof userEvent.setup>, legend: string, price: string) {
+  const fieldset = within(screen.getByRole('group', { name: new RegExp(legend) }));
+  await user.type(fieldset.getByRole('spinbutton'), price);
+  await user.click(fieldset.getByRole('button', { name: 'Ajouter' }));
+}
+
 async function fillForm() {
   const user = userEvent.setup();
   await user.clear(screen.getByLabelText('Année'));
   await user.type(screen.getByLabelText('Année'), '2026');
   await user.type(screen.getByLabelText('Date de début'), '2026-05-10');
-  await user.type(screen.getByLabelText('Moulage (Ar la brique)'), '40');
-  await user.type(screen.getByLabelText('Transport (Ar la brique)'), '10');
+  await addPrice(user, 'Moulage', '40');
+  await addPrice(user, 'Transport', '10');
   // Kiln loading left empty: still under discussion.
   return user;
 }
@@ -43,8 +49,8 @@ describe('NewCampaignPage', () => {
     expect(body).toEqual({
       year: 2026,
       startedOn: '2026-05-10',
-      mouldingRate: 40,
-      transportRate: 10,
+      mouldingRates: [40],
+      transportRates: [10],
       kilnLoadingRate: null,
     });
   });
@@ -72,18 +78,24 @@ describe('NewCampaignPage', () => {
     );
   });
 
-  it('keeps an incomplete or malformed form on the screen without calling the API', async () => {
+  it('never adds a negative or fractional price to a list', async () => {
     const user = userEvent.setup();
     renderRoutes(routes, '/campagnes/nouvelle');
 
-    await user.type(screen.getByLabelText('Moulage (Ar la brique)'), '-3');
+    await addPrice(user, 'Moulage', '-3');
+    const moulding = within(screen.getByRole('group', { name: /Moulage/ }));
+    expect(moulding.getByText('Aucun prix fixé pour l’instant.')).toBeInTheDocument();
+  });
+
+  it('keeps an incomplete form on the screen without calling the API', async () => {
+    const user = userEvent.setup();
+    renderRoutes(routes, '/campagnes/nouvelle');
+
+    await addPrice(user, 'Moulage', '40');
     await user.click(screen.getByRole('button', { name: 'Créer la campagne' }));
 
     const alerts = await screen.findAllByRole('alert');
-    expect(alerts.map((alert) => alert.textContent)).toEqual([
-      'La date de début est requise.',
-      'Un nombre entier positif est attendu, ou rien tant que le tarif n’est pas fixé.',
-    ]);
+    expect(alerts.map((alert) => alert.textContent)).toEqual(['La date de début est requise.']);
     expect(screen.getByRole('heading', { name: 'Nouvelle campagne' })).toBeInTheDocument();
   });
 });

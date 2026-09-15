@@ -1,10 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client.js';
 
-/** Ariary per brick, null while the price is not negotiated yet ("à fixer"). */
+/**
+ * Ariary per brick. Moulding and transport each offer a list of prices, one of which is picked
+ * per entry since rice fields worked are not all the same distance away; the kiln loading rate
+ * stays a single value, null while not negotiated yet ("à fixer").
+ */
 export interface CampaignRates {
-  mouldingRate: number | null;
-  transportRate: number | null;
+  mouldingRates: number[];
+  transportRates: number[];
   kilnLoadingRate: number | null;
 }
 

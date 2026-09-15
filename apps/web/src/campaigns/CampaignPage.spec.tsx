@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { today } from '../format.js';
@@ -13,8 +13,8 @@ const open = {
   year: 2026,
   startedOn: '2026-05-10',
   closedOn: null,
-  mouldingRate: 40,
-  transportRate: 10,
+  mouldingRates: [40],
+  transportRates: [10],
   kilnLoadingRate: 5,
 };
 
@@ -94,7 +94,7 @@ describe('CampaignPage', () => {
   it('shows a rate still to be fixed and lets the rates be set from the page', async () => {
     let body: unknown;
     server.use(
-      http.get('/api/campaigns/c1', () => HttpResponse.json({ ...open, mouldingRate: null })),
+      http.get('/api/campaigns/c1', () => HttpResponse.json({ ...open, mouldingRates: [] })),
       http.patch('/api/campaigns/c1', async ({ request }) => {
         body = await request.json();
         return HttpResponse.json({ ...open, ...(body as object) });
@@ -105,14 +105,17 @@ describe('CampaignPage', () => {
 
     expect(await screen.findByText('À fixer')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Modifier les tarifs' }));
-    const moulding = screen.getByLabelText('Moulage (Ar la brique)');
-    expect(moulding).toHaveValue('');
-    expect(screen.getByLabelText('Transport (Ar la brique)')).toHaveValue('10');
-    await user.type(moulding, '40');
+    const moulding = within(screen.getByRole('group', { name: /Moulage/ }));
+    expect(moulding.getByText('Aucun prix fixé pour l’instant.')).toBeInTheDocument();
+    const transport = within(screen.getByRole('group', { name: /Transport/ }));
+    expect(transport.getByRole('listitem')).toHaveTextContent('10');
+
+    await user.type(moulding.getByRole('spinbutton'), '40');
+    await user.click(moulding.getByRole('button', { name: 'Ajouter' }));
     await user.click(screen.getByRole('button', { name: 'Enregistrer les tarifs' }));
 
     expect(await screen.findByText('40 Ar la brique')).toBeInTheDocument();
-    expect(body).toEqual({ mouldingRate: 40, transportRate: 10, kilnLoadingRate: 5 });
+    expect(body).toEqual({ mouldingRates: [40], transportRates: [10], kilnLoadingRate: 5 });
     expect(screen.queryByRole('form', { name: 'Tarifs de la campagne' })).not.toBeInTheDocument();
   });
 

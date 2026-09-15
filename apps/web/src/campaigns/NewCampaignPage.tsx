@@ -12,8 +12,8 @@ export function NewCampaignPage() {
     defaultValues: {
       year: new Date().getFullYear(),
       startedOn: '',
-      mouldingRate: null,
-      transportRate: null,
+      mouldingRates: [],
+      transportRates: [],
       kilnLoadingRate: null,
     },
   });
@@ -49,7 +49,7 @@ export function NewCampaignPage() {
         <p className="sub">
           Un tarif encore en discussion se laisse vide ; il se fixe ensuite depuis la fiche.
         </p>
-        <RateFields register={form.register} errors={{ ...errors, ...createRefusal.fields }} />
+        <RateFields form={form} errors={{ ...errors, ...createRefusal.fields }} />
         {createRefusal.message && <p role="alert">Création impossible : {createRefusal.message}</p>}
         <p className="actions">
           <button type="submit" disabled={create.isPending}>

@@ -48,8 +48,8 @@ function EditRates({ campaign }: { campaign: Campaign }) {
   const update = useUpdateCampaign(campaign.id);
   const form = useForm<CampaignRates>({
     defaultValues: {
-      mouldingRate: campaign.mouldingRate,
-      transportRate: campaign.transportRate,
+      mouldingRates: campaign.mouldingRates,
+      transportRates: campaign.transportRates,
       kilnLoadingRate: campaign.kilnLoadingRate,
     },
   });
@@ -72,10 +72,7 @@ function EditRates({ campaign }: { campaign: Campaign }) {
 
   return (
     <form onSubmit={submit} noValidate className="inline-form" aria-label="Tarifs de la campagne">
-      <RateFields
-        register={form.register}
-        errors={{ ...form.formState.errors, ...updateRefusal.fields }}
-      />
+      <RateFields form={form} errors={{ ...form.formState.errors, ...updateRefusal.fields }} />
       {updateRefusal.message && (
         <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
       )}

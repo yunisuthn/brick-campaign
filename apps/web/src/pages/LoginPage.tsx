@@ -24,34 +24,37 @@ export function LoginPage() {
   );
 
   return (
-    <main className="page page-centred">
-      <h1>Briqueterie</h1>
-      <form onSubmit={submit} noValidate>
-        <label>
-          Email
-          <input
-            type="email"
-            autoComplete="username"
-            inputMode="email"
-
-            {...form.register('email', { required: 'L’email est requis.' })}
-          />
-        </label>
-        <label>
-          Mot de passe
-          <input
-            type="password"
-            autoComplete="current-password"
-
-            {...form.register('password', { required: 'Le mot de passe est requis.' })}
-          />
-        </label>
-        {fieldProblem && <p role="alert">{fieldProblem.message}</p>}
-        {loginRefusal.message && <p role="alert">Connexion impossible : {loginRefusal.message}</p>}
-        <button type="submit" disabled={login.isPending}>
-          Se connecter
-        </button>
-      </form>
+    <main className="page-centred">
+      <div className="card login-card">
+        <h1>Briqueterie</h1>
+        <p className="sub">Gestion de campagne de briques</p>
+        <form onSubmit={submit} noValidate>
+          <label>
+            Email
+            <input
+              type="email"
+              autoComplete="username"
+              inputMode="email"
+              {...form.register('email', { required: 'L’email est requis.' })}
+            />
+          </label>
+          <label>
+            Mot de passe
+            <input
+              type="password"
+              autoComplete="current-password"
+              {...form.register('password', { required: 'Le mot de passe est requis.' })}
+            />
+          </label>
+          {fieldProblem && <p role="alert">{fieldProblem.message}</p>}
+          {loginRefusal.message && (
+            <p role="alert">Connexion impossible : {loginRefusal.message}</p>
+          )}
+          <button type="submit" disabled={login.isPending}>
+            Se connecter
+          </button>
+        </form>
+      </div>
     </main>
   );
 }

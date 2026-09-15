@@ -405,7 +405,28 @@ span[role='alert'] {
   max-width: 24rem;
 }
 
-/* The login screen is the only one with nothing around it. */
+/* The login screen is the only one with nothing around it: centred on the whole viewport. */
 .page-centred {
-  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 22rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.08);
+}
+
+.login-card h1 {
+  margin-bottom: 0.25rem;
+}
+
+.login-card form {
+  margin-top: 1.5rem;
+  text-align: left;
 }

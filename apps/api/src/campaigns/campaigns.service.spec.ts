@@ -14,8 +14,8 @@ describe('CampaignsService', () => {
     year: 2026,
     startedOn: '2026-05-01',
     closedOn: null,
-    mouldingRate: 20,
-    transportRate: 5,
+    mouldingRates: [20, 28],
+    transportRates: [5, 8],
     kilnLoadingRate: 5,
   };
   const row = {
@@ -109,7 +109,7 @@ describe('CampaignsService', () => {
 
     it('throws 404 before updating an unknown campaign', async () => {
       findUnique.mockResolvedValue(null);
-      await rejectsWithCode(service.update('missing', { mouldingRate: 25 }), 'campaign_not_found');
+      await rejectsWithCode(service.update('missing', { mouldingRates: [25] }), 'campaign_not_found');
       expect(update).not.toHaveBeenCalled();
     });
 

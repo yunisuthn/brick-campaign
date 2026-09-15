@@ -29,6 +29,8 @@ const sentences: Record<ErrorCode, Sentence> = {
   unknown_rice_field: 'Cette rizière n’existe plus.',
   unknown_client: 'Ce client n’existe plus.',
   unknown_kiln_batch: 'Ce lot n’existe pas dans cette campagne.',
+  unknown_moulding_rate: 'Ce tarif de moulage ne fait pas partie de ceux de la campagne.',
+  unknown_transport_rate: 'Ce tarif de transport ne fait pas partie de ceux de la campagne.',
   moulder_inactive: 'Ce mouleur est retiré : plus aucune saisie à son nom.',
 
   raw_stock_too_low: stockSentence('crues', 'impossible d’en enfourner'),

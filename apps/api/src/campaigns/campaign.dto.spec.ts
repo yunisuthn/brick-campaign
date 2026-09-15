@@ -3,8 +3,8 @@ import { createCampaignSchema, updateCampaignSchema } from './campaign.dto.js';
 const valid = {
   year: 2026,
   startedOn: '2026-05-01',
-  mouldingRate: 20,
-  transportRate: 5,
+  mouldingRates: [20, 28],
+  transportRates: [5, 8],
   kilnLoadingRate: 5,
 };
 
@@ -13,14 +13,14 @@ describe('createCampaignSchema', () => {
     expect(createCampaignSchema.parse(valid)).toEqual({ ...valid, closedOn: null });
   });
 
-  it('lets the rates be left out or null: to be fixed once negotiated', () => {
+  it('lets the price lists and the kiln loading rate be left out: to be fixed once negotiated', () => {
     const { year, startedOn } = valid;
-    expect(createCampaignSchema.parse({ year, startedOn, transportRate: null })).toEqual({
+    expect(createCampaignSchema.parse({ year, startedOn, transportRates: [] })).toEqual({
       year,
       startedOn,
       closedOn: null,
-      mouldingRate: null,
-      transportRate: null,
+      mouldingRates: [],
+      transportRates: [],
       kilnLoadingRate: null,
     });
   });
@@ -29,8 +29,9 @@ describe('createCampaignSchema', () => {
     ['a year outside the range', { year: 1999 }],
     ['a date with a time part', { startedOn: '2026-05-01T00:00:00Z' }],
     ['an invalid calendar date', { startedOn: '2026-13-01' }],
-    ['a negative rate', { mouldingRate: -1 }],
-    ['a fractional rate', { transportRate: 2.5 }],
+    ['a negative price in the moulding list', { mouldingRates: [-1] }],
+    ['a fractional price in the transport list', { transportRates: [2.5] }],
+    ['a negative kiln loading rate', { kilnLoadingRate: -1 }],
   ])('rejects %s', (_label, override) => {
     expect(createCampaignSchema.safeParse({ ...valid, ...override }).success).toBe(false);
   });
@@ -41,15 +42,21 @@ describe('updateCampaignSchema', () => {
     expect(updateCampaignSchema.parse({ closedOn: null })).toEqual({ closedOn: null });
   });
 
-  it('leaves out closedOn when only a rate is sent, so a patch never reopens by accident', () => {
-    expect(updateCampaignSchema.parse({ mouldingRate: 25 })).toEqual({ mouldingRate: 25 });
+  it('leaves out closedOn when only a price list is sent, so a patch never reopens by accident', () => {
+    expect(updateCampaignSchema.parse({ mouldingRates: [25] })).toEqual({ mouldingRates: [25] });
   });
 
   it('rejects an empty body', () => {
     expect(updateCampaignSchema.safeParse({}).success).toBe(false);
   });
 
-  it('lets a rate go back to null, but never to a negative or fractional value', () => {
+  it('lets a price list go back to empty, but never hold a negative or fractional value', () => {
+    expect(updateCampaignSchema.parse({ mouldingRates: [] })).toEqual({ mouldingRates: [] });
+    expect(updateCampaignSchema.safeParse({ mouldingRates: [-1] }).success).toBe(false);
+    expect(updateCampaignSchema.safeParse({ transportRates: [2.5] }).success).toBe(false);
+  });
+
+  it('lets the kiln loading rate go back to null, but never to a negative or fractional value', () => {
     expect(updateCampaignSchema.parse({ kilnLoadingRate: null })).toEqual({
       kilnLoadingRate: null,
     });

@@ -17,6 +17,8 @@ export const errorStatuses = {
   sale_payment_before_sale: 400,
   unknown_moulder: 400,
   unknown_rice_field: 400,
+  unknown_moulding_rate: 400,
+  unknown_transport_rate: 400,
   unknown_client: 400,
   unknown_kiln_batch: 400,
   moulder_inactive: 400,

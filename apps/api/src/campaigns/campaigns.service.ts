@@ -10,8 +10,8 @@ const campaignSelect = {
   year: true,
   startedOn: true,
   closedOn: true,
-  mouldingRate: true,
-  transportRate: true,
+  mouldingRates: true,
+  transportRates: true,
   kilnLoadingRate: true,
 } satisfies Prisma.CampaignSelect;
 

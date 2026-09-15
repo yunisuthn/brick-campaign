@@ -7,8 +7,8 @@ describe('Campaigns (e2e)', () => {
   const body = {
     year: years[0],
     startedOn: '2099-05-01',
-    mouldingRate: 20,
-    transportRate: 5,
+    mouldingRates: [20, 28],
+    transportRates: [5, 8],
     kilnLoadingRate: 5,
   };
   let ctx: E2eContext;
@@ -39,11 +39,11 @@ describe('Campaigns (e2e)', () => {
     const res = await request(ctx.app.getHttpServer())
       .post('/api/campaigns')
       .set('Cookie', cookie)
-      .send({ ...body, startedOn: 'May 2099', mouldingRate: -1 })
+      .send({ ...body, startedOn: 'May 2099', mouldingRates: [-1] })
       .expect(400);
     expect(res.body.code).toBe('validation_failed');
     const paths = res.body.issues.map((i: { path: string }) => i.path);
-    expect(paths).toEqual(expect.arrayContaining(['startedOn', 'mouldingRate']));
+    expect(paths).toEqual(expect.arrayContaining(['startedOn', 'mouldingRates.0']));
   });
 
   it('rejects a malformed id with 400 and an unknown id with 404', async () => {
@@ -103,9 +103,9 @@ describe('Campaigns (e2e)', () => {
     const closed = await request(server)
       .patch(`/api/campaigns/${id}`)
       .set('Cookie', cookie)
-      .send({ closedOn: '2099-11-30', mouldingRate: 25 })
+      .send({ closedOn: '2099-11-30', mouldingRates: [25] })
       .expect(200);
-    expect(closed.body).toEqual({ ...created.body, closedOn: '2099-11-30', mouldingRate: 25 });
+    expect(closed.body).toEqual({ ...created.body, closedOn: '2099-11-30', mouldingRates: [25] });
 
     await request(server)
       .patch(`/api/campaigns/${id}`)
@@ -125,16 +125,16 @@ describe('Campaigns (e2e)', () => {
       .send({ year: years[0], startedOn: '2099-05-01' })
       .expect(201);
     expect(created.body).toMatchObject({
-      mouldingRate: null,
-      transportRate: null,
+      mouldingRates: [],
+      transportRates: [],
       kilnLoadingRate: null,
     });
 
     const fixed = await request(server)
       .patch(`/api/campaigns/${created.body.id}`)
       .set('Cookie', cookie)
-      .send({ mouldingRate: 25 })
+      .send({ mouldingRates: [25] })
       .expect(200);
-    expect(fixed.body).toEqual({ ...created.body, mouldingRate: 25 });
+    expect(fixed.body).toEqual({ ...created.body, mouldingRates: [25] });
   });
 });

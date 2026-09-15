@@ -127,7 +127,7 @@ function Rows({ productions, moulderName, fieldName }: RowsProps) {
               {moulderName.get(production.moulderId) ?? 'Mouleur inconnu'}
             </Link>
             <span className="sub">
-              {formatDate(production.date)} ·{' '}
+              {formatDate(production.startedOn)} ·{' '}
               {fieldName.get(production.riceFieldId) ?? 'Rizière inconnue'}
             </span>
           </span>

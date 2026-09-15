@@ -20,7 +20,8 @@ const entry = {
   campaignId: 'c1',
   moulderId: 'gone',
   riceFieldId: 'r1',
-  date: '2026-06-02',
+  startedOn: '2026-06-02',
+  endedOn: null,
   quantity: 1200,
   rate: 40,
 };
@@ -81,12 +82,35 @@ describe('ProductionPage', () => {
 
     expect(await screen.findByText('1 300 briques')).toBeInTheDocument();
     expect(body).toEqual({
-      date: '2026-06-02',
+      startedOn: '2026-06-02',
+      endedOn: null,
       moulderId: 'gone',
       riceFieldId: 'r1',
       quantity: 1300,
       rate: 40,
     });
+  });
+
+  it('lets the end date be fixed once the work is finished', async () => {
+    let body: unknown;
+    server.use(
+      ...referenceHandlers(),
+      http.get('/api/campaigns/c1/productions/p1', () => HttpResponse.json(entry)),
+      http.patch('/api/campaigns/c1/productions/p1', async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({ ...entry, ...(body as object) });
+      }),
+    );
+    const user = userEvent.setup();
+    renderRoutes(routes, '/productions/p1');
+
+    const end = await screen.findByLabelText('Date de fin');
+    expect(end).toHaveValue('');
+    await user.type(end, '2026-06-03');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(await screen.findByRole('heading', { name: /2 juin 2026 – 3 juin 2026/ })).toBeInTheDocument();
+    expect(body).toMatchObject({ endedOn: '2026-06-03' });
   });
 
   it('cancels an entry after a confirmation and goes back to the list', async () => {

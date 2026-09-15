@@ -6,10 +6,12 @@ import type { NewProduction } from './useProductions.js';
 
 /**
  * What the form holds: the quantity stays text until submit, so an empty field is empty and
- * not NaN, and the two ids are '' until chosen; the rate is '' while not yet fixed.
+ * not NaN, the two ids are '' until chosen, and the rate is '' while not yet fixed. `endedOn` is
+ * '' while the work is not finished, and only shown once it can be (see `showEndedOn`).
  */
 export interface ProductionForm {
-  date: string;
+  startedOn: string;
+  endedOn: string;
   moulderId: string;
   riceFieldId: string;
   quantity: string;
@@ -17,7 +19,12 @@ export interface ProductionForm {
 }
 
 export function toNewProduction(form: ProductionForm): NewProduction {
-  return { ...form, quantity: Number(form.quantity), rate: form.rate === '' ? null : Number(form.rate) };
+  return {
+    ...form,
+    endedOn: form.endedOn === '' ? null : form.endedOn,
+    quantity: Number(form.quantity),
+    rate: form.rate === '' ? null : Number(form.rate),
+  };
 }
 
 const CHOOSE = { value: '', label: 'Choisir…' };
@@ -30,24 +37,38 @@ interface ProductionFieldsProps {
   riceFields: ReadonlyArray<Pick<RiceField, 'id' | 'name'>>;
   /** The campaign's moulding prices to pick from; empty while none is fixed yet. */
   rates: ReadonlyArray<number>;
+  /** A new entry starts still in progress; the end date is a correction, set once known. */
+  showEndedOn?: boolean;
 }
 
-/** Shared by the day's entry and the correction; the lists to choose from come from the page. */
+/** Shared by the entry and the correction; the lists to choose from come from the page. */
 export function ProductionFields({
   register,
   errors,
   moulders,
   riceFields,
   rates,
+  showEndedOn = false,
 }: ProductionFieldsProps) {
   return (
     <>
       <Field
-        label="Date"
-        error={errors.date}
-        input={register('date', { required: 'La date est requise.' })}
+        label="Date de début"
+        error={errors.startedOn}
+        input={register('startedOn', { required: 'La date de début est requise.' })}
         type="date"
       />
+      {showEndedOn && (
+        <>
+          <Field
+            label="Date de fin"
+            error={errors.endedOn}
+            input={register('endedOn')}
+            type="date"
+          />
+          <p className="sub">Laissée vide tant que le travail n’est pas terminé.</p>
+        </>
+      )}
       <SelectField
         label="Mouleur"
         error={errors.moulderId}

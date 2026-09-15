@@ -80,7 +80,8 @@ function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionF
   const [confirming, setConfirming] = useState(false);
   const form = useForm<ProductionForm>({
     defaultValues: {
-      date: production.date,
+      startedOn: production.startedOn,
+      endedOn: production.endedOn ?? '',
       moulderId: production.moulderId,
       riceFieldId: production.riceFieldId,
       quantity: String(production.quantity),
@@ -103,7 +104,10 @@ function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionF
   return (
     <>
       <h1>
-        {moulderName}, {formatDate(production.date)}
+        {moulderName}, {formatDate(production.startedOn)}
+        {production.endedOn !== null && production.endedOn !== production.startedOn && (
+          <> – {formatDate(production.endedOn)}</>
+        )}
         <span className="title-sub">{formatBricks(production.quantity)}</span>
       </h1>
       <form onSubmit={save} noValidate>
@@ -113,6 +117,7 @@ function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionF
           moulders={moulders}
           riceFields={riceFields}
           rates={rates}
+          showEndedOn
         />
         {updateRefusal.message && (
           <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>

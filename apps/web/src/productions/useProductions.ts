@@ -1,13 +1,14 @@
 import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
 import { stockKey } from '../stock/useStock.js';
 
-/** Mirror of the API's ProductionDto: one day of one moulder on one rice field. */
+/** Mirror of the API's ProductionDto. Still in progress while `endedOn` is null. */
 export interface Production {
   id: string;
   campaignId: string;
   moulderId: string;
   riceFieldId: string;
-  date: string;
+  startedOn: string;
+  endedOn: string | null;
   quantity: number;
   /** The moulding price picked for this entry, null while not yet fixed. */
   rate: number | null;
@@ -15,7 +16,7 @@ export interface Production {
 
 export type NewProduction = Pick<
   Production,
-  'moulderId' | 'riceFieldId' | 'date' | 'quantity' | 'rate'
+  'moulderId' | 'riceFieldId' | 'startedOn' | 'endedOn' | 'quantity' | 'rate'
 >;
 export type ProductionPatch = Partial<NewProduction>;
 

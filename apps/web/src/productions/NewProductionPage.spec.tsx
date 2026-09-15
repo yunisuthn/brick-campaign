@@ -60,7 +60,7 @@ describe('NewProductionPage', () => {
     const user = userEvent.setup();
     mount();
 
-    const date = await screen.findByLabelText('Date');
+    const date = await screen.findByLabelText('Date de début');
     expect(date).toHaveValue(today());
     await user.clear(date);
     await user.type(date, '2026-06-02');
@@ -73,7 +73,7 @@ describe('NewProductionPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent(
       'Enregistré : Rakoto, 1 200 briques.',
     );
-    expect(screen.getByLabelText('Date')).toHaveValue('2026-06-02');
+    expect(screen.getByLabelText('Date de début')).toHaveValue('2026-06-02');
     expect(screen.getByLabelText('Rizière')).toHaveValue('r1');
     expect(screen.getByLabelText('Mouleur')).toHaveValue('');
     expect(screen.getByLabelText('Quantité (briques)')).toHaveValue('');
@@ -85,8 +85,22 @@ describe('NewProductionPage', () => {
 
     expect(await screen.findByText('Enregistré : Rasoa, 800 briques.')).toBeInTheDocument();
     expect(bodies).toEqual([
-      { date: '2026-06-02', moulderId: 'm1', riceFieldId: 'r1', quantity: 1200, rate: 40 },
-      { date: '2026-06-02', moulderId: 'm2', riceFieldId: 'r1', quantity: 800, rate: 40 },
+      {
+        startedOn: '2026-06-02',
+        endedOn: null,
+        moulderId: 'm1',
+        riceFieldId: 'r1',
+        quantity: 1200,
+        rate: 40,
+      },
+      {
+        startedOn: '2026-06-02',
+        endedOn: null,
+        moulderId: 'm2',
+        riceFieldId: 'r1',
+        quantity: 800,
+        rate: 40,
+      },
     ]);
   });
 

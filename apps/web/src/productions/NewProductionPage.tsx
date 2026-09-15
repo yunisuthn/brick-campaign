@@ -43,7 +43,14 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
   const create = useCreateProduction(campaign.id);
   const [saved, setSaved] = useState<string | null>(null);
   const form = useForm<ProductionForm>({
-    defaultValues: { date: today(), moulderId: '', riceFieldId: '', quantity: '', rate: '' },
+    defaultValues: {
+      startedOn: today(),
+      endedOn: '',
+      moulderId: '',
+      riceFieldId: '',
+      quantity: '',
+      rate: '',
+    },
   });
 
   if (moulders.isError || riceFields.isError) {

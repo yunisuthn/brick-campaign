@@ -98,16 +98,17 @@ model Client {
   @@map("clients")
 }
 
-// One day of moulding by one moulder on one rice field. Pay is quantity x rate, rate picked at
-// entry time from the campaign's moulding prices (null while not yet fixed, reference document
-// section 3). A wrong entry is cancelled (cancelledAt), never deleted: cancelled rows leave the
-// API but keep the history.
+// Moulding by one moulder on one rice field, over one or more days. Pay is quantity x rate, rate
+// picked at entry time from the campaign's moulding prices (null while not yet fixed, reference
+// document section 3). endedOn is null while the work is not finished yet. A wrong entry is
+// cancelled (cancelledAt), never deleted: cancelled rows leave the API but keep the history.
 model Production {
   id          String    @id @default(uuid(7)) @db.Uuid
   campaignId  String    @map("campaign_id") @db.Uuid
   moulderId   String    @map("moulder_id") @db.Uuid
   riceFieldId String    @map("rice_field_id") @db.Uuid
-  date        DateTime  @db.Date
+  startedOn   DateTime  @map("started_on") @db.Date
+  endedOn     DateTime? @map("ended_on") @db.Date
   quantity    Int
   rate        Int?
   cancelledAt DateTime? @map("cancelled_at")

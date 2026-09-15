@@ -15,7 +15,7 @@ export function ProductionsPage() {
       <h1>Productions{campaign && ` · Campagne ${campaign.year}`}</h1>
       {campaign && (
         <p>
-          <Link to="/productions/nouvelle">Saisir la production du jour</Link>
+          <Link to="/productions/nouvelle">Saisir une production</Link>
         </p>
       )}
       {campaign ? (

@@ -19,7 +19,7 @@ export function NewProductionPage() {
       <p>
         <Link to="/productions">Toutes les productions</Link>
       </p>
-      <h1>Production du jour</h1>
+      <h1>Nouvelle production</h1>
       {campaign ? (
         <EntryForm campaign={campaign} />
       ) : (
@@ -33,9 +33,9 @@ export function NewProductionPage() {
 }
 
 /**
- * The evening's entry runs through the moulders one after the other: after a save the form
- * stays, keeps the date and the rice field, clears the moulder and the quantity, and says
- * what was just saved. Only active moulders are offered.
+ * Entries run through the moulders one after the other: after a save the form stays, keeps the
+ * date, the rice field and the rate, clears the moulder and the quantity, and says what was just
+ * saved. Only active moulders are offered.
  */
 function EntryForm({ campaign }: { campaign: Campaign }) {
   const moulders = useMoulders();

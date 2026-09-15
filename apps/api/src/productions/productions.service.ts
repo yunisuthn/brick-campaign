@@ -18,6 +18,7 @@ const productionSelect = {
   riceFieldId: true,
   date: true,
   quantity: true,
+  rate: true,
 } satisfies Prisma.ProductionSelect;
 
 type ProductionRow = Prisma.ProductionGetPayload<{ select: typeof productionSelect }>;
@@ -34,6 +35,7 @@ export class ProductionsService {
     this.refs.assertWithinCampaign(campaign, input.date);
     await this.refs.assertActiveMoulder(input.moulderId);
     await this.refs.assertRiceField(input.riceFieldId);
+    await this.refs.assertMouldingRate(campaignId, input.rate);
     const row = await this.prisma.production.create({
       data: { ...input, campaignId, date: parseDateOnly(input.date) },
       select: productionSelect,
@@ -76,6 +78,7 @@ export class ProductionsService {
     }
     if (input.moulderId !== undefined) await this.refs.assertActiveMoulder(input.moulderId);
     if (input.riceFieldId !== undefined) await this.refs.assertRiceField(input.riceFieldId);
+    if (input.rate !== undefined) await this.refs.assertMouldingRate(campaignId, input.rate);
     const row = await this.prisma.production.update({
       where: { id },
       data: { ...input, date: input.date === undefined ? undefined : parseDateOnly(input.date) },

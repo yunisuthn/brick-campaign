@@ -49,6 +49,30 @@ export class EntryReferences {
     if (!field) throw apiError('unknown_rice_field', `Unknown rice field ${id}`);
   }
 
+  /** `null` is always allowed ("to be fixed later"); a chosen rate must be one the campaign offers. */
+  async assertMouldingRate(campaignId: string, rate: number | null): Promise<void> {
+    if (rate === null) return;
+    const campaign = await this.prisma.campaign.findUnique({
+      where: { id: campaignId },
+      select: { mouldingRates: true },
+    });
+    if (!campaign?.mouldingRates.includes(rate)) {
+      throw apiError('unknown_moulding_rate', `${rate} is not one of this campaign's moulding rates`);
+    }
+  }
+
+  /** Same rule as `assertMouldingRate`, checked against the campaign's transport rates. */
+  async assertTransportRate(campaignId: string, rate: number | null): Promise<void> {
+    if (rate === null) return;
+    const campaign = await this.prisma.campaign.findUnique({
+      where: { id: campaignId },
+      select: { transportRates: true },
+    });
+    if (!campaign?.transportRates.includes(rate)) {
+      throw apiError('unknown_transport_rate', `${rate} is not one of this campaign's transport rates`);
+    }
+  }
+
   async assertClient(id: string): Promise<void> {
     const client = await this.prisma.client.findUnique({ where: { id }, select: { id: true } });
     if (!client) throw apiError('unknown_client', `Unknown client ${id}`);

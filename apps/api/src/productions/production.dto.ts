@@ -8,9 +8,13 @@ const productionFields = z.object({
   riceFieldId: uuidSchema,
   /** Bricks moulded that day. Zero is not an entry. */
   quantity: z.int().positive(),
+  /** One of the campaign's moulding rates, or null while not yet fixed. */
+  rate: z.int().nonnegative().nullable(),
 });
 
-export const createProductionSchema = productionFields;
+export const createProductionSchema = productionFields.extend({
+  rate: productionFields.shape.rate.default(null),
+});
 
 /** A correction touches one or more fields; an empty body is a mistake, not a no-op. */
 export const updateProductionSchema = productionFields
@@ -34,4 +38,5 @@ export interface ProductionDto {
   riceFieldId: string;
   date: string;
   quantity: number;
+  rate: number | null;
 }

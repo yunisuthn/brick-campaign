@@ -28,8 +28,8 @@ describe('Productions (e2e)', () => {
       data: {
         year,
         startedOn: new Date('2097-05-01T00:00:00Z'),
-        mouldingRate: 20,
-        transportRate: 5,
+        mouldingRates: [20],
+        transportRates: [5],
         kilnLoadingRate: 5,
       },
     });
@@ -87,7 +87,7 @@ describe('Productions (e2e)', () => {
     const first = await request(server)
       .post(path())
       .set('Cookie', cookie)
-      .send({ date: '2097-06-01', moulderId, riceFieldId, quantity: 1000 })
+      .send({ date: '2097-06-01', moulderId, riceFieldId, quantity: 1000, rate: 20 })
       .expect(201);
     expect(first.body).toEqual({
       id: expect.any(String),
@@ -96,6 +96,7 @@ describe('Productions (e2e)', () => {
       riceFieldId,
       date: '2097-06-01',
       quantity: 1000,
+      rate: 20,
     });
     const second = await request(server)
       .post(path())

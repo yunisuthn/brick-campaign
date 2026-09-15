@@ -73,4 +73,20 @@ describe('EntryReferences', () => {
       }),
     );
   });
+
+  it('accepts a null moulding rate without a lookup, and rejects one the campaign does not offer', async () => {
+    await expect(refs.assertMouldingRate('campaign-id', null)).resolves.toBeUndefined();
+    expect(campaignFindUnique).not.toHaveBeenCalled();
+    campaignFindUnique.mockResolvedValue({ mouldingRates: [20, 28] });
+    await expect(refs.assertMouldingRate('campaign-id', 28)).resolves.toBeUndefined();
+    await rejectsWithCode(refs.assertMouldingRate('campaign-id', 35), 'unknown_moulding_rate');
+  });
+
+  it('accepts a null transport rate without a lookup, and rejects one the campaign does not offer', async () => {
+    await expect(refs.assertTransportRate('campaign-id', null)).resolves.toBeUndefined();
+    expect(campaignFindUnique).not.toHaveBeenCalled();
+    campaignFindUnique.mockResolvedValue({ transportRates: [5, 8] });
+    await expect(refs.assertTransportRate('campaign-id', 5)).resolves.toBeUndefined();
+    await rejectsWithCode(refs.assertTransportRate('campaign-id', 12), 'unknown_transport_rate');
+  });
 });

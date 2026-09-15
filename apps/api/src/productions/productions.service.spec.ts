@@ -25,6 +25,7 @@ describe('ProductionsService', () => {
     moulderId: 'moulder-id',
     riceFieldId: 'rice-field-id',
     quantity: 1500,
+    rate: null,
   };
   const row = { id: 'production-id', campaignId, ...input, date: new Date('2026-06-10T00:00:00Z') };
 

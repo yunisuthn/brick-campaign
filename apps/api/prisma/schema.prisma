@@ -18,15 +18,17 @@ model User {
   @@map("users")
 }
 
-// One season. Rates live here (not on each entry) so a new season changes them in one place.
+// One season. The kiln loading rate lives here (one kiln, no variation); moulding and transport
+// instead offer a list of prices here, one of which is picked and frozen on each entry, since the
+// rice fields worked in a season are not all the same distance away.
 // Money is stored as integer Ariary: the currency has no subunit in daily use.
 model Campaign {
   id              String    @id @default(uuid(7)) @db.Uuid
   year            Int       @unique
   startedOn       DateTime  @map("started_on") @db.Date
   closedOn        DateTime? @map("closed_on") @db.Date
-  mouldingRate    Int?      @map("moulding_rate")
-  transportRate   Int?      @map("transport_rate")
+  mouldingRates   Int[]     @map("moulding_rates")
+  transportRates  Int[]     @map("transport_rates")
   kilnLoadingRate Int?      @map("kiln_loading_rate")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
@@ -96,8 +98,10 @@ model Client {
   @@map("clients")
 }
 
-// One day of moulding by one moulder on one rice field. No amount stored: pay is quantity x campaign rate.
-// A wrong entry is cancelled (cancelledAt), never deleted: cancelled rows leave the API but keep the history.
+// One day of moulding by one moulder on one rice field. Pay is quantity x rate, rate picked at
+// entry time from the campaign's moulding prices (null while not yet fixed, reference document
+// section 3). A wrong entry is cancelled (cancelledAt), never deleted: cancelled rows leave the
+// API but keep the history.
 model Production {
   id          String    @id @default(uuid(7)) @db.Uuid
   campaignId  String    @map("campaign_id") @db.Uuid
@@ -105,6 +109,7 @@ model Production {
   riceFieldId String    @map("rice_field_id") @db.Uuid
   date        DateTime  @db.Date
   quantity    Int
+  rate        Int?
   cancelledAt DateTime? @map("cancelled_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
@@ -175,7 +180,9 @@ enum ContractorWorkType {
 }
 
 // Bricks carried to the kiln or loaded into it, by a contractor known by a free-text name, for one
-// firing. Paid at the campaign rate of the type; what is owed is computed per exact name (known
+// firing. Kiln loading is paid at the campaign's single rate; transport is paid at a rate picked
+// at entry time from the campaign's transport prices, since a kiln batch can mix bricks carried
+// from several rice fields at different distances. What is owed is computed per exact name (known
 // limit of the v1). A wrong entry is cancelled, never deleted.
 model ContractorWork {
   id             String             @id @default(uuid(7)) @db.Uuid
@@ -185,6 +192,7 @@ model ContractorWork {
   contractorName String             @map("contractor_name")
   date           DateTime           @db.Date
   quantity       Int
+  rate           Int?
   cancelledAt    DateTime?          @map("cancelled_at")
   createdAt      DateTime           @default(now()) @map("created_at")
   updatedAt      DateTime           @updatedAt @map("updated_at")

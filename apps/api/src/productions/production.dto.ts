@@ -3,16 +3,21 @@ import { dateOnlySchema } from '../common/date-only.js';
 import { uuidSchema } from '../common/uuid.schema.js';
 
 const productionFields = z.object({
-  date: dateOnlySchema,
+  startedOn: dateOnlySchema,
+  /** Null while the work is not finished yet. */
+  endedOn: dateOnlySchema.nullable(),
   moulderId: uuidSchema,
   riceFieldId: uuidSchema,
-  /** Bricks moulded that day. Zero is not an entry. */
+  /** Bricks moulded. Zero is not an entry. */
   quantity: z.int().positive(),
   /** One of the campaign's moulding rates, or null while not yet fixed. */
   rate: z.int().nonnegative().nullable(),
 });
 
+/** A production is entered still in progress unless an end date is given (past work entered
+ * after the fact). */
 export const createProductionSchema = productionFields.extend({
+  endedOn: productionFields.shape.endedOn.default(null),
   rate: productionFields.shape.rate.default(null),
 });
 
@@ -36,7 +41,8 @@ export interface ProductionDto {
   campaignId: string;
   moulderId: string;
   riceFieldId: string;
-  date: string;
+  startedOn: string;
+  endedOn: string | null;
   quantity: number;
   rate: number | null;
 }

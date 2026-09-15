@@ -42,7 +42,7 @@ describe('Kiln batches (e2e)', () => {
         campaignId,
         moulderId: moulder.id,
         riceFieldId: field.id,
-        date: new Date(`2094-06-0${i + 1}T00:00:00Z`),
+        startedOn: new Date(`2094-06-0${i + 1}T00:00:00Z`),
         quantity,
       })),
     });

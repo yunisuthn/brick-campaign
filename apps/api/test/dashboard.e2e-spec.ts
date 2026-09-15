@@ -50,8 +50,8 @@ describe('Dashboard (e2e)', () => {
     // Every kind of entry has a cancelled twin that must not count.
     await prisma.production.createMany({
       data: [
-        { ...entry, date: day('06-01'), quantity: 40000, rate: 20 },
-        { ...entry, date: day('06-02'), quantity: 99999, rate: 20, ...cancelled },
+        { ...entry, startedOn: day('06-01'), quantity: 40000, rate: 20 },
+        { ...entry, startedOn: day('06-02'), quantity: 99999, rate: 20, ...cancelled },
       ],
     });
     await prisma.payment.createMany({

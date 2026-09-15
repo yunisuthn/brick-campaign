@@ -16,7 +16,8 @@ const productionSelect = {
   campaignId: true,
   moulderId: true,
   riceFieldId: true,
-  date: true,
+  startedOn: true,
+  endedOn: true,
   quantity: true,
   rate: true,
 } satisfies Prisma.ProductionSelect;
@@ -32,12 +33,18 @@ export class ProductionsService {
 
   async create(campaignId: string, input: CreateProductionDto): Promise<ProductionDto> {
     const campaign = await this.refs.campaignWindow(campaignId);
-    this.refs.assertWithinCampaign(campaign, input.date);
+    this.refs.assertWithinCampaign(campaign, input.startedOn);
+    assertDatesOrdered(input.startedOn, input.endedOn);
     await this.refs.assertActiveMoulder(input.moulderId);
     await this.refs.assertRiceField(input.riceFieldId);
     await this.refs.assertMouldingRate(campaignId, input.rate);
     const row = await this.prisma.production.create({
-      data: { ...input, campaignId, date: parseDateOnly(input.date) },
+      data: {
+        ...input,
+        campaignId,
+        startedOn: parseDateOnly(input.startedOn),
+        endedOn: input.endedOn === null ? null : parseDateOnly(input.endedOn),
+      },
       select: productionSelect,
     });
     return toDto(row);
@@ -50,13 +57,13 @@ export class ProductionsService {
         campaignId,
         cancelledAt: null,
         moulderId: query.moulderId,
-        date: {
+        startedOn: {
           gte: query.from === undefined ? undefined : parseDateOnly(query.from),
           lte: query.to === undefined ? undefined : parseDateOnly(query.to),
         },
       },
       select: productionSelect,
-      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ startedOn: 'desc' }, { createdAt: 'desc' }],
     });
     return rows.map(toDto);
   }
@@ -72,16 +79,23 @@ export class ProductionsService {
   }
 
   async update(campaignId: string, id: string, input: UpdateProductionDto): Promise<ProductionDto> {
-    await this.findOne(campaignId, id);
-    if (input.date !== undefined) {
-      this.refs.assertWithinCampaign(await this.refs.campaignWindow(campaignId), input.date);
+    const current = await this.findOne(campaignId, id);
+    const startedOn = input.startedOn ?? current.startedOn;
+    const endedOn = input.endedOn === undefined ? current.endedOn : input.endedOn;
+    if (input.startedOn !== undefined) {
+      this.refs.assertWithinCampaign(await this.refs.campaignWindow(campaignId), startedOn);
     }
+    assertDatesOrdered(startedOn, endedOn);
     if (input.moulderId !== undefined) await this.refs.assertActiveMoulder(input.moulderId);
     if (input.riceFieldId !== undefined) await this.refs.assertRiceField(input.riceFieldId);
     if (input.rate !== undefined) await this.refs.assertMouldingRate(campaignId, input.rate);
     const row = await this.prisma.production.update({
       where: { id },
-      data: { ...input, date: input.date === undefined ? undefined : parseDateOnly(input.date) },
+      data: {
+        ...input,
+        startedOn: parseDateOnly(startedOn),
+        endedOn: endedOn === null ? null : parseDateOnly(endedOn),
+      },
       select: productionSelect,
     });
     return toDto(row);
@@ -93,6 +107,17 @@ export class ProductionsService {
   }
 }
 
+/** Reference document, section 5, same rule as a kiln batch's loadedOn/unloadedOn. */
+function assertDatesOrdered(startedOn: string, endedOn: string | null): void {
+  if (endedOn !== null && endedOn < startedOn) {
+    throw apiError('production_dates_out_of_order', 'endedOn must not be before startedOn');
+  }
+}
+
 function toDto(row: ProductionRow): ProductionDto {
-  return { ...row, date: formatDateOnly(row.date) };
+  return {
+    ...row,
+    startedOn: formatDateOnly(row.startedOn),
+    endedOn: row.endedOn === null ? null : formatDateOnly(row.endedOn),
+  };
 }

@@ -12,6 +12,7 @@ export const errorStatuses = {
   validation_failed: 400,
   campaign_dates_out_of_order: 400,
   batch_dates_out_of_order: 400,
+  production_dates_out_of_order: 400,
   date_outside_campaign: 400,
   delivery_before_sale: 400,
   sale_payment_before_sale: 400,

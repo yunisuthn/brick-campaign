@@ -48,7 +48,7 @@ describe('Expenses (e2e)', () => {
         campaignId,
         moulderId: moulder.id,
         riceFieldId: fieldId,
-        date: day('06-01'),
+        startedOn: day('06-01'),
         quantity: 40000,
       },
     });

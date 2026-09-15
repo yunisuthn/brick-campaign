@@ -21,13 +21,20 @@ describe('ProductionsService', () => {
 
   const campaignId = 'campaign-id';
   const input = {
-    date: '2026-06-10',
+    startedOn: '2026-06-10',
+    endedOn: null,
     moulderId: 'moulder-id',
     riceFieldId: 'rice-field-id',
     quantity: 1500,
     rate: null,
   };
-  const row = { id: 'production-id', campaignId, ...input, date: new Date('2026-06-10T00:00:00Z') };
+  const row = {
+    id: 'production-id',
+    campaignId,
+    ...input,
+    startedOn: new Date('2026-06-10T00:00:00Z'),
+    endedOn: null,
+  };
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -49,7 +56,12 @@ describe('ProductionsService', () => {
       });
       expect(create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: { ...input, campaignId, date: new Date('2026-06-10T00:00:00Z') },
+          data: {
+            ...input,
+            campaignId,
+            startedOn: new Date('2026-06-10T00:00:00Z'),
+            endedOn: null,
+          },
         }),
       );
     });
@@ -61,8 +73,12 @@ describe('ProductionsService', () => {
 
     it('checks the date, the moulder and the rice field before writing', async () => {
       await rejectsWithCode(
-        service.create(campaignId, { ...input, date: '2026-04-30' }),
+        service.create(campaignId, { ...input, startedOn: '2026-04-30' }),
         'date_outside_campaign',
+      );
+      await rejectsWithCode(
+        service.create(campaignId, { ...input, endedOn: '2026-06-09' }),
+        'production_dates_out_of_order',
       );
       moulderFindUnique.mockResolvedValue({ active: false });
       await rejectsWithCode(service.create(campaignId, input), 'moulder_inactive');
@@ -95,15 +111,30 @@ describe('ProductionsService', () => {
       expect(moulderFindUnique).not.toHaveBeenCalled();
       expect(riceFieldFindUnique).not.toHaveBeenCalled();
       expect(update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { quantity: 1600, date: undefined } }),
+        expect.objectContaining({
+          data: {
+            quantity: 1600,
+            startedOn: new Date('2026-06-10T00:00:00Z'),
+            endedOn: null,
+          },
+        }),
       );
     });
 
-    it('re-checks the campaign window when the date changes', async () => {
+    it('re-checks the campaign window when the start date changes', async () => {
       findFirst.mockResolvedValue(row);
       await rejectsWithCode(
-        service.update(campaignId, 'production-id', { date: '2026-04-01' }),
+        service.update(campaignId, 'production-id', { startedOn: '2026-04-01' }),
         'date_outside_campaign',
+      );
+      expect(update).not.toHaveBeenCalled();
+    });
+
+    it('rejects an end date before the (possibly unchanged) start date', async () => {
+      findFirst.mockResolvedValue(row);
+      await rejectsWithCode(
+        service.update(campaignId, 'production-id', { endedOn: '2026-06-09' }),
+        'production_dates_out_of_order',
       );
       expect(update).not.toHaveBeenCalled();
     });

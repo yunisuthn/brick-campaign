@@ -65,18 +65,24 @@ describe('Productions (e2e)', () => {
       .expect(hasCode('campaign_not_found'));
   });
 
-  it('rejects a date before the campaign start and a retired moulder with 400', async () => {
+  it('rejects a date before the campaign start, an end before the start, and a retired moulder with 400', async () => {
     const server = ctx.app.getHttpServer();
     await request(server)
       .post(path())
       .set('Cookie', cookie)
-      .send({ date: '2097-04-30', moulderId, riceFieldId, quantity: 1000 })
+      .send({ startedOn: '2097-04-30', moulderId, riceFieldId, quantity: 1000 })
       .expect(400)
       .expect(hasCode('date_outside_campaign'));
     await request(server)
       .post(path())
       .set('Cookie', cookie)
-      .send({ date: '2097-06-01', moulderId: retiredMoulderId, riceFieldId, quantity: 1000 })
+      .send({ startedOn: '2097-06-01', endedOn: '2097-05-31', moulderId, riceFieldId, quantity: 1000 })
+      .expect(400)
+      .expect(hasCode('production_dates_out_of_order'));
+    await request(server)
+      .post(path())
+      .set('Cookie', cookie)
+      .send({ startedOn: '2097-06-01', moulderId: retiredMoulderId, riceFieldId, quantity: 1000 })
       .expect(400)
       .expect(hasCode('moulder_inactive'));
   });
@@ -87,21 +93,22 @@ describe('Productions (e2e)', () => {
     const first = await request(server)
       .post(path())
       .set('Cookie', cookie)
-      .send({ date: '2097-06-01', moulderId, riceFieldId, quantity: 1000, rate: 20 })
+      .send({ startedOn: '2097-06-01', moulderId, riceFieldId, quantity: 1000, rate: 20 })
       .expect(201);
     expect(first.body).toEqual({
       id: expect.any(String),
       campaignId,
       moulderId,
       riceFieldId,
-      date: '2097-06-01',
+      startedOn: '2097-06-01',
+      endedOn: null,
       quantity: 1000,
       rate: 20,
     });
     const second = await request(server)
       .post(path())
       .set('Cookie', cookie)
-      .send({ date: '2097-06-15', moulderId, riceFieldId, quantity: 1200 })
+      .send({ startedOn: '2097-06-15', moulderId, riceFieldId, quantity: 1200 })
       .expect(201);
 
     const all = await request(server).get(path()).set('Cookie', cookie).expect(200);
@@ -120,12 +127,19 @@ describe('Productions (e2e)', () => {
       .expect(200);
     expect(fixed.body).toEqual({ ...first.body, quantity: 1100 });
 
+    const finished = await request(server)
+      .patch(`${path()}/${first.body.id}`)
+      .set('Cookie', cookie)
+      .send({ endedOn: '2097-06-02' })
+      .expect(200);
+    expect(finished.body).toEqual({ ...fixed.body, endedOn: '2097-06-02' });
+
     await request(server).delete(`${path()}/${second.body.id}`).set('Cookie', cookie).expect(204);
     await request(server).get(`${path()}/${second.body.id}`).set('Cookie', cookie).expect(404);
     await request(server).delete(`${path()}/${second.body.id}`).set('Cookie', cookie).expect(404);
 
     const remaining = await request(server).get(path()).set('Cookie', cookie).expect(200);
-    expect(remaining.body).toEqual([fixed.body]);
+    expect(remaining.body).toEqual([finished.body]);
 
     const kept = await ctx.prisma.production.findUnique({ where: { id: second.body.id } });
     expect(kept?.cancelledAt).toBeInstanceOf(Date);

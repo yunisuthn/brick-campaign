@@ -14,6 +14,7 @@ const sentences: Record<ErrorCode, Sentence> = {
 
   campaign_dates_out_of_order: 'La clôture ne peut pas précéder le début de la campagne.',
   batch_dates_out_of_order: 'Le défournement ne peut pas précéder l’enfournement.',
+  production_dates_out_of_order: 'La fin ne peut pas précéder le début du travail.',
   date_outside_campaign: (details) => {
     const startedOn = dateOf(details, 'startedOn');
     const closedOn = dateOf(details, 'closedOn');

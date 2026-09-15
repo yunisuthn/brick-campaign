@@ -44,7 +44,7 @@ describe('Stock (e2e)', () => {
           campaignId,
           moulderId: moulder.id,
           riceFieldId: field.id,
-          date: day('06-01'),
+          startedOn: day('06-01'),
           quantity: 130000,
         },
         // Cancelled: must not count.
@@ -52,7 +52,7 @@ describe('Stock (e2e)', () => {
           campaignId,
           moulderId: moulder.id,
           riceFieldId: field.id,
-          date: day('06-02'),
+          startedOn: day('06-02'),
           quantity: 99999,
           cancelledAt: new Date(),
         },

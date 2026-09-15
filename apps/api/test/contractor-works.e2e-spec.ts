@@ -46,7 +46,7 @@ describe('Contractor works (e2e)', () => {
         campaignId,
         moulderId: moulder.id,
         riceFieldId: field.id,
-        date: new Date('2093-06-01T00:00:00Z'),
+        startedOn: new Date('2093-06-01T00:00:00Z'),
         quantity: 40000,
         rate: 20,
       },

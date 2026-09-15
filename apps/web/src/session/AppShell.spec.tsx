@@ -17,7 +17,7 @@ const routes = [
   },
 ];
 
-const base = { startedOn: '2026-05-10', mouldingRate: 40, transportRate: 10, kilnLoadingRate: 5 };
+const base = { startedOn: '2026-05-10', mouldingRates: [40], transportRates: [10], kilnLoadingRate: 5 };
 const open2026 = { ...base, id: 'c2', year: 2026, closedOn: null };
 const closed2025 = { ...base, id: 'c1', year: 2025, closedOn: '2025-11-30' };
 

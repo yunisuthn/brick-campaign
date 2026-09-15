@@ -10,8 +10,8 @@ const campaign = {
   year: 2026,
   startedOn: '2026-05-10',
   closedOn: null,
-  mouldingRate: 40,
-  transportRate: 10,
+  mouldingRates: [40],
+  transportRates: [10],
   kilnLoadingRate: 5,
 };
 const noPayments = { vatsy: 0, advance: 0, settlement: 0 };
@@ -78,7 +78,7 @@ describe('BalancesPage', () => {
 
   it('says the rate is still to be fixed instead of showing a zero', async () => {
     server.use(
-      http.get('/api/campaigns', () => HttpResponse.json([{ ...campaign, mouldingRate: null }])),
+      http.get('/api/campaigns', () => HttpResponse.json([{ ...campaign, mouldingRates: [] }])),
       http.get('/api/campaigns/c1/balances/moulders', () =>
         HttpResponse.json([
           {

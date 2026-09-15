@@ -19,6 +19,7 @@ const contractorWorkSelect = {
   contractorName: true,
   date: true,
   quantity: true,
+  rate: true,
 } satisfies Prisma.ContractorWorkSelect;
 
 type ContractorWorkRow = Prisma.ContractorWorkGetPayload<{ select: typeof contractorWorkSelect }>;
@@ -34,6 +35,7 @@ export class ContractorWorksService {
     const campaign = await this.refs.campaignWindow(campaignId);
     this.refs.assertWithinCampaign(campaign, input.date);
     await this.refs.assertKilnBatch(campaignId, input.kilnBatchId);
+    if (input.type === 'transport') await this.refs.assertTransportRate(campaignId, input.rate);
     const row = await this.prisma.contractorWork.create({
       data: { ...input, campaignId, date: parseDateOnly(input.date) },
       select: contractorWorkSelect,
@@ -66,12 +68,15 @@ export class ContractorWorksService {
     id: string,
     input: UpdateContractorWorkDto,
   ): Promise<ContractorWorkDto> {
-    await this.findOne(campaignId, id);
+    const current = await this.findOne(campaignId, id);
     if (input.date !== undefined) {
       this.refs.assertWithinCampaign(await this.refs.campaignWindow(campaignId), input.date);
     }
     if (input.kilnBatchId !== undefined) {
       await this.refs.assertKilnBatch(campaignId, input.kilnBatchId);
+    }
+    if (input.rate !== undefined && (input.type ?? current.type) === 'transport') {
+      await this.refs.assertTransportRate(campaignId, input.rate);
     }
     const row = await this.prisma.contractorWork.update({
       where: { id },

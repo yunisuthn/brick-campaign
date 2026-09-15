@@ -23,6 +23,7 @@ describe('ContractorWorksService', () => {
     type: 'transport' as const,
     contractorName: 'Solo',
     quantity: 5000,
+    rate: null,
   };
   const row = { id: 'work-id', campaignId, ...input, date: new Date('2026-07-01T00:00:00Z') };
 
@@ -49,6 +50,21 @@ describe('ContractorWorksService', () => {
       'date_outside_campaign',
     );
     expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('checks the rate against the campaign, only for transport work', async () => {
+    create.mockResolvedValue(row);
+    campaignFindUnique.mockResolvedValue({
+      startedOn: new Date('2026-05-01T00:00:00Z'),
+      closedOn: null,
+      transportRates: [8],
+    });
+    await rejectsWithCode(service.create(campaignId, { ...input, rate: 12 }), 'unknown_transport_rate');
+    await expect(service.create(campaignId, { ...input, rate: 8 })).resolves.toBeDefined();
+    // A kiln loading entry never checks against the transport rates, even a rate no campaign offers.
+    await expect(
+      service.create(campaignId, { ...input, type: 'kiln_loading', rate: null }),
+    ).resolves.toBeDefined();
   });
 
   it('re-checks the batch only when it changes on update', async () => {

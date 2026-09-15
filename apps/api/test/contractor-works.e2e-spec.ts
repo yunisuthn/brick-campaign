@@ -31,8 +31,8 @@ describe('Contractor works (e2e)', () => {
       data: {
         year,
         startedOn: new Date('2093-05-01T00:00:00Z'),
-        mouldingRate: 20,
-        transportRate: 5,
+        mouldingRates: [20],
+        transportRates: [5],
         kilnLoadingRate: 3,
       },
     });
@@ -48,6 +48,7 @@ describe('Contractor works (e2e)', () => {
         riceFieldId: field.id,
         date: new Date('2093-06-01T00:00:00Z'),
         quantity: 40000,
+        rate: 20,
       },
     });
     const batch = await prisma.kilnBatch.create({
@@ -102,6 +103,7 @@ describe('Contractor works (e2e)', () => {
         type: 'transport',
         contractorName,
         quantity: 40000,
+        rate: 5,
       })
       .expect(201);
     expect(transport.body).toEqual({
@@ -112,6 +114,7 @@ describe('Contractor works (e2e)', () => {
       contractorName,
       date: '2093-07-01',
       quantity: 40000,
+      rate: 5,
     });
     await request(server)
       .post(path())

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, today } from '../format.js';
 import { useMoulders } from '../moulders/useMoulders.js';
@@ -20,7 +21,7 @@ export function NewProductionPage() {
       </p>
       <h1>Production du jour</h1>
       {campaign ? (
-        <EntryForm campaignId={campaign.id} />
+        <EntryForm campaign={campaign} />
       ) : (
         <p>
           Aucune campagne : <Link to="/campagnes/nouvelle">créez la première</Link> avant de saisir
@@ -36,13 +37,13 @@ export function NewProductionPage() {
  * stays, keeps the date and the rice field, clears the moulder and the quantity, and says
  * what was just saved. Only active moulders are offered.
  */
-function EntryForm({ campaignId }: { campaignId: string }) {
+function EntryForm({ campaign }: { campaign: Campaign }) {
   const moulders = useMoulders();
   const riceFields = useRiceFields();
-  const create = useCreateProduction(campaignId);
+  const create = useCreateProduction(campaign.id);
   const [saved, setSaved] = useState<string | null>(null);
   const form = useForm<ProductionForm>({
-    defaultValues: { date: today(), moulderId: '', riceFieldId: '', quantity: '' },
+    defaultValues: { date: today(), moulderId: '', riceFieldId: '', quantity: '', rate: '' },
   });
 
   if (moulders.isError || riceFields.isError) {
@@ -71,6 +72,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
         errors={{ ...form.formState.errors, ...createRefusal.fields }}
         moulders={moulders.data}
         riceFields={riceFields.data}
+        rates={campaign.mouldingRates}
       />
       {createRefusal.message && (
         <p role="alert">Enregistrement impossible : {createRefusal.message}</p>

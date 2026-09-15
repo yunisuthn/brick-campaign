@@ -11,8 +11,8 @@ const campaign = {
   year: 2026,
   startedOn: '2026-05-10',
   closedOn: null,
-  mouldingRate: 40,
-  transportRate: 10,
+  mouldingRates: [40],
+  transportRates: [10],
   kilnLoadingRate: 5,
 };
 const work = {
@@ -23,6 +23,7 @@ const work = {
   contractorName: 'Solo',
   date: '2026-06-02',
   quantity: 40000,
+  rate: 10,
 };
 
 function Page() {
@@ -71,6 +72,7 @@ describe('ContractorWorkPage', () => {
       type: 'transport',
       contractorName: 'Solo',
       quantity: 38000,
+      rate: 10,
     });
   });
 

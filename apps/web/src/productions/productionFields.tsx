@@ -6,26 +6,30 @@ import type { NewProduction } from './useProductions.js';
 
 /**
  * What the form holds: the quantity stays text until submit, so an empty field is empty and
- * not NaN, and the two ids are '' until chosen.
+ * not NaN, and the two ids are '' until chosen; the rate is '' while not yet fixed.
  */
 export interface ProductionForm {
   date: string;
   moulderId: string;
   riceFieldId: string;
   quantity: string;
+  rate: string;
 }
 
 export function toNewProduction(form: ProductionForm): NewProduction {
-  return { ...form, quantity: Number(form.quantity) };
+  return { ...form, quantity: Number(form.quantity), rate: form.rate === '' ? null : Number(form.rate) };
 }
 
 const CHOOSE = { value: '', label: 'Choisir…' };
+const RATE_TO_FIX = { value: '', label: 'À fixer' };
 
 interface ProductionFieldsProps {
   register: UseFormRegister<ProductionForm>;
   errors: FieldErrors<ProductionForm>;
   moulders: ReadonlyArray<Pick<Moulder, 'id' | 'name'>>;
   riceFields: ReadonlyArray<Pick<RiceField, 'id' | 'name'>>;
+  /** The campaign's moulding prices to pick from; empty while none is fixed yet. */
+  rates: ReadonlyArray<number>;
 }
 
 /** Shared by the day's entry and the correction; the lists to choose from come from the page. */
@@ -34,6 +38,7 @@ export function ProductionFields({
   errors,
   moulders,
   riceFields,
+  rates,
 }: ProductionFieldsProps) {
   return (
     <>
@@ -64,6 +69,15 @@ export function ProductionFields({
             'Un nombre entier de briques est attendu.',
         })}
         inputMode="numeric"
+      />
+      <SelectField
+        label="Tarif de moulage"
+        error={errors.rate}
+        input={register('rate')}
+        options={[
+          RATE_TO_FIX,
+          ...rates.map((rate) => ({ value: String(rate), label: `${rate} Ar la brique` })),
+        ]}
       />
     </>
   );

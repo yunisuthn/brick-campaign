@@ -12,8 +12,8 @@ const campaign = {
   year: 2026,
   startedOn: '2026-05-10',
   closedOn: null,
-  mouldingRate: 40,
-  transportRate: 10,
+  mouldingRates: [40],
+  transportRates: [10],
   kilnLoadingRate: 5,
 };
 
@@ -75,6 +75,7 @@ describe('NewContractorWorkPage', () => {
       type: 'kiln_loading',
       contractorName: 'Solo',
       quantity: 40000,
+      rate: null,
     });
   });
 

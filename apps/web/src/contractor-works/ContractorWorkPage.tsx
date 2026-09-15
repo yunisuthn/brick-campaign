@@ -5,6 +5,7 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, formatDate } from '../format.js';
 import { type ContractorWorkForm, ContractorWorkFields } from './contractorWorkFields.js';
@@ -23,14 +24,14 @@ export function ContractorWorkPage() {
 
   return (
     <main className="page">
-      {campaign ? <LoadedWork campaignId={campaign.id} id={id} /> : <p>Aucune campagne.</p>}
+      {campaign ? <LoadedWork campaign={campaign} id={id} /> : <p>Aucune campagne.</p>}
     </main>
   );
 }
 
-function LoadedWork({ campaignId, id }: { campaignId: string; id: string }) {
-  const work = useContractorWork(campaignId, id);
-  const contractors = useContractorBalances(campaignId);
+function LoadedWork({ campaign, id }: { campaign: Campaign; id: string }) {
+  const work = useContractorWork(campaign.id, id);
+  const contractors = useContractorBalances(campaign.id);
 
   if (work.isError) {
     return <p role="alert">{loadErrorMessage(work.error, 'Prestation introuvable.')}</p>;
@@ -45,6 +46,7 @@ function LoadedWork({ campaignId, id }: { campaignId: string; id: string }) {
       key={work.data.id}
       work={work.data}
       contractorNames={contractors.data.map((c) => c.contractorName)}
+      rates={campaign.transportRates}
     />
   );
 }
@@ -57,9 +59,11 @@ function LoadedWork({ campaignId, id }: { campaignId: string; id: string }) {
 function CorrectionForm({
   work,
   contractorNames,
+  rates,
 }: {
   work: ContractorWork;
   contractorNames: ReadonlyArray<string>;
+  rates: ReadonlyArray<number>;
 }) {
   const update = useUpdateContractorWork(work.campaignId, work.id);
   const cancel = useCancelContractorWork(work.campaignId, work.id);
@@ -72,8 +76,10 @@ function CorrectionForm({
       type: work.type,
       contractorName: work.contractorName,
       quantity: String(work.quantity),
+      rate: work.rate === null ? '' : String(work.rate),
     },
   });
+  const type = form.watch('type');
 
   const updateRefusal = apiFormErrors(update, form);
 
@@ -84,6 +90,7 @@ function CorrectionForm({
         type: values.type as ContractorWorkType,
         contractorName: values.contractorName,
         quantity: Number(values.quantity),
+        rate: values.type === 'transport' && values.rate !== '' ? Number(values.rate) : null,
       },
       { onSuccess: (saved) => form.reset({ ...values, quantity: String(saved.quantity) }) },
     ),
@@ -107,6 +114,8 @@ function CorrectionForm({
           register={form.register}
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           contractorNames={contractorNames}
+          type={type}
+          rates={rates}
         />
         {updateRefusal.message && (
           <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>

@@ -18,11 +18,13 @@ export interface ContractorWork {
   contractorName: string;
   date: string;
   quantity: number;
+  /** The transport price picked for this entry, null for kiln loading or while not yet fixed. */
+  rate: number | null;
 }
 
 export type NewContractorWork = Pick<
   ContractorWork,
-  'kilnBatchId' | 'type' | 'contractorName' | 'date' | 'quantity'
+  'kilnBatchId' | 'type' | 'contractorName' | 'date' | 'quantity' | 'rate'
 >;
 export type ContractorWorkPatch = Partial<NewContractorWork>;
 

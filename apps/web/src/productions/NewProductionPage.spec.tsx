@@ -12,8 +12,8 @@ const campaign = {
   year: 2026,
   startedOn: '2026-05-10',
   closedOn: null,
-  mouldingRate: 40,
-  transportRate: 10,
+  mouldingRates: [40, 55],
+  transportRates: [10],
   kilnLoadingRate: 5,
 };
 
@@ -67,6 +67,7 @@ describe('NewProductionPage', () => {
     await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
     await user.selectOptions(screen.getByLabelText('Rizière'), 'r1');
     await user.type(screen.getByLabelText('Quantité (briques)'), '1200');
+    await user.selectOptions(screen.getByLabelText('Tarif de moulage'), '40');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent(
@@ -76,6 +77,7 @@ describe('NewProductionPage', () => {
     expect(screen.getByLabelText('Rizière')).toHaveValue('r1');
     expect(screen.getByLabelText('Mouleur')).toHaveValue('');
     expect(screen.getByLabelText('Quantité (briques)')).toHaveValue('');
+    expect(screen.getByLabelText('Tarif de moulage')).toHaveValue('40');
 
     await user.selectOptions(screen.getByLabelText('Mouleur'), 'm2');
     await user.type(screen.getByLabelText('Quantité (briques)'), '800');
@@ -83,8 +85,8 @@ describe('NewProductionPage', () => {
 
     expect(await screen.findByText('Enregistré : Rasoa, 800 briques.')).toBeInTheDocument();
     expect(bodies).toEqual([
-      { date: '2026-06-02', moulderId: 'm1', riceFieldId: 'r1', quantity: 1200 },
-      { date: '2026-06-02', moulderId: 'm2', riceFieldId: 'r1', quantity: 800 },
+      { date: '2026-06-02', moulderId: 'm1', riceFieldId: 'r1', quantity: 1200, rate: 40 },
+      { date: '2026-06-02', moulderId: 'm2', riceFieldId: 'r1', quantity: 800, rate: 40 },
     ]);
   });
 

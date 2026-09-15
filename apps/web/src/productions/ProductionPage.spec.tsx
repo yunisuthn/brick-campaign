@@ -11,8 +11,8 @@ const campaign = {
   year: 2026,
   startedOn: '2026-05-10',
   closedOn: null,
-  mouldingRate: 40,
-  transportRate: 10,
+  mouldingRates: [40],
+  transportRates: [10],
   kilnLoadingRate: 5,
 };
 const entry = {
@@ -22,6 +22,7 @@ const entry = {
   riceFieldId: 'r1',
   date: '2026-06-02',
   quantity: 1200,
+  rate: 40,
 };
 
 const routes = [
@@ -84,6 +85,7 @@ describe('ProductionPage', () => {
       moulderId: 'gone',
       riceFieldId: 'r1',
       quantity: 1300,
+      rate: 40,
     });
   });
 

@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, formatDate } from '../format.js';
 import { useMoulders } from '../moulders/useMoulders.js';
@@ -25,14 +26,14 @@ export function ProductionPage() {
       <p>
         <Link to="/productions">Toutes les productions</Link>
       </p>
-      {campaign ? <LoadedProduction campaignId={campaign.id} id={id} /> : <p>Aucune campagne.</p>}
+      {campaign ? <LoadedProduction campaign={campaign} id={id} /> : <p>Aucune campagne.</p>}
     </main>
   );
 }
 
 /** The entry, the moulders it may name (its own even if retired) and the rice fields, all before the form. */
-function LoadedProduction({ campaignId, id }: { campaignId: string; id: string }) {
-  const production = useProduction(campaignId, id);
+function LoadedProduction({ campaign, id }: { campaign: Campaign; id: string }) {
+  const production = useProduction(campaign.id, id);
   const moulders = useMoulders(true);
   const riceFields = useRiceFields();
 
@@ -55,6 +56,7 @@ function LoadedProduction({ campaignId, id }: { campaignId: string; id: string }
       production={production.data}
       moulders={choosable}
       riceFields={riceFields.data}
+      rates={campaign.mouldingRates}
     />
   );
 }
@@ -63,6 +65,7 @@ interface CorrectionFormProps {
   production: Production;
   moulders: ReadonlyArray<{ id: string; name: string }>;
   riceFields: ReadonlyArray<{ id: string; name: string }>;
+  rates: ReadonlyArray<number>;
 }
 
 /**
@@ -70,7 +73,7 @@ interface CorrectionFormProps {
  * to the list. A cancelled entry is gone from the API, its row stays in the database
  * (reference document, section 5).
  */
-function CorrectionForm({ production, moulders, riceFields }: CorrectionFormProps) {
+function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionFormProps) {
   const update = useUpdateProduction(production.campaignId, production.id);
   const cancel = useCancelProduction(production.campaignId, production.id);
   const navigate = useNavigate();
@@ -81,6 +84,7 @@ function CorrectionForm({ production, moulders, riceFields }: CorrectionFormProp
       moulderId: production.moulderId,
       riceFieldId: production.riceFieldId,
       quantity: String(production.quantity),
+      rate: production.rate === null ? '' : String(production.rate),
     },
   });
 
@@ -108,6 +112,7 @@ function CorrectionForm({ production, moulders, riceFields }: CorrectionFormProp
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           moulders={moulders}
           riceFields={riceFields}
+          rates={rates}
         />
         {updateRefusal.message && (
           <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>

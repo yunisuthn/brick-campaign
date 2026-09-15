@@ -108,6 +108,12 @@ textarea {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  transition: border-color 0.15s ease;
+}
+
+input:hover,
+select:hover {
+  border-color: var(--ink-soft);
 }
 
 input:focus-visible,
@@ -132,12 +138,23 @@ button {
   border: 1px solid var(--brick);
   border-radius: var(--radius);
   cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--brick-dark);
+  border-color: var(--brick-dark);
 }
 
 /* Anything that is not the one thing the screen is for. */
 button[type='button'] {
   color: var(--brick-dark);
   background: var(--surface);
+}
+
+button[type='button']:hover:not(:disabled) {
+  background: var(--ground);
+  border-color: var(--ink-soft);
 }
 
 button:disabled {
@@ -170,6 +187,11 @@ button:disabled {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  transition: border-color 0.15s ease;
+}
+
+.rows > li:has(.row-name:hover) {
+  border-color: var(--ink-soft);
 }
 
 /* A row whose figure sits at the far end: quantity, amount, what it is worth. */
@@ -226,6 +248,10 @@ button:disabled {
   grid-template-columns: auto 1fr;
   gap: 0 var(--gap);
   margin: 0;
+}
+
+dt {
+  color: var(--ink-soft);
 }
 
 dd {
@@ -296,11 +322,17 @@ span[role='alert'] {
   padding: 0.625rem 1rem;
   color: var(--surface);
   background: var(--brick);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
 }
 
 .shell-header button {
   color: var(--surface);
   background: transparent;
+  border-color: currentColor;
+}
+
+.shell-header button:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.15);
   border-color: currentColor;
 }
 
@@ -343,6 +375,11 @@ span[role='alert'] {
   align-items: center;
   min-height: 2rem;
   text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.shell-nav a:hover {
+  color: var(--brick-dark);
 }
 
 .shell-nav a[aria-current='page'] {
@@ -380,6 +417,7 @@ span[role='alert'] {
     padding-bottom: env(safe-area-inset-bottom);
     background: var(--surface);
     border-top: 1px solid var(--line);
+    box-shadow: 0 -2px 8px rgb(0 0 0 / 0.06);
   }
 }
 

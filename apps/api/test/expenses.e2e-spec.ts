@@ -32,8 +32,8 @@ describe('Expenses (e2e)', () => {
       data: {
         year,
         startedOn: day('05-01'),
-        mouldingRate: 20,
-        transportRate: 5,
+        mouldingRates: [20],
+        transportRates: [5],
         kilnLoadingRate: 3,
       },
     });
@@ -65,6 +65,7 @@ describe('Expenses (e2e)', () => {
         contractorName: `${prefix} Solo`,
         date: day('07-01'),
         quantity: 40000,
+        rate: type === 'transport' ? 5 : null,
       })),
     });
   });

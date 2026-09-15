@@ -7,8 +7,8 @@ describe('DashboardService', () => {
   const campaignFindUnique = vi.fn();
   const saleFindMany = vi.fn();
   const expenseGroupBy = vi.fn();
-  const productionAggregate = vi.fn();
-  const contractorWorkGroupBy = vi.fn();
+  const productionFindMany = vi.fn();
+  const contractorWorkFindMany = vi.fn();
   const paymentAggregate = vi.fn();
   const salePaymentAggregate = vi.fn();
   const deliveryAggregate = vi.fn();
@@ -18,8 +18,8 @@ describe('DashboardService', () => {
     sale: { findMany: saleFindMany },
     salePayment: { aggregate: salePaymentAggregate },
     expense: { groupBy: expenseGroupBy },
-    production: { aggregate: productionAggregate },
-    contractorWork: { groupBy: contractorWorkGroupBy },
+    production: { findMany: productionFindMany },
+    contractorWork: { findMany: contractorWorkFindMany },
     payment: { aggregate: paymentAggregate },
     delivery: { aggregate: deliveryAggregate },
   } as unknown as PrismaService;
@@ -40,15 +40,11 @@ describe('DashboardService', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    campaignFindUnique.mockResolvedValue({
-      mouldingRate: 20,
-      transportRate: 5,
-      kilnLoadingRate: 3,
-    });
+    campaignFindUnique.mockResolvedValue({ kilnLoadingRate: 3 });
     saleFindMany.mockResolvedValue([]);
     expenseGroupBy.mockResolvedValue([]);
-    productionAggregate.mockResolvedValue({ _sum: { quantity: null } });
-    contractorWorkGroupBy.mockResolvedValue([]);
+    productionFindMany.mockResolvedValue([]);
+    contractorWorkFindMany.mockResolvedValue([]);
     paymentAggregate.mockResolvedValue({ _sum: { amount: null } });
     salePaymentAggregate.mockResolvedValue({ _sum: { amount: null } });
     deliveryAggregate.mockResolvedValue({ _sum: { cost: null } });
@@ -84,10 +80,10 @@ describe('DashboardService', () => {
       { category: 'akofa', _sum: { amount: 320_000 } },
       { category: 'rice_field', _sum: { amount: 500_000 } },
     ]);
-    productionAggregate.mockResolvedValue({ _sum: { quantity: 40000 } });
-    contractorWorkGroupBy.mockResolvedValue([
-      { type: 'transport', _sum: { quantity: 40000 } },
-      { type: 'kiln_loading', _sum: { quantity: 40000 } },
+    productionFindMany.mockResolvedValue([{ quantity: 40000, rate: 20 }]);
+    contractorWorkFindMany.mockResolvedValue([
+      { type: 'transport', quantity: 40000, rate: 5 },
+      { type: 'kiln_loading', quantity: 40000, rate: null },
     ]);
     paymentAggregate.mockResolvedValue({ _sum: { amount: 400_000 } });
     deliveryAggregate.mockResolvedValue({ _sum: { cost: 120_000 } });

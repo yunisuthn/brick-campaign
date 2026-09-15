@@ -1,7 +1,7 @@
 import { campaignResult } from './campaign-result.js';
 
 describe('campaignResult', () => {
-  const rates = { mouldingRate: 20, transportRate: 5, kilnLoadingRate: 3 };
+  const rates = { kilnLoadingRate: 3 };
   const nothing = {
     sales: [],
     salePayments: [],
@@ -61,10 +61,13 @@ describe('campaignResult', () => {
         { category: 'akofa' as const, amount: 20_000 },
         { category: 'rice_field' as const, amount: 500_000 },
       ],
-      productions: [{ quantity: 30000 }, { quantity: 10000 }],
+      productions: [
+        { quantity: 30000, rate: 20 },
+        { quantity: 10000, rate: 20 },
+      ],
       contractorWorks: [
-        { type: 'transport' as const, quantity: 40000 },
-        { type: 'kiln_loading' as const, quantity: 40000 },
+        { type: 'transport' as const, quantity: 40000, rate: 5 },
+        { type: 'kiln_loading' as const, quantity: 40000, rate: null },
       ],
       deliveries: [{ cost: 60_000 }, { cost: 60_000 }],
     };
@@ -112,14 +115,14 @@ describe('campaignResult with a rate not fixed', () => {
 
   it('keeps sales, expenses and deliveries known, and makes the labour and the result unknown', () => {
     const result = campaignResult(
-      { mouldingRate: null, transportRate: 5, kilnLoadingRate: 3 },
+      { kilnLoadingRate: 3 },
       {
         ...nothing,
         sales: [{ orderedQuantity: 5000, unitPrice: 250 }],
         salePayments: [{ amount: 1_250_000 }],
         expenses: [{ category: 'akofa' as const, amount: 20_000 }],
-        productions: [{ quantity: 10000 }],
-        contractorWorks: [{ type: 'transport' as const, quantity: 10000 }],
+        productions: [{ quantity: 10000, rate: null }],
+        contractorWorks: [{ type: 'transport' as const, quantity: 10000, rate: 5 }],
         payments: [{ amount: 50_000 }],
         deliveries: [{ cost: 60_000 }],
       },
@@ -143,8 +146,8 @@ describe('campaignResult with a rate not fixed', () => {
 
   it('stays all known while nothing needs the missing rate', () => {
     const result = campaignResult(
-      { mouldingRate: 20, transportRate: 5, kilnLoadingRate: null },
-      { ...nothing, productions: [{ quantity: 1000 }] },
+      { kilnLoadingRate: null },
+      { ...nothing, productions: [{ quantity: 1000, rate: 20 }] },
     );
     expect(result.labour).toEqual({
       moulding: 20_000,

@@ -122,22 +122,19 @@ export class KilnBatchesService {
         where: { campaignId, kilnBatchId: kilnBatchId ?? { not: null }, cancelledAt: null },
         _sum: { amount: true },
       }),
-      this.prisma.contractorWork.groupBy({
-        by: ['kilnBatchId', 'type'],
+      this.prisma.contractorWork.findMany({
         where: { campaignId, kilnBatchId, cancelledAt: null },
-        _sum: { quantity: true },
+        select: { kilnBatchId: true, type: true, quantity: true, rate: true },
       }),
     ]);
-    const ids = new Set([...expenses, ...works].flatMap((g) => g.kilnBatchId ?? []));
+    const ids = new Set([...expenses.flatMap((g) => g.kilnBatchId ?? []), ...works.map((w) => w.kilnBatchId)]);
     return new Map(
       [...ids].map((id) => [
         id,
         kilnBatchCost(
           rates,
           expenses.filter((g) => g.kilnBatchId === id).map((g) => ({ amount: g._sum.amount ?? 0 })),
-          works
-            .filter((g) => g.kilnBatchId === id)
-            .map((g) => ({ type: g.type, quantity: g._sum.quantity ?? 0 })),
+          works.filter((w) => w.kilnBatchId === id),
         ),
       ]),
     );
@@ -146,7 +143,7 @@ export class KilnBatchesService {
   private async rates(campaignId: string) {
     const campaign = await this.prisma.campaign.findUnique({
       where: { id: campaignId },
-      select: { transportRate: true, kilnLoadingRate: true },
+      select: { kilnLoadingRate: true },
     });
     if (!campaign) throw apiError('campaign_not_found', `Campaign ${campaignId} not found`);
     return campaign;

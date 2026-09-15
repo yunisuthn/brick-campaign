@@ -24,7 +24,7 @@ export class BalancesService {
 
   /** One line per moulder with at least one entry in the campaign, by name. */
   async moulders(campaignId: string): Promise<MoulderBalanceDto[]> {
-    const { mouldingRate } = await this.rates(campaignId);
+    await this.assertCampaignExists(campaignId);
     const [productions, payments] = await Promise.all([
       this.productions(campaignId),
       this.moulderPayments(campaignId),
@@ -39,7 +39,6 @@ export class BalancesService {
       moulderId: m.id,
       name: m.name,
       ...moulderBalance(
-        mouldingRate,
         productions.filter((p) => p.moulderId === m.id),
         payments.filter((p) => p.moulderId === m.id),
       ),
@@ -48,7 +47,7 @@ export class BalancesService {
 
   /** A known moulder with no entry in the campaign has a balance of zero, not a 404. */
   async moulder(campaignId: string, moulderId: string): Promise<MoulderBalanceDto> {
-    const { mouldingRate } = await this.rates(campaignId);
+    await this.assertCampaignExists(campaignId);
     const moulder = await this.prisma.moulder.findUnique({
       where: { id: moulderId },
       select: { id: true, name: true },
@@ -61,7 +60,7 @@ export class BalancesService {
     return {
       moulderId,
       name: moulder.name,
-      ...moulderBalance(mouldingRate, productions, payments),
+      ...moulderBalance(productions, payments),
     };
   }
 
@@ -104,23 +103,32 @@ export class BalancesService {
   private async rates(campaignId: string) {
     const campaign = await this.prisma.campaign.findUnique({
       where: { id: campaignId },
-      select: { mouldingRate: true, transportRate: true, kilnLoadingRate: true },
+      select: { kilnLoadingRate: true },
     });
     if (!campaign) throw apiError('campaign_not_found', `Campaign ${campaignId} not found`);
     return campaign;
   }
 
+  /** Moulding no longer needs a campaign-wide rate, but an unknown campaign is still a 404. */
+  private async assertCampaignExists(campaignId: string): Promise<void> {
+    const campaign = await this.prisma.campaign.findUnique({
+      where: { id: campaignId },
+      select: { id: true },
+    });
+    if (!campaign) throw apiError('campaign_not_found', `Campaign ${campaignId} not found`);
+  }
+
   private productions(campaignId: string, moulderId?: string) {
     return this.prisma.production.findMany({
       where: { campaignId, moulderId, cancelledAt: null },
-      select: { moulderId: true, quantity: true },
+      select: { moulderId: true, quantity: true, rate: true },
     });
   }
 
   private contractorWorks(campaignId: string, contractorName?: string) {
     return this.prisma.contractorWork.findMany({
       where: { campaignId, contractorName, cancelledAt: null },
-      select: { contractorName: true, type: true, quantity: true },
+      select: { contractorName: true, type: true, quantity: true, rate: true },
     });
   }
 

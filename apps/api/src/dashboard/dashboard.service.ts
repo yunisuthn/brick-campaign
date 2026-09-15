@@ -43,8 +43,11 @@ export class DashboardService {
         _sum: { amount: true },
       }),
       this.prisma.expense.groupBy({ by: ['category'], where: live, _sum: { amount: true } }),
-      this.prisma.production.aggregate({ where: live, _sum: { quantity: true } }),
-      this.prisma.contractorWork.groupBy({ by: ['type'], where: live, _sum: { quantity: true } }),
+      this.prisma.production.findMany({ where: live, select: { quantity: true, rate: true } }),
+      this.prisma.contractorWork.findMany({
+        where: live,
+        select: { type: true, quantity: true, rate: true },
+      }),
       this.prisma.payment.aggregate({ where: live, _sum: { amount: true } }),
       this.prisma.delivery.aggregate({
         where: { sale: { campaignId }, cancelledAt: null },
@@ -60,11 +63,8 @@ export class DashboardService {
         sales,
         salePayments: [{ amount: salePayments._sum.amount ?? 0 }],
         expenses: expenses.map((g) => ({ category: g.category, amount: g._sum.amount ?? 0 })),
-        productions: [{ quantity: productions._sum.quantity ?? 0 }],
-        contractorWorks: contractorWorks.map((g) => ({
-          type: g.type,
-          quantity: g._sum.quantity ?? 0,
-        })),
+        productions,
+        contractorWorks,
         payments: [{ amount: payments._sum.amount ?? 0 }],
         deliveries: [{ cost: deliveries._sum.cost ?? 0 }],
       }),
@@ -74,7 +74,7 @@ export class DashboardService {
   private async rates(campaignId: string) {
     const campaign = await this.prisma.campaign.findUnique({
       where: { id: campaignId },
-      select: { mouldingRate: true, transportRate: true, kilnLoadingRate: true },
+      select: { kilnLoadingRate: true },
     });
     if (!campaign) throw apiError('campaign_not_found', `Campaign ${campaignId} not found`);
     return campaign;

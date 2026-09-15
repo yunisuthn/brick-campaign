@@ -12,12 +12,12 @@ describe('KilnBatchesService', () => {
   const findMany = vi.fn();
   const rawStock = vi.fn();
   const contractorWorkCount = vi.fn();
-  const contractorWorkGroupBy = vi.fn();
+  const contractorWorkFindMany = vi.fn();
   const expenseGroupBy = vi.fn();
   const prisma = {
     campaign: { findUnique: campaignFindUnique },
     kilnBatch: { create, findFirst, findMany, update },
-    contractorWork: { count: contractorWorkCount, groupBy: contractorWorkGroupBy },
+    contractorWork: { count: contractorWorkCount, findMany: contractorWorkFindMany },
     expense: { groupBy: expenseGroupBy },
   } as unknown as PrismaService;
   const stock = { rawStock } as unknown as StockService;
@@ -40,12 +40,11 @@ describe('KilnBatchesService', () => {
     campaignFindUnique.mockResolvedValue({
       startedOn: new Date('2026-05-01T00:00:00Z'),
       closedOn: null,
-      transportRate: 5,
       kilnLoadingRate: 3,
     });
     rawStock.mockResolvedValue(50000);
     expenseGroupBy.mockResolvedValue([]);
-    contractorWorkGroupBy.mockResolvedValue([]);
+    contractorWorkFindMany.mockResolvedValue([]);
   });
 
   describe('create', () => {
@@ -87,9 +86,9 @@ describe('KilnBatchesService', () => {
     it('derives the cost of one batch from its linked expenses and works at the campaign rates', async () => {
       findFirst.mockResolvedValue(row);
       expenseGroupBy.mockResolvedValue([{ kilnBatchId: 'batch-id', _sum: { amount: 320000 } }]);
-      contractorWorkGroupBy.mockResolvedValue([
-        { kilnBatchId: 'batch-id', type: 'transport', _sum: { quantity: 40000 } },
-        { kilnBatchId: 'batch-id', type: 'kiln_loading', _sum: { quantity: 40000 } },
+      contractorWorkFindMany.mockResolvedValue([
+        { kilnBatchId: 'batch-id', type: 'transport', quantity: 40000, rate: 5 },
+        { kilnBatchId: 'batch-id', type: 'kiln_loading', quantity: 40000, rate: null },
       ]);
       await expect(service.findOne(campaignId, 'batch-id')).resolves.toMatchObject({
         cost: { expenses: 320000, labour: 320000, total: 640000 },
@@ -103,8 +102,8 @@ describe('KilnBatchesService', () => {
 
     it('lists with grouped queries, batches with nothing linked at no cost', async () => {
       findMany.mockResolvedValue([row, { ...row, id: 'other-id' }]);
-      contractorWorkGroupBy.mockResolvedValue([
-        { kilnBatchId: 'other-id', type: 'transport', _sum: { quantity: 1000 } },
+      contractorWorkFindMany.mockResolvedValue([
+        { kilnBatchId: 'other-id', type: 'transport', quantity: 1000, rate: 5 },
       ]);
       const list = await service.findAll(campaignId);
       expect(list.map((batch) => [batch.id, batch.cost.total])).toEqual([

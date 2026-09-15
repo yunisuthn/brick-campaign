@@ -36,8 +36,8 @@ describe('Dashboard (e2e)', () => {
       data: {
         year,
         startedOn: day('05-01'),
-        mouldingRate: 20,
-        transportRate: 5,
+        mouldingRates: [20],
+        transportRates: [5],
         kilnLoadingRate: 3,
       },
     });
@@ -50,8 +50,8 @@ describe('Dashboard (e2e)', () => {
     // Every kind of entry has a cancelled twin that must not count.
     await prisma.production.createMany({
       data: [
-        { ...entry, date: day('06-01'), quantity: 40000 },
-        { ...entry, date: day('06-02'), quantity: 99999, ...cancelled },
+        { ...entry, date: day('06-01'), quantity: 40000, rate: 20 },
+        { ...entry, date: day('06-02'), quantity: 99999, rate: 20, ...cancelled },
       ],
     });
     await prisma.payment.createMany({
@@ -86,6 +86,7 @@ describe('Dashboard (e2e)', () => {
           contractorName: 'Solo',
           date: day('07-01'),
           quantity: 40000,
+          rate: 5,
         },
         {
           campaignId,
@@ -102,6 +103,7 @@ describe('Dashboard (e2e)', () => {
           contractorName: 'Solo',
           date: day('07-02'),
           quantity: 99999,
+          rate: 5,
           ...cancelled,
         },
       ],

@@ -28,8 +28,8 @@ describe('Balances (e2e)', () => {
       data: {
         year,
         startedOn: new Date('2095-05-01T00:00:00Z'),
-        mouldingRate: 20,
-        transportRate: 5,
+        mouldingRates: [20],
+        transportRates: [5],
         kilnLoadingRate: 5,
       },
     });
@@ -49,6 +49,7 @@ describe('Balances (e2e)', () => {
           riceFieldId: field.id,
           date: day('06-01'),
           quantity: 1000,
+          rate: 20,
         },
         {
           campaignId,
@@ -56,6 +57,7 @@ describe('Balances (e2e)', () => {
           riceFieldId: field.id,
           date: day('06-02'),
           quantity: 1500,
+          rate: 20,
         },
         // Cancelled: must not count.
         {
@@ -64,6 +66,7 @@ describe('Balances (e2e)', () => {
           riceFieldId: field.id,
           date: day('06-03'),
           quantity: 9999,
+          rate: 20,
           cancelledAt: new Date(),
         },
         {
@@ -72,6 +75,7 @@ describe('Balances (e2e)', () => {
           riceFieldId: field.id,
           date: day('06-01'),
           quantity: 800,
+          rate: 20,
         },
       ],
     });
@@ -142,8 +146,11 @@ describe('Balances (e2e)', () => {
       .expect(404);
   });
 
-  it('reports what is earned and due as unknown while the moulding rate is not fixed', async () => {
-    await ctx.prisma.campaign.update({ where: { id: campaignId }, data: { mouldingRate: null } });
+  it('reports what is earned and due as unknown while an entry has no rate fixed yet', async () => {
+    await ctx.prisma.production.updateMany({
+      where: { campaignId, moulderId: rakotoId, cancelledAt: null },
+      data: { rate: null },
+    });
     try {
       const res = await request(ctx.app.getHttpServer())
         .get(`/api/campaigns/${campaignId}/balances/moulders/${rakotoId}`)
@@ -151,7 +158,10 @@ describe('Balances (e2e)', () => {
         .expect(200);
       expect(res.body).toMatchObject({ bricks: 2500, earned: null, paid: 25000, due: null });
     } finally {
-      await ctx.prisma.campaign.update({ where: { id: campaignId }, data: { mouldingRate: 20 } });
+      await ctx.prisma.production.updateMany({
+        where: { campaignId, moulderId: rakotoId, cancelledAt: null },
+        data: { rate: 20 },
+      });
     }
   });
 });

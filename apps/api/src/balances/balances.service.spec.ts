@@ -20,19 +20,15 @@ describe('BalancesService', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    campaignFindUnique.mockResolvedValue({
-      mouldingRate: 20,
-      transportRate: 5,
-      kilnLoadingRate: 3,
-    });
+    campaignFindUnique.mockResolvedValue({ id: 'campaign-id', kilnLoadingRate: 3 });
   });
 
   describe('moulders', () => {
     it('lists one line per moulder with entries, each computed from its own rows only', async () => {
       productionFindMany.mockResolvedValue([
-        { moulderId: 'a', quantity: 1000 },
-        { moulderId: 'b', quantity: 500 },
-        { moulderId: 'a', quantity: 200 },
+        { moulderId: 'a', quantity: 1000, rate: 20 },
+        { moulderId: 'b', quantity: 500, rate: 20 },
+        { moulderId: 'a', quantity: 200, rate: 20 },
       ]);
       paymentFindMany.mockResolvedValue([
         { moulderId: 'a', type: 'vatsy', amount: 4000 },
@@ -86,8 +82,8 @@ describe('BalancesService', () => {
   describe('contractors', () => {
     it('lists names from works and payments alike, sorted, each at the rate of its type', async () => {
       contractorWorkFindMany.mockResolvedValue([
-        { contractorName: 'Solo', type: 'transport', quantity: 40000 },
-        { contractorName: 'Bema', type: 'kiln_loading', quantity: 40000 },
+        { contractorName: 'Solo', type: 'transport', quantity: 40000, rate: 5 },
+        { contractorName: 'Bema', type: 'kiln_loading', quantity: 40000, rate: null },
       ]);
       paymentFindMany.mockResolvedValue([
         { contractorName: 'Solo', type: 'advance', amount: 50000 },

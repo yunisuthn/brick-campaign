@@ -4,10 +4,9 @@ import { moulderBalance } from '../balances/moulder-balance.js';
 import type { ExpenseCategory } from '../expenses/expense.dto.js';
 import type { ContractorWorkType } from '../generated/prisma/client.js';
 
-/** Null while a rate is not fixed (reference document, section 3). */
-export interface CampaignRates extends ContractorRates {
-  mouldingRate: number | null;
-}
+/** Null while the kiln loading rate is not fixed (reference document, section 3); moulding and
+ * transport are each priced per entry instead (see `moulderBalance`/`contractorBalance`). */
+export type CampaignRates = ContractorRates;
 
 /** Live entries of the campaign, or their sums: a grouped row counts like a single entry. */
 export interface CampaignEntries {
@@ -15,8 +14,8 @@ export interface CampaignEntries {
   /** What clients handed over, instalment by instalment (reference document, section 10.5). */
   salePayments: ReadonlyArray<{ amount: number }>;
   expenses: ReadonlyArray<{ category: ExpenseCategory; amount: number }>;
-  productions: ReadonlyArray<{ quantity: number }>;
-  contractorWorks: ReadonlyArray<{ type: ContractorWorkType; quantity: number }>;
+  productions: ReadonlyArray<{ quantity: number; rate: number | null }>;
+  contractorWorks: ReadonlyArray<{ type: ContractorWorkType; quantity: number; rate: number | null }>;
   /** To moulders and contractors alike: every Ariary that went out for labour. */
   payments: ReadonlyArray<{ amount: number }>;
   deliveries: ReadonlyArray<{ cost: number }>;
@@ -75,9 +74,13 @@ export function campaignResult(rates: CampaignRates, entries: CampaignEntries): 
   for (const expense of entries.expenses) byCategory[expense.category] += expense.amount;
   const expenseTotal = entries.expenses.reduce((sum, e) => sum + e.amount, 0);
 
-  const moulding = moulderBalance(rates.mouldingRate, entries.productions, []).earned;
+  const moulding = moulderBalance(entries.productions, []).earned;
   const { bricksByType } = contractorBalance(rates, entries.contractorWorks, []);
-  const transport = labourCost(bricksByType.transport, rates.transportRate);
+  const transport = sumKnown(
+    entries.contractorWorks
+      .filter((w) => w.type === 'transport')
+      .map((w) => labourCost(w.quantity, w.rate)),
+  );
   const kilnLoading = labourCost(bricksByType.kiln_loading, rates.kilnLoadingRate);
   const labourTotal = sumKnown([moulding, transport, kilnLoading]);
   const labourPaid = entries.payments.reduce((sum, p) => sum + p.amount, 0);

@@ -24,8 +24,8 @@ describe('Payments (e2e)', () => {
       data: {
         year,
         startedOn: new Date('2096-05-01T00:00:00Z'),
-        mouldingRate: 20,
-        transportRate: 5,
+        mouldingRates: [20],
+        transportRates: [5],
         kilnLoadingRate: 5,
       },
     });

@@ -32,8 +32,8 @@ describe('Deliveries (e2e)', () => {
       data: {
         year,
         startedOn: day('05-01'),
-        mouldingRate: 20,
-        transportRate: 5,
+        mouldingRates: [20],
+        transportRates: [5],
         kilnLoadingRate: 5,
       },
     });

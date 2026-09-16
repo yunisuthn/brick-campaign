@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useClients } from '../clients/useClients.js';
+import { DateField } from '../form/DateField.js';
 import { Field, SelectField } from '../form/Field.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { formatAmount, today } from '../format.js';
+import { digitsOnly, formatAmount, today } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { useCreateSale } from './useSales.js';
 
 interface SaleForm {
@@ -17,19 +19,21 @@ interface SaleForm {
 
 export function NewSalePage() {
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/ventes">Toutes les ventes</Link>
+        <Link to="/ventes">{t('sales.allSales')}</Link>
       </p>
-      <h1>Nouvelle vente</h1>
+      <h1>{t('sales.newTitle')}</h1>
       {campaign ? (
         <SaleForm campaignId={campaign.id} />
       ) : (
         <p>
-          Aucune campagne : <Link to="/campagnes/nouvelle">créez la première</Link> avant
-          d’enregistrer une vente.
+          {t('common.noCampaignPrefix')}{' '}
+          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
+          {t('sales.noCampaignSuffix')}
         </p>
       )}
     </main>
@@ -45,16 +49,21 @@ function SaleForm({ campaignId }: { campaignId: string }) {
   const clients = useClients();
   const create = useCreateSale(campaignId);
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const form = useForm<SaleForm>({
     defaultValues: { clientId: '', date: today(), orderedQuantity: '', unitPrice: '' },
   });
 
   if (clients.isError)
-    return <p role="alert">Chargement impossible : {apiErrorMessage(clients.error)}</p>;
-  if (!clients.isSuccess) return <p role="status">Chargement…</p>;
+    return (
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {apiErrorMessage(clients.error)}
+      </p>
+    );
+  if (!clients.isSuccess) return <p role="status">{t('common.loading')}</p>;
 
-  const quantity = Number(form.watch('orderedQuantity'));
-  const price = Number(form.watch('unitPrice'));
+  const quantity = Number(digitsOnly(form.watch('orderedQuantity')));
+  const price = Number(digitsOnly(form.watch('unitPrice')));
   const total = Number.isFinite(quantity * price) ? quantity * price : 0;
 
   const createRefusal = apiFormErrors(create, form);
@@ -64,8 +73,8 @@ function SaleForm({ campaignId }: { campaignId: string }) {
       {
         clientId: values.clientId,
         date: values.date,
-        orderedQuantity: Number(values.orderedQuantity),
-        unitPrice: Number(values.unitPrice),
+        orderedQuantity: Number(digitsOnly(values.orderedQuantity)),
+        unitPrice: Number(digitsOnly(values.unitPrice)),
       },
       { onSuccess: (sale) => navigate(`/ventes/${sale.id}`) },
     ),
@@ -74,47 +83,52 @@ function SaleForm({ campaignId }: { campaignId: string }) {
   return (
     <form onSubmit={submit} noValidate>
       <SelectField
-        label="Client"
+        label={t('sales.clientLabel')}
         error={form.formState.errors.clientId ?? createRefusal.fields.clientId}
-        input={form.register('clientId', { required: 'Le client est requis.' })}
+        input={form.register('clientId', { required: t('sales.clientRequired') })}
         options={[
-          { value: '', label: 'Choisir…' },
+          { value: '', label: t('common.choose') },
           ...clients.data.map((client) => ({ value: client.id, label: client.name })),
         ]}
       />
-      <Field
-        label="Date"
+      <DateField
+        label={t('common.date')}
+        name="date"
+        control={form.control}
         error={form.formState.errors.date ?? createRefusal.fields.date}
-        input={form.register('date', { required: 'La date est requise.' })}
-        type="date"
+        required={t('common.dateRequired')}
       />
       <Field
-        label="Quantité commandée (briques)"
+        label={t('sales.orderedQuantityLabel')}
         error={form.formState.errors.orderedQuantity ?? createRefusal.fields.orderedQuantity}
         input={form.register('orderedQuantity', {
           validate: (value) =>
-            (/^\d+$/.test(value.trim()) && Number(value) > 0) ||
-            'Un nombre entier de briques est attendu.',
+            (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
+            t('sales.quantityRequired'),
         })}
         inputMode="numeric"
       />
       <Field
-        label="Prix unitaire (Ar la brique)"
+        label={t('sales.unitPriceLabel')}
         error={form.formState.errors.unitPrice ?? createRefusal.fields.unitPrice}
         input={form.register('unitPrice', {
           validate: (value) =>
-            (/^\d+$/.test(value.trim()) && Number(value) > 0) ||
-            'Un prix entier en ariary est attendu.',
+            (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
+            t('sales.unitPriceRequired'),
         })}
         inputMode="numeric"
       />
-      <p role="status">Total : {formatAmount(total)}</p>
+      <p role="status">
+        {t('sales.totalLabel')} {formatAmount(total)}
+      </p>
       {createRefusal.message && (
-        <p role="alert">Enregistrement impossible : {createRefusal.message}</p>
+        <p role="alert">
+          {t('common.saveFailedPrefix')} {createRefusal.message}
+        </p>
       )}
       <p>
         <button type="submit" disabled={create.isPending}>
-          Enregistrer la vente
+          {t('sales.saveNewSale')}
         </button>
       </p>
     </form>

@@ -26,6 +26,7 @@ export const errorStatuses = {
   raw_stock_too_low: 400,
   fired_stock_too_low: 400,
   sale_overpaid: 400,
+  payment_duplicate_type: 400,
 
   // 401 — no session, or the wrong credentials.
   session_required: 401,

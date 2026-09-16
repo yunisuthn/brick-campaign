@@ -1,10 +1,12 @@
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { Field } from '../form/Field.js';
+import { digitsOnly } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import type { NewMoulder } from './useMoulders.js';
 
 /** Plural the French way: one member, two members. */
-export function membersText(count: number): string {
-  return count === 1 ? '1 membre' : `${count} membres`;
+export function membersText(count: number, t: ReturnType<typeof useTranslation>['t']): string {
+  return count === 1 ? t('moulders.member') : t('moulders.members', { count });
 }
 
 interface MoulderFieldsProps {
@@ -14,24 +16,25 @@ interface MoulderFieldsProps {
 
 /** Name of the person in charge and size of the household; shared by creation and edit. */
 export function MoulderFields({ register, errors }: MoulderFieldsProps) {
+  const { t } = useTranslation();
   return (
     <>
       <Field
-        label="Nom du responsable"
+        label={t('moulders.nameLabel')}
         error={errors.name}
         input={register('name', {
           setValueAs: (value: string) => value.trim(),
-          required: 'Le nom est requis.',
+          required: t('moulders.nameRequired'),
         })}
       />
       <Field
-        label="Nombre de membres"
+        label={t('moulders.memberCountLabel')}
         error={errors.memberCount}
         input={register('memberCount', {
-          valueAsNumber: true,
+          setValueAs: (value: string) => Number(digitsOnly(value)),
           validate: (value) =>
             (Number.isInteger(value) && value >= 1 && value <= 20) ||
-            'Un nombre entre 1 et 20 est attendu.',
+            t('moulders.memberCountRequired'),
         })}
         inputMode="numeric"
       />

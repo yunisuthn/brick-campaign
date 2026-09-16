@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 import { loadErrorMessage } from '../api/loadError.js';
 import { RiceFieldExpenses } from '../expenses/RiceFieldExpenses.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { RiceFieldFields } from './riceFieldFields.js';
 import {
   type NewRiceField,
@@ -14,14 +15,17 @@ import {
 export function RiceFieldPage() {
   const { id = '' } = useParams();
   const field = useRiceField(id);
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/rizieres">Toutes les rizières</Link>
+        <Link to="/rizieres">{t('riceFields.allRiceFields')}</Link>
       </p>
-      {field.isPending && <p role="status">Chargement…</p>}
-      {field.isError && <p role="alert">{loadErrorMessage(field.error, 'Rizière introuvable.')}</p>}
+      {field.isPending && <p role="status">{t('common.loading')}</p>}
+      {field.isError && (
+        <p role="alert">{loadErrorMessage(field.error, t('riceFields.notFound'))}</p>
+      )}
       {field.isSuccess && <RiceFieldForm key={field.data.id} field={field.data} />}
     </main>
   );
@@ -30,6 +34,7 @@ export function RiceFieldPage() {
 /** Always open, like the moulder's: a rice field is corrected more often than read. */
 function RiceFieldForm({ field }: { field: RiceField }) {
   const update = useUpdateRiceField(field.id);
+  const { t } = useTranslation();
   const form = useForm<NewRiceField>({
     defaultValues: {
       name: field.name,
@@ -54,11 +59,13 @@ function RiceFieldForm({ field }: { field: RiceField }) {
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
         />
         {updateRefusal.message && (
-          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+          <p role="alert">
+            {t('common.saveFailedPrefix')} {updateRefusal.message}
+          </p>
         )}
         <p>
           <button type="submit" disabled={update.isPending || !form.formState.isDirty}>
-            Enregistrer
+            {t('common.save')}
           </button>
         </p>
       </form>

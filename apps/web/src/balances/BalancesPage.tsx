@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatAmount, formatBricks } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import {
   type ContractorBalance,
   type MoulderBalance,
@@ -12,16 +13,21 @@ import {
 
 export function BalancesPage() {
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page-wide">
-      <h1>Soldes{campaign && ` · Campagne ${campaign.year}`}</h1>
+      <h1>
+        {t('balances.title')}
+        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+      </h1>
       {campaign ? (
         <Balances campaignId={campaign.id} />
       ) : (
         <p>
-          Aucune campagne : <Link to="/campagnes/nouvelle">créez la première</Link> pour suivre les
-          soldes.
+          {t('common.noCampaignPrefix')}{' '}
+          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
+          {t('balances.noCampaignSuffix')}
         </p>
       )}
     </main>
@@ -31,20 +37,23 @@ export function BalancesPage() {
 function Balances({ campaignId }: { campaignId: string }) {
   const moulders = useMoulderBalances(campaignId);
   const contractors = useContractorBalances(campaignId);
+  const { t } = useTranslation();
 
   const failed = [moulders, contractors].find((query) => query.isError);
   if (failed)
     return (
-      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
+      </p>
     );
-  if (!moulders.isSuccess || !contractors.isSuccess) return <p role="status">Chargement…</p>;
+  if (!moulders.isSuccess || !contractors.isSuccess) return <p role="status">{t('common.loading')}</p>;
 
   return (
     <>
       <section aria-labelledby="moulders">
-        <h2 id="moulders">Mouleurs</h2>
+        <h2 id="moulders">{t('balances.mouldersTitle')}</h2>
         {moulders.data.length === 0 ? (
-          <p>Aucun mouleur avec une saisie sur cette campagne.</p>
+          <p>{t('balances.mouldersNone')}</p>
         ) : (
           <ul className="rows">
             {moulders.data.map((line) => (
@@ -53,7 +62,7 @@ function Balances({ campaignId }: { campaignId: string }) {
                   name={line.name}
                   work={formatBricks(line.bricks)}
                   balance={line}
-                  missingRate="Tarif de moulage à fixer"
+                  missingRate={t('balances.mouldingRateToFix')}
                 />
               </li>
             ))}
@@ -61,18 +70,18 @@ function Balances({ campaignId }: { campaignId: string }) {
         )}
       </section>
       <section aria-labelledby="contractors">
-        <h2 id="contractors">Prestataires</h2>
+        <h2 id="contractors">{t('balances.contractorsTitle')}</h2>
         {contractors.data.length === 0 ? (
-          <p>Aucune prestation ni versement sur cette campagne.</p>
+          <p>{t('balances.contractorsNone')}</p>
         ) : (
           <ul className="rows">
             {contractors.data.map((line) => (
               <li key={line.contractorName}>
                 <BalanceCard
                   name={line.contractorName}
-                  work={contractorWork(line)}
+                  work={contractorWork(line, t)}
                   balance={line}
-                  missingRate="Tarif de prestation à fixer"
+                  missingRate={t('balances.contractorRateToFix')}
                 />
               </li>
             ))}
@@ -83,15 +92,18 @@ function Balances({ campaignId }: { campaignId: string }) {
   );
 }
 
-function contractorWork(line: ContractorBalance): string {
+function contractorWork(
+  line: ContractorBalance,
+  t: ReturnType<typeof useTranslation>['t'],
+): string {
   const parts: string[] = [];
   if (line.bricksByType.transport > 0) {
-    parts.push(`${formatBricks(line.bricksByType.transport)} transportées`);
+    parts.push(t('balances.bricksTransported', { quantity: formatBricks(line.bricksByType.transport) }));
   }
   if (line.bricksByType.kiln_loading > 0) {
-    parts.push(`${formatBricks(line.bricksByType.kiln_loading)} enfournées`);
+    parts.push(t('balances.bricksLoaded', { quantity: formatBricks(line.bricksByType.kiln_loading) }));
   }
-  return parts.length === 0 ? 'Aucune prestation' : parts.join(' · ');
+  return parts.length === 0 ? t('balances.noWork') : parts.join(' · ');
 }
 
 interface BalanceCardProps {
@@ -107,18 +119,19 @@ interface BalanceCardProps {
  * (reference document, section 4). The screen says so; it never shows a zero in its place.
  */
 function BalanceCard({ name, work, balance, missingRate }: BalanceCardProps) {
+  const { t } = useTranslation();
   return (
     <>
       <strong>{name}</strong>
       <span className="sub">{work}</span>
       <dl className="facts">
-        <Line label="Gagné">
+        <Line label={t('balances.earned')}>
           {balance.earned === null ? <em>{missingRate}</em> : formatAmount(balance.earned)}
         </Line>
-        <Line label="Versé">{formatAmount(balance.paid)}</Line>
-        <Line label={balance.due !== null && balance.due < 0 ? 'Trop versé' : 'Reste dû'}>
+        <Line label={t('balances.paid')}>{formatAmount(balance.paid)}</Line>
+        <Line label={balance.due !== null && balance.due < 0 ? t('balances.overpaid') : t('balances.due')}>
           {balance.due === null ? (
-            <em>Inconnu tant que le tarif n’est pas fixé</em>
+            <em>{t('balances.unknownUntilRate')}</em>
           ) : (
             formatAmount(Math.abs(balance.due))
           )}

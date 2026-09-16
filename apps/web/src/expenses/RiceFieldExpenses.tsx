@@ -2,7 +2,8 @@ import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatAmount, formatDate } from '../format.js';
-import { EXPENSE_CATEGORY_LABELS, useExpenses } from './useExpenses.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
+import { EXPENSE_CATEGORY_KEY, useExpenses } from './useExpenses.js';
 
 /**
  * What a rice field costs on the current campaign, summed from the expenses attached to it.
@@ -12,14 +13,18 @@ import { EXPENSE_CATEGORY_LABELS, useExpenses } from './useExpenses.js';
  */
 export function RiceFieldExpenses({ riceFieldId }: { riceFieldId: string }) {
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <section aria-labelledby="rice-field-cost">
-      <h2 id="rice-field-cost">Coût sur la campagne{campaign && ` ${campaign.year}`}</h2>
+      <h2 id="rice-field-cost">
+        {t('expenses.costOnCampaign')}
+        {campaign && ` ${campaign.year}`}
+      </h2>
       {campaign ? (
         <Linked campaignId={campaign.id} riceFieldId={riceFieldId} />
       ) : (
-        <p>Aucune campagne.</p>
+        <p>{t('common.noCampaignShort')}</p>
       )}
     </section>
   );
@@ -28,27 +33,32 @@ export function RiceFieldExpenses({ riceFieldId }: { riceFieldId: string }) {
 function Linked({ campaignId, riceFieldId }: { campaignId: string; riceFieldId: string }) {
   const expenses = useExpenses(campaignId, { riceFieldId });
   const addPath = `/depenses/nouvelle?category=rice_field&riceFieldId=${riceFieldId}`;
+  const { t } = useTranslation();
 
   if (expenses.isError)
-    return <p role="alert">Chargement impossible : {apiErrorMessage(expenses.error)}</p>;
-  if (!expenses.isSuccess) return <p role="status">Chargement…</p>;
+    return (
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {apiErrorMessage(expenses.error)}
+      </p>
+    );
+  if (!expenses.isSuccess) return <p role="status">{t('common.loading')}</p>;
 
   const total = expenses.data.reduce((sum, expense) => sum + expense.amount, 0);
 
   return (
     <>
       <p>
-        Total : <strong>{formatAmount(total)}</strong>
+        {t('expenses.totalLabel')} <strong>{formatAmount(total)}</strong>
       </p>
       {expenses.data.length === 0 ? (
-        <p>Aucune dépense rattachée à cette rizière.</p>
+        <p>{t('expenses.noneForRiceField')}</p>
       ) : (
         <ul className="rows">
           {expenses.data.map((expense) => (
             <li key={expense.id}>
               <Link to={`/depenses/${expense.id}`}>{expense.label}</Link>
               <span className="sub">
-                {formatDate(expense.date)} · {EXPENSE_CATEGORY_LABELS[expense.category]} ·{' '}
+                {formatDate(expense.date)} · {t(EXPENSE_CATEGORY_KEY[expense.category])} ·{' '}
                 {formatAmount(expense.amount)}
               </span>
             </li>
@@ -56,7 +66,7 @@ function Linked({ campaignId, riceFieldId }: { campaignId: string; riceFieldId: 
         </ul>
       )}
       <p>
-        <Link to={addPath}>Saisir une dépense pour cette rizière</Link>
+        <Link to={addPath}>{t('expenses.addForRiceField')}</Link>
       </p>
     </>
   );

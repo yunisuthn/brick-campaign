@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { apiFormErrors } from '../form/apiFormErrors.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { type Credentials, useLogin, useSession } from '../session/useSession.js';
 
 export function LoginPage() {
@@ -10,6 +11,7 @@ export function LoginPage() {
   const location = useLocation();
   const from = readFrom(location.state);
   const form = useForm<Credentials>({ defaultValues: { email: '', password: '' } });
+  const { t } = useTranslation();
 
   // Already signed in (typed the URL by hand, or came back): nothing to do here.
   if (session.data) return <Navigate to={from} replace />;
@@ -26,32 +28,34 @@ export function LoginPage() {
   return (
     <main className="page-centred">
       <div className="card login-card">
-        <h1>Briqueterie</h1>
-        <p className="sub">Gestion de campagne de briques</p>
+        <h1>{t('shell.appName')}</h1>
+        <p className="sub">{t('session.tagline')}</p>
         <form onSubmit={submit} noValidate>
           <label>
-            Email
+            {t('session.emailLabel')}
             <input
               type="email"
               autoComplete="username"
               inputMode="email"
-              {...form.register('email', { required: 'L’email est requis.' })}
+              {...form.register('email', { required: t('session.emailRequired') })}
             />
           </label>
           <label>
-            Mot de passe
+            {t('session.passwordLabel')}
             <input
               type="password"
               autoComplete="current-password"
-              {...form.register('password', { required: 'Le mot de passe est requis.' })}
+              {...form.register('password', { required: t('session.passwordRequired') })}
             />
           </label>
           {fieldProblem && <p role="alert">{fieldProblem.message}</p>}
           {loginRefusal.message && (
-            <p role="alert">Connexion impossible : {loginRefusal.message}</p>
+            <p role="alert">
+              {t('session.loginFailedPrefix')} {loginRefusal.message}
+            </p>
           )}
           <button type="submit" disabled={login.isPending}>
-            Se connecter
+            {t('session.submit')}
           </button>
         </form>
       </div>

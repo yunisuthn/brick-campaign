@@ -1,13 +1,17 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
+import { DateField } from '../form/DateField.js';
 import { Field } from '../form/Field.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
+import { digitsOnly } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { RateFields } from './rateFields.js';
 import { type NewCampaign, useCreateCampaign } from './useCampaigns.js';
 
 export function NewCampaignPage() {
   const create = useCreateCampaign();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const form = useForm<NewCampaign>({
     defaultValues: {
       year: new Date().getFullYear(),
@@ -27,35 +31,38 @@ export function NewCampaignPage() {
 
   return (
     <main className="page">
-      <h1>Nouvelle campagne</h1>
+      <h1>{t('campaigns.newTitle')}</h1>
       <form onSubmit={submit} noValidate>
         <Field
-          label="Année"
+          label={t('campaigns.yearLabel')}
           error={errors.year ?? createRefusal.fields.year}
           input={form.register('year', {
-            valueAsNumber: true,
+            setValueAs: (value: string) => Number(digitsOnly(value)),
             validate: (value) =>
               (Number.isInteger(value) && value >= 2000 && value <= 2100) ||
-              'Une année entre 2000 et 2100 est attendue.',
+              t('campaigns.yearRequired'),
           })}
           inputMode="numeric"
         />
-        <Field
-          label="Date de début"
+        <DateField
+          label={t('campaigns.startedOnLabel')}
+          name="startedOn"
+          control={form.control}
           error={errors.startedOn ?? createRefusal.fields.startedOn}
-          input={form.register('startedOn', { required: 'La date de début est requise.' })}
-          type="date"
+          required={t('campaigns.startedOnRequired')}
         />
-        <p className="sub">
-          Un tarif encore en discussion se laisse vide ; il se fixe ensuite depuis la fiche.
-        </p>
+        <p className="sub">{t('campaigns.rateHint')}</p>
         <RateFields form={form} errors={{ ...errors, ...createRefusal.fields }} />
-        {createRefusal.message && <p role="alert">Création impossible : {createRefusal.message}</p>}
+        {createRefusal.message && (
+          <p role="alert">
+            {t('campaigns.createFailedPrefix')} {createRefusal.message}
+          </p>
+        )}
         <p className="actions">
           <button type="submit" disabled={create.isPending}>
-            Créer la campagne
+            {t('campaigns.createButton')}
           </button>
-          <Link to="/campagnes">Annuler</Link>
+          <Link to="/campagnes">{t('common.cancel')}</Link>
         </p>
       </form>
     </main>

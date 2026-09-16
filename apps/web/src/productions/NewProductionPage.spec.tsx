@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
+import { isoToFrench } from '../form/dateMask.js';
 import { today } from '../format.js';
 import { renderWithProviders } from '../test/render.js';
 import { server } from '../test/server.js';
@@ -61,9 +62,9 @@ describe('NewProductionPage', () => {
     mount();
 
     const date = await screen.findByLabelText('Date de début');
-    expect(date).toHaveValue(today());
+    expect(date).toHaveValue(isoToFrench(today()));
     await user.clear(date);
-    await user.type(date, '2026-06-02');
+    await user.type(date, '02/06/2026');
     await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
     await user.selectOptions(screen.getByLabelText('Rizière'), 'r1');
     await user.type(screen.getByLabelText('Quantité (briques)'), '1200');
@@ -73,7 +74,7 @@ describe('NewProductionPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent(
       'Enregistré : Rakoto, 1 200 briques.',
     );
-    expect(screen.getByLabelText('Date de début')).toHaveValue('2026-06-02');
+    expect(screen.getByLabelText('Date de début')).toHaveValue('02/06/2026');
     expect(screen.getByLabelText('Rizière')).toHaveValue('r1');
     expect(screen.getByLabelText('Mouleur')).toHaveValue('');
     expect(screen.getByLabelText('Quantité (briques)')).toHaveValue('');

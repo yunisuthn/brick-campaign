@@ -5,6 +5,15 @@ export function formatAmount(value: number): string {
   return `${amount.format(value)} Ar`;
 }
 
+/**
+ * A numeric Field displays grouping spaces as typed; strip them back to a plain digit string.
+ * react-hook-form can hand a `setValueAs` its default value unchanged (a number, not yet typed
+ * into the field), so this also accepts that.
+ */
+export function digitsOnly(value: string | number): string {
+  return String(value).replace(/\s/g, '');
+}
+
 const date = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
 /**

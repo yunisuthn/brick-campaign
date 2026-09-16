@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
 import { loadErrorMessage } from '../api/loadError.js';
-import { Field } from '../form/Field.js';
+import { DateField } from '../form/DateField.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { today } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { CampaignFacts } from './CampaignFacts.js';
 import { RateFields } from './rateFields.js';
 import {
@@ -17,19 +18,20 @@ import {
 export function CampaignPage() {
   const { id = '' } = useParams();
   const campaign = useCampaign(id);
+  const { t } = useTranslation();
 
   return (
     <main className="page-wide">
       <p>
-        <Link to="/campagnes">Toutes les campagnes</Link>
+        <Link to="/campagnes">{t('campaigns.allCampaigns')}</Link>
       </p>
-      {campaign.isPending && <p role="status">Chargement…</p>}
+      {campaign.isPending && <p role="status">{t('common.loading')}</p>}
       {campaign.isError && (
-        <p role="alert">{loadErrorMessage(campaign.error, 'Campagne introuvable.')}</p>
+        <p role="alert">{loadErrorMessage(campaign.error, t('campaigns.notFound'))}</p>
       )}
       {campaign.isSuccess && (
         <>
-          <h1>Campagne {campaign.data.year}</h1>
+          <h1>{t('campaigns.cardTitle', { year: campaign.data.year })}</h1>
           <CampaignFacts campaign={campaign.data} />
           <EditRates campaign={campaign.data} />
           {campaign.data.closedOn === null && <CloseCampaign campaign={campaign.data} />}
@@ -46,6 +48,7 @@ export function CampaignPage() {
 function EditRates({ campaign }: { campaign: Campaign }) {
   const [open, setOpen] = useState(false);
   const update = useUpdateCampaign(campaign.id);
+  const { t } = useTranslation();
   const form = useForm<CampaignRates>({
     defaultValues: {
       mouldingRates: campaign.mouldingRates,
@@ -58,7 +61,7 @@ function EditRates({ campaign }: { campaign: Campaign }) {
     return (
       <p>
         <button type="button" onClick={() => setOpen(true)}>
-          Modifier les tarifs
+          {t('campaigns.editRates')}
         </button>
       </p>
     );
@@ -71,17 +74,24 @@ function EditRates({ campaign }: { campaign: Campaign }) {
   );
 
   return (
-    <form onSubmit={submit} noValidate className="inline-form" aria-label="Tarifs de la campagne">
+    <form
+      onSubmit={submit}
+      noValidate
+      className="inline-form"
+      aria-label={t('campaigns.ratesFormLabel')}
+    >
       <RateFields form={form} errors={{ ...form.formState.errors, ...updateRefusal.fields }} />
       {updateRefusal.message && (
-        <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+        <p role="alert">
+          {t('common.saveFailedPrefix')} {updateRefusal.message}
+        </p>
       )}
       <p className="actions">
         <button type="submit" disabled={update.isPending}>
-          Enregistrer les tarifs
+          {t('campaigns.saveRates')}
         </button>
         <button type="button" onClick={() => setOpen(false)}>
-          Annuler
+          {t('common.cancel')}
         </button>
       </p>
     </form>
@@ -96,13 +106,14 @@ function EditRates({ campaign }: { campaign: Campaign }) {
 function CloseCampaign({ campaign }: { campaign: Campaign }) {
   const [open, setOpen] = useState(false);
   const close = useUpdateCampaign(campaign.id);
+  const { t } = useTranslation();
   const form = useForm<{ closedOn: string }>({ defaultValues: { closedOn: today() } });
 
   if (!open) {
     return (
       <p>
         <button type="button" onClick={() => setOpen(true)}>
-          Clôturer la campagne
+          {t('campaigns.closeCampaign')}
         </button>
       </p>
     );
@@ -114,19 +125,24 @@ function CloseCampaign({ campaign }: { campaign: Campaign }) {
 
   return (
     <form onSubmit={submit} noValidate className="inline-form">
-      <Field
-        label="Date de clôture"
+      <DateField
+        label={t('campaigns.closedOnLabel')}
+        name="closedOn"
+        control={form.control}
         error={form.formState.errors.closedOn ?? closeRefusal.fields.closedOn}
-        input={form.register('closedOn', { required: 'La date de clôture est requise.' })}
-        type="date"
+        required={t('campaigns.closedOnRequired')}
       />
-      {closeRefusal.message && <p role="alert">Clôture impossible : {closeRefusal.message}</p>}
+      {closeRefusal.message && (
+        <p role="alert">
+          {t('campaigns.closeFailedPrefix')} {closeRefusal.message}
+        </p>
+      )}
       <p className="actions">
         <button type="submit" disabled={close.isPending}>
-          Confirmer la clôture
+          {t('campaigns.confirmClose')}
         </button>
         <button type="button" onClick={() => setOpen(false)}>
-          Annuler
+          {t('common.cancel')}
         </button>
       </p>
     </form>

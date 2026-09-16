@@ -7,6 +7,7 @@ import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { useMoulders } from '../moulders/useMoulders.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type ProductionForm, ProductionFields, toNewProduction } from './productionFields.js';
@@ -20,13 +21,18 @@ import {
 export function ProductionPage() {
   const { id = '' } = useParams();
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/productions">Toutes les productions</Link>
+        <Link to="/productions">{t('productions.allProductions')}</Link>
       </p>
-      {campaign ? <LoadedProduction campaign={campaign} id={id} /> : <p>Aucune campagne.</p>}
+      {campaign ? (
+        <LoadedProduction campaign={campaign} id={id} />
+      ) : (
+        <p>{t('common.noCampaignShort')}</p>
+      )}
     </main>
   );
 }
@@ -36,17 +42,20 @@ function LoadedProduction({ campaign, id }: { campaign: Campaign; id: string }) 
   const production = useProduction(campaign.id, id);
   const moulders = useMoulders(true);
   const riceFields = useRiceFields();
+  const { t } = useTranslation();
 
   if (production.isError) {
-    return <p role="alert">{loadErrorMessage(production.error, 'Saisie introuvable.')}</p>;
+    return <p role="alert">{loadErrorMessage(production.error, t('productions.notFound'))}</p>;
   }
   const failed = [moulders, riceFields].find((query) => query.isError);
   if (failed)
     return (
-      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
+      </p>
     );
   if (!production.isSuccess || !moulders.isSuccess || !riceFields.isSuccess) {
-    return <p role="status">Chargement…</p>;
+    return <p role="status">{t('common.loading')}</p>;
   }
 
   const choosable = moulders.data.filter((m) => m.active || m.id === production.data.moulderId);
@@ -100,6 +109,7 @@ function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionF
 
   const moulderName = moulders.find((m) => m.id === production.moulderId)?.name ?? '';
   const busy = update.isPending || cancel.isPending;
+  const { t } = useTranslation();
 
   return (
     <>
@@ -113,6 +123,7 @@ function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionF
       <form onSubmit={save} noValidate>
         <ProductionFields
           register={form.register}
+          control={form.control}
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           moulders={moulders}
           riceFields={riceFields}
@@ -120,27 +131,31 @@ function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionF
           showEndedOn
         />
         {updateRefusal.message && (
-          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+          <p role="alert">
+            {t('common.saveFailedPrefix')} {updateRefusal.message}
+          </p>
         )}
         {cancel.isError && (
-          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
+          <p role="alert">
+            {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
+          </p>
         )}
         <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
-            Enregistrer
+            {t('common.save')}
           </button>
           {confirming ? (
             <>
               <button type="button" onClick={cancelEntry} disabled={busy}>
-                Confirmer l’annulation
+                {t('common.confirmCancellation')}
               </button>
               <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-                Garder la saisie
+                {t('productions.keepEntry')}
               </button>
             </>
           ) : (
             <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-              Annuler la saisie
+              {t('productions.cancelEntry')}
             </button>
           )}
         </p>

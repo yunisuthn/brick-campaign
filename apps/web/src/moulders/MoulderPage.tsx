@@ -2,21 +2,23 @@ import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
 import { loadErrorMessage } from '../api/loadError.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { MoulderFields } from './moulderFields.js';
 import { type Moulder, type NewMoulder, useMoulder, useUpdateMoulder } from './useMoulders.js';
 
 export function MoulderPage() {
   const { id = '' } = useParams();
   const moulder = useMoulder(id);
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/mouleurs">Tous les mouleurs</Link>
+        <Link to="/mouleurs">{t('moulders.allMoulders')}</Link>
       </p>
-      {moulder.isPending && <p role="status">Chargement…</p>}
+      {moulder.isPending && <p role="status">{t('common.loading')}</p>}
       {moulder.isError && (
-        <p role="alert">{loadErrorMessage(moulder.error, 'Mouleur introuvable.')}</p>
+        <p role="alert">{loadErrorMessage(moulder.error, t('moulders.notFound'))}</p>
       )}
       {moulder.isSuccess && <MoulderForm key={moulder.data.id} moulder={moulder.data} />}
     </main>
@@ -30,6 +32,7 @@ export function MoulderPage() {
  */
 function MoulderForm({ moulder }: { moulder: Moulder }) {
   const update = useUpdateMoulder(moulder.id);
+  const { t } = useTranslation();
   const form = useForm<NewMoulder>({
     defaultValues: { name: moulder.name, memberCount: moulder.memberCount },
   });
@@ -45,7 +48,7 @@ function MoulderForm({ moulder }: { moulder: Moulder }) {
     <>
       <h1>
         {moulder.name}
-        {!moulder.active && <span className="title-sub"> · retiré</span>}
+        {!moulder.active && <span className="title-sub">{t('moulders.retiredSuffix')}</span>}
       </h1>
       <form onSubmit={save} noValidate>
         <MoulderFields
@@ -53,14 +56,16 @@ function MoulderForm({ moulder }: { moulder: Moulder }) {
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
         />
         {updateRefusal.message && (
-          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+          <p role="alert">
+            {t('common.saveFailedPrefix')} {updateRefusal.message}
+          </p>
         )}
         <p className="actions">
           <button type="submit" disabled={update.isPending || !form.formState.isDirty}>
-            Enregistrer
+            {t('common.save')}
           </button>
           <button type="button" onClick={toggleActive} disabled={update.isPending}>
-            {moulder.active ? 'Retirer le mouleur' : 'Réactiver le mouleur'}
+            {moulder.active ? t('moulders.retireMoulder') : t('moulders.reactivateMoulder')}
           </button>
         </p>
       </form>

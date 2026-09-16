@@ -2,28 +2,35 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { DateBox } from '../form/DateField.js';
 import { formatBricks, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type Production, type ProductionFilters, useProductions } from './useProductions.js';
 
 export function ProductionsPage() {
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page-wide">
-      <h1>Productions{campaign && ` · Campagne ${campaign.year}`}</h1>
+      <h1>
+        {t('productions.title')}
+        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+      </h1>
       {campaign && (
         <p>
-          <Link to="/productions/nouvelle">Saisir une production</Link>
+          <Link to="/productions/nouvelle">{t('productions.newLink')}</Link>
         </p>
       )}
       {campaign ? (
         <ProductionList campaignId={campaign.id} />
       ) : (
         <p>
-          Aucune campagne : <Link to="/campagnes/nouvelle">créez la première</Link> avant de saisir
-          une production.
+          {t('common.noCampaignPrefix')}{' '}
+          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
+          {t('productions.noCampaignSuffix')}
         </p>
       )}
     </main>
@@ -39,6 +46,7 @@ function ProductionList({ campaignId }: { campaignId: string }) {
   const productions = useProductions(campaignId, filters);
   const moulders = useMoulders(true);
   const riceFields = useRiceFields();
+  const { t } = useTranslation();
 
   const failed = [productions, moulders, riceFields].find((query) => query.isError);
   const loaded = productions.isSuccess && moulders.isSuccess && riceFields.isSuccess;
@@ -48,18 +56,26 @@ function ProductionList({ campaignId }: { campaignId: string }) {
     <>
       <FilterBar moulders={moulders.data ?? []} filters={filters} onChange={setFilters} />
       {failed && (
-        <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+        <p role="alert">
+          {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
+        </p>
       )}
-      {!failed && !loaded && <p role="status">Chargement…</p>}
+      {!failed && !loaded && <p role="status">{t('common.loading')}</p>}
       {loaded && productions.data.length === 0 && (
-        <p>{filtered ? 'Aucune production pour ces critères.' : 'Aucune production saisie.'}</p>
+        <p>{t(filtered ? 'productions.noneForFilters' : 'productions.noneAtAll')}</p>
       )}
       {loaded && productions.data.length > 0 && (
-        <Rows
-          productions={productions.data}
-          moulderName={new Map(moulders.data.map((m) => [m.id, m.name]))}
-          fieldName={new Map(riceFields.data.map((f) => [f.id, f.name]))}
-        />
+        <>
+          <p className="sub">
+            {t('common.totalShown')}{' '}
+            {formatBricks(productions.data.reduce((sum, p) => sum + p.quantity, 0))}
+          </p>
+          <Rows
+            productions={productions.data}
+            moulderName={new Map(moulders.data.map((m) => [m.id, m.name]))}
+            fieldName={new Map(riceFields.data.map((f) => [f.id, f.name]))}
+          />
+        </>
       )}
     </>
   );
@@ -74,39 +90,38 @@ interface FilterBarProps {
 /** A moulder, a period, or both; an empty control means no filter on that side. */
 function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
   const set = (patch: ProductionFilters) => onChange({ ...filters, ...patch });
+  const { t } = useTranslation();
   return (
-    <form aria-label="Filtres" onSubmit={(event) => event.preventDefault()} className="filters">
+    <form
+      aria-label={t('common.filters')}
+      onSubmit={(event) => event.preventDefault()}
+      className="filters"
+    >
       <label>
-        Mouleur
+        {t('common.moulderLabel')}
         <select
           value={filters.moulderId ?? ''}
           onChange={(event) => set({ moulderId: event.target.value || undefined })}
         >
-          <option value="">Tous</option>
+          <option value="">{t('common.all')}</option>
           {moulders.map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}
-              {!m.active && ' (retiré)'}
+              {!m.active && t('common.retiredSuffix')}
             </option>
           ))}
         </select>
       </label>
-      <label>
-        Du
-        <input
-          type="date"
-          value={filters.from ?? ''}
-          onChange={(event) => set({ from: event.target.value || undefined })}
-        />
-      </label>
-      <label>
-        Au
-        <input
-          type="date"
-          value={filters.to ?? ''}
-          onChange={(event) => set({ to: event.target.value || undefined })}
-        />
-      </label>
+      <DateBox
+        label={t('common.from')}
+        value={filters.from ?? ''}
+        onChange={(iso) => set({ from: iso || undefined })}
+      />
+      <DateBox
+        label={t('common.to')}
+        value={filters.to ?? ''}
+        onChange={(iso) => set({ to: iso || undefined })}
+      />
     </form>
   );
 }
@@ -118,17 +133,18 @@ interface RowsProps {
 }
 
 function Rows({ productions, moulderName, fieldName }: RowsProps) {
+  const { t } = useTranslation();
   return (
     <ul className="rows">
       {productions.map((production) => (
         <li key={production.id} className="row-split">
           <span>
             <Link to={`/productions/${production.id}`} className="row-name">
-              {moulderName.get(production.moulderId) ?? 'Mouleur inconnu'}
+              {moulderName.get(production.moulderId) ?? t('common.unknownMoulder')}
             </Link>
             <span className="sub">
               {formatDate(production.startedOn)} ·{' '}
-              {fieldName.get(production.riceFieldId) ?? 'Rizière inconnue'}
+              {fieldName.get(production.riceFieldId) ?? t('productions.unknownRiceField')}
             </span>
           </span>
           <span className="figure">{formatBricks(production.quantity)}</span>

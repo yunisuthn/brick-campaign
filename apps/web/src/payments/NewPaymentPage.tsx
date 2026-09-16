@@ -6,25 +6,28 @@ import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, today } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { useMoulders } from '../moulders/useMoulders.js';
 import { type PaymentForm, PaymentFields, toNewPayment } from './paymentFields.js';
 import { useCreatePayment } from './usePayments.js';
 
 export function NewPaymentPage() {
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/versements">Tous les versements</Link>
+        <Link to="/versements">{t('payments.allPayments')}</Link>
       </p>
-      <h1>Nouveau versement</h1>
+      <h1>{t('payments.newTitle')}</h1>
       {campaign ? (
         <EntryForm campaignId={campaign.id} />
       ) : (
         <p>
-          Aucune campagne : <Link to="/campagnes/nouvelle">créez la première</Link> avant de saisir
-          un versement.
+          {t('common.noCampaignPrefix')}{' '}
+          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
+          {t('payments.noCampaignSuffix')}
         </p>
       )}
     </main>
@@ -41,6 +44,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
   const contractors = useContractorBalances(campaignId);
   const create = useCreatePayment(campaignId);
   const [saved, setSaved] = useState<string | null>(null);
+  const { t } = useTranslation();
   const form = useForm<PaymentForm>({
     defaultValues: {
       date: today(),
@@ -54,9 +58,15 @@ function EntryForm({ campaignId }: { campaignId: string }) {
 
   if (moulders.isError || contractors.isError) {
     const error = moulders.error ?? contractors.error;
-    return <p role="alert">Chargement impossible : {error && apiErrorMessage(error)}</p>;
+    return (
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {error && apiErrorMessage(error)}
+      </p>
+    );
   }
-  if (!moulders.isSuccess || !contractors.isSuccess) return <p role="status">Chargement…</p>;
+  if (!moulders.isSuccess || !contractors.isSuccess) {
+    return <p role="status">{t('common.loading')}</p>;
+  }
 
   const createRefusal = apiFormErrors(create, form);
 
@@ -67,7 +77,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
           payment.contractorName ??
           moulders.data.find((m) => m.id === payment.moulderId)?.name ??
           '';
-        setSaved(`Enregistré : ${name}, ${formatAmount(payment.amount)}.`);
+        setSaved(t('payments.savedMessage', { name, amount: formatAmount(payment.amount) }));
         form.reset({ ...values, moulderId: '', contractorName: '', amount: '' });
       },
     }),
@@ -78,12 +88,15 @@ function EntryForm({ campaignId }: { campaignId: string }) {
       <PaymentFields
         register={form.register}
         watch={form.watch}
+        control={form.control}
         errors={{ ...form.formState.errors, ...createRefusal.fields }}
         moulders={moulders.data}
         contractorNames={contractors.data.map((c) => c.contractorName)}
       />
       {createRefusal.message && (
-        <p role="alert">Enregistrement impossible : {createRefusal.message}</p>
+        <p role="alert">
+          {t('common.saveFailedPrefix')} {createRefusal.message}
+        </p>
       )}
       {saved && !create.isError && (
         <p role="status" className="done">
@@ -92,7 +105,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
       )}
       <p>
         <button type="submit" disabled={create.isPending}>
-          Enregistrer
+          {t('common.save')}
         </button>
       </p>
     </form>

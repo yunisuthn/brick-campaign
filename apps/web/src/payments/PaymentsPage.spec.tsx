@@ -57,10 +57,35 @@ describe('PaymentsPage', () => {
 
     const rows = await screen.findAllByRole('listitem');
     expect(rows.map((row) => plain(row.textContent))).toEqual([
-      'Rakoto5 juin 2026 · Vatsy50 000 Ar',
-      'Solo4 juin 2026 · Avance120 000 Ar',
+      'Rakoto5 juin 2026 · Vatsy · Éditer · Supprimer50 000 Ar',
+      'Solo4 juin 2026 · Avance · Éditer · Supprimer120 000 Ar',
     ]);
     expect(screen.getByRole('link', { name: 'Rakoto' })).toHaveAttribute('href', '/versements/v1');
+  });
+
+  it('deletes a payment only after a second click confirms it', async () => {
+    let deleted = false;
+    server.use(
+      http.get('/api/campaigns', () => HttpResponse.json([campaign])),
+      http.get('/api/campaigns/c1/payments', () =>
+        HttpResponse.json(deleted ? [] : [toMoulder]),
+      ),
+      http.get('/api/moulders', () =>
+        HttpResponse.json([{ id: 'm1', name: 'Rakoto', memberCount: 3, active: true }]),
+      ),
+      http.delete('/api/campaigns/c1/payments/v1', () => {
+        deleted = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const user = userEvent.setup();
+    mount();
+
+    await user.click(await screen.findByRole('button', { name: 'Supprimer' }));
+    expect(screen.queryByText('Aucun versement saisi.')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Confirmer la suppression' }));
+    expect(await screen.findByText('Aucun versement saisi.')).toBeInTheDocument();
   });
 
   it('filters by moulder or by contractor name, never by both at once', async () => {

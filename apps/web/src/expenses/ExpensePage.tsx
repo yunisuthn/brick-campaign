@@ -5,13 +5,14 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { formatAmount, formatDate } from '../format.js';
+import { digitsOnly, formatAmount, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { type KilnBatch, useKilnBatches } from '../kiln-batches/useKilnBatches.js';
 import { type RiceField, useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type ExpenseForm, ExpenseFields } from './expenseFields.js';
 import {
   type Expense,
-  EXPENSE_CATEGORY_LABELS,
+  EXPENSE_CATEGORY_KEY,
   type ExpenseCategory,
   useCancelExpense,
   useExpense,
@@ -21,13 +22,18 @@ import {
 export function ExpensePage() {
   const { id = '' } = useParams();
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/depenses">Toutes les dépenses</Link>
+        <Link to="/depenses">{t('expenses.allExpenses')}</Link>
       </p>
-      {campaign ? <LoadedExpense campaignId={campaign.id} id={id} /> : <p>Aucune campagne.</p>}
+      {campaign ? (
+        <LoadedExpense campaignId={campaign.id} id={id} />
+      ) : (
+        <p>{t('common.noCampaignShort')}</p>
+      )}
     </main>
   );
 }
@@ -36,17 +42,20 @@ function LoadedExpense({ campaignId, id }: { campaignId: string; id: string }) {
   const expense = useExpense(campaignId, id);
   const riceFields = useRiceFields();
   const batches = useKilnBatches(campaignId);
+  const { t } = useTranslation();
 
   if (expense.isError) {
-    return <p role="alert">{loadErrorMessage(expense.error, 'Dépense introuvable.')}</p>;
+    return <p role="alert">{loadErrorMessage(expense.error, t('expenses.notFound'))}</p>;
   }
   const failed = [riceFields, batches].find((query) => query.isError);
   if (failed)
     return (
-      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
+      </p>
     );
   if (!expense.isSuccess || !riceFields.isSuccess || !batches.isSuccess) {
-    return <p role="status">Chargement…</p>;
+    return <p role="status">{t('common.loading')}</p>;
   }
 
   return (
@@ -71,6 +80,7 @@ function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
   const cancel = useCancelExpense(expense.campaignId, expense.id);
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
+  const { t } = useTranslation();
   const form = useForm<ExpenseForm>({
     defaultValues: {
       date: expense.date,
@@ -89,7 +99,7 @@ function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
       {
         date: values.date,
         category: values.category as ExpenseCategory,
-        amount: Number(values.amount),
+        amount: Number(digitsOnly(values.amount)),
         label: values.label,
         riceFieldId: values.riceFieldId === '' ? null : values.riceFieldId,
         kilnBatchId: values.kilnBatchId === '' ? null : values.kilnBatchId,
@@ -105,39 +115,44 @@ function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
       <h1>
         {expense.label}
         <span className="title-sub">
-          {EXPENSE_CATEGORY_LABELS[expense.category]} · {formatDate(expense.date)} ·{' '}
+          {t(EXPENSE_CATEGORY_KEY[expense.category])} · {formatDate(expense.date)} ·{' '}
           {formatAmount(expense.amount)}
         </span>
       </h1>
       <form onSubmit={save} noValidate>
         <ExpenseFields
           register={form.register}
+          control={form.control}
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           batches={batches}
           riceFields={riceFields}
         />
         {updateRefusal.message && (
-          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+          <p role="alert">
+            {t('common.saveFailedPrefix')} {updateRefusal.message}
+          </p>
         )}
         {cancel.isError && (
-          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
+          <p role="alert">
+            {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
+          </p>
         )}
         <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
-            Enregistrer
+            {t('common.save')}
           </button>
           {confirming ? (
             <>
               <button type="button" onClick={cancelExpense} disabled={busy}>
-                Confirmer l’annulation
+                {t('common.confirmCancellation')}
               </button>
               <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-                Garder la dépense
+                {t('expenses.keepExpense')}
               </button>
             </>
           ) : (
             <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-              Annuler la dépense
+              {t('expenses.cancelExpense')}
             </button>
           )}
         </p>

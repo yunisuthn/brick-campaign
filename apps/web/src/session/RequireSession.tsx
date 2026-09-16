@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { useSession } from './useSession.js';
 
 /**
@@ -10,19 +11,22 @@ import { useSession } from './useSession.js';
 export function RequireSession() {
   const session = useSession();
   const location = useLocation();
+  const { t } = useTranslation();
 
   if (session.isPending) {
     return (
       <main className="page-wide">
-        <h1>Briqueterie</h1>
+        <h1>{t('shell.appName')}</h1>
       </main>
     );
   }
   if (session.isError) {
     return (
       <main className="page-wide">
-        <h1>Briqueterie</h1>
-        <p role="alert">API indisponible : {apiErrorMessage(session.error)}</p>
+        <h1>{t('shell.appName')}</h1>
+        <p role="alert">
+          {t('session.apiUnavailablePrefix')} {apiErrorMessage(session.error)}
+        </p>
       </main>
     );
   }

@@ -37,18 +37,25 @@ describe('NewRiceFieldPage', () => {
     });
   });
 
-  it('requires a name and a location, and a whole surface when given', async () => {
+  it('requires a name and a location', async () => {
     const user = userEvent.setup();
     renderRoutes(routes, '/rizieres/nouvelle');
 
-    await user.type(screen.getByLabelText('Surface (m²)'), '12.5');
     await user.click(screen.getByRole('button', { name: 'Créer la rizière' }));
 
     const alerts = await screen.findAllByRole('alert');
     expect(alerts.map((alert) => alert.textContent)).toEqual([
       'Le nom est requis.',
       'La localisation est requise.',
-      'Un nombre entier de mètres carrés est attendu, ou rien.',
     ]);
+  });
+
+  it('keeps only digits typed into the surface, dropping the rest as they are typed', async () => {
+    const user = userEvent.setup();
+    renderRoutes(routes, '/rizieres/nouvelle');
+
+    await user.type(screen.getByLabelText('Surface (m²)'), '12.5 m²');
+
+    expect(screen.getByLabelText('Surface (m²)')).toHaveValue('125');
   });
 });

@@ -1,25 +1,29 @@
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { useDeliveries } from './useDeliveries.js';
 
 /** The trips of one sale, shown on its page: a delivery always belongs to a sale. */
 export function SaleDeliveries({ campaignId, saleId }: { campaignId: string; saleId: string }) {
   const deliveries = useDeliveries(campaignId, saleId);
+  const { t } = useTranslation();
 
   return (
     <section aria-labelledby="deliveries">
-      <h2 id="deliveries">Livraisons</h2>
+      <h2 id="deliveries">{t('deliveries.sectionTitle')}</h2>
       <p>
-        <Link to={`/ventes/${saleId}/livraisons/nouvelle`}>Ajouter un voyage</Link>
+        <Link to={`/ventes/${saleId}/livraisons/nouvelle`}>{t('deliveries.addTrip')}</Link>
       </p>
       {deliveries.isError && (
-        <p role="alert">Chargement impossible : {apiErrorMessage(deliveries.error)}</p>
+        <p role="alert">
+          {t('common.loadFailedPrefix')} {apiErrorMessage(deliveries.error)}
+        </p>
       )}
-      {deliveries.isPending && <p role="status">Chargement…</p>}
+      {deliveries.isPending && <p role="status">{t('common.loading')}</p>}
       {deliveries.isSuccess &&
         (deliveries.data.length === 0 ? (
-          <p>Aucun voyage effectué.</p>
+          <p>{t('deliveries.noneAtAll')}</p>
         ) : (
           <ul className="rows">
             {deliveries.data.map((delivery) => (

@@ -9,10 +9,11 @@ describe('PaymentsService', () => {
   const create = vi.fn();
   const findFirst = vi.fn();
   const update = vi.fn();
+  const count = vi.fn();
   const prisma = {
     campaign: { findUnique: campaignFindUnique },
     moulder: { findUnique: moulderFindUnique },
-    payment: { create, findFirst, update },
+    payment: { create, findFirst, update, count },
   } as unknown as PrismaService;
   const service = new PaymentsService(prisma, new EntryReferences(prisma));
 
@@ -34,6 +35,7 @@ describe('PaymentsService', () => {
       closedOn: null,
     });
     moulderFindUnique.mockResolvedValue({ active: true });
+    count.mockResolvedValue(0);
   });
 
   describe('create', () => {
@@ -84,6 +86,36 @@ describe('PaymentsService', () => {
       );
       expect(create).not.toHaveBeenCalled();
     });
+
+    it('rejects a second vatsy for the same moulder on the same day', async () => {
+      count.mockResolvedValue(1);
+      await rejectsWithCode(
+        service.create(campaignId, { ...base, moulderId: 'moulder-id' }),
+        'payment_duplicate_type',
+      );
+      expect(count).toHaveBeenCalledWith({
+        where: {
+          campaignId,
+          moulderId: 'moulder-id',
+          type: 'vatsy',
+          date: new Date('2026-06-10T00:00:00Z'),
+          cancelledAt: null,
+          id: undefined,
+        },
+      });
+      expect(create).not.toHaveBeenCalled();
+    });
+
+    it('never checks for a duplicate settlement, or for a contractor payment', async () => {
+      count.mockResolvedValue(1);
+      create.mockResolvedValue({ ...row, type: 'settlement' });
+      await service.create(campaignId, { ...base, type: 'settlement', moulderId: 'moulder-id' });
+      expect(count).not.toHaveBeenCalled();
+
+      create.mockResolvedValue({ ...row, moulderId: null, contractorName: 'Rasoa' });
+      await service.create(campaignId, { ...base, contractorName: 'Rasoa' });
+      expect(count).not.toHaveBeenCalled();
+    });
   });
 
   describe('update', () => {
@@ -120,6 +152,33 @@ describe('PaymentsService', () => {
         'payment_not_found',
       );
       expect(update).not.toHaveBeenCalled();
+    });
+
+    it('rejects a change that collides with another vatsy already on that day', async () => {
+      findFirst.mockResolvedValue(row);
+      count.mockResolvedValue(1);
+      await rejectsWithCode(
+        service.update(campaignId, 'payment-id', { amount: 25000 }),
+        'payment_duplicate_type',
+      );
+      expect(count).toHaveBeenCalledWith({
+        where: {
+          campaignId,
+          moulderId: 'moulder-id',
+          type: 'vatsy',
+          date: new Date('2026-06-10T00:00:00Z'),
+          cancelledAt: null,
+          id: { not: 'payment-id' },
+        },
+      });
+      expect(update).not.toHaveBeenCalled();
+    });
+
+    it('does not check for a duplicate when switching to a contractor', async () => {
+      findFirst.mockResolvedValue(row);
+      update.mockResolvedValue({ ...row, moulderId: null, contractorName: 'Rasoa' });
+      await service.update(campaignId, 'payment-id', { contractorName: 'Rasoa' });
+      expect(count).not.toHaveBeenCalled();
     });
   });
 

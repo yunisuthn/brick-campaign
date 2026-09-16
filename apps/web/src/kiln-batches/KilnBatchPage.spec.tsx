@@ -60,7 +60,7 @@ describe('KilnBatchPage', () => {
     const cost = screen.getByRole('region', { name: 'Coût du lot' });
     expect(within(cost).getAllByText('Tarif à fixer')).toHaveLength(2);
 
-    await user.type(screen.getByLabelText('Date de défournement'), '2026-06-20');
+    await user.type(screen.getByLabelText('Date de défournement'), '20/06/2026');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(

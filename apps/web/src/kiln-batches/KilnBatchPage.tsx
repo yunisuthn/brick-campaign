@@ -5,9 +5,11 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { BatchWorks } from '../contractor-works/BatchWorks.js';
+import { DateField } from '../form/DateField.js';
 import { Field } from '../form/Field.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { formatAmount, formatBricks, formatDate } from '../format.js';
+import { digitsOnly, formatAmount, formatBricks, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import {
   type KilnBatch,
   MIN_KILN_BATCH_QUANTITY,
@@ -25,24 +27,30 @@ interface KilnBatchForm {
 export function KilnBatchPage() {
   const { id = '' } = useParams();
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/lots">Tous les lots</Link>
+        <Link to="/lots">{t('kilnBatches.allBatches')}</Link>
       </p>
-      {campaign ? <LoadedBatch campaignId={campaign.id} id={id} /> : <p>Aucune campagne.</p>}
+      {campaign ? (
+        <LoadedBatch campaignId={campaign.id} id={id} />
+      ) : (
+        <p>{t('kilnBatches.noCampaignShort')}</p>
+      )}
     </main>
   );
 }
 
 function LoadedBatch({ campaignId, id }: { campaignId: string; id: string }) {
   const batch = useKilnBatch(campaignId, id);
+  const { t } = useTranslation();
 
   if (batch.isError) {
-    return <p role="alert">{loadErrorMessage(batch.error, 'Lot introuvable.')}</p>;
+    return <p role="alert">{loadErrorMessage(batch.error, t('kilnBatches.notFound'))}</p>;
   }
-  if (!batch.isSuccess) return <p role="status">Chargement…</p>;
+  if (!batch.isSuccess) return <p role="status">{t('common.loading')}</p>;
   return <BatchForm key={batch.data.id} batch={batch.data} />;
 }
 
@@ -56,6 +64,7 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
   const cancel = useCancelKilnBatch(batch.campaignId, batch.id);
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
+  const { t } = useTranslation();
   const form = useForm<KilnBatchForm>({
     defaultValues: {
       loadedOn: batch.loadedOn,
@@ -71,7 +80,7 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
       {
         loadedOn: values.loadedOn,
         unloadedOn: values.unloadedOn === '' ? null : values.unloadedOn,
-        quantity: Number(values.quantity),
+        quantity: Number(digitsOnly(values.quantity)),
       },
       { onSuccess: (saved) => form.reset({ ...values, quantity: String(saved.quantity) }) },
     ),
@@ -84,60 +93,66 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
       <h1>
         {formatBricks(batch.quantity)}
         <span className="title-sub">
-          Enfourné le {formatDate(batch.loadedOn)} ·{' '}
+          {t('kilnBatches.loadedOnMessage', { date: formatDate(batch.loadedOn) })} ·{' '}
           {batch.unloadedOn === null
-            ? 'encore au four'
-            : `défourné le ${formatDate(batch.unloadedOn)}`}
+            ? t('kilnBatches.stillInKiln')
+            : t('kilnBatches.unloadedOnMessage', { date: formatDate(batch.unloadedOn) })}
         </span>
       </h1>
       <Cost cost={batch.cost} />
       <BatchWorks campaignId={batch.campaignId} batchId={batch.id} />
       <form onSubmit={save} noValidate>
-        <Field
-          label="Date d’enfournement"
+        <DateField
+          label={t('kilnBatches.loadedOnLabel')}
+          name="loadedOn"
+          control={form.control}
           error={form.formState.errors.loadedOn ?? updateRefusal.fields.loadedOn}
-          input={form.register('loadedOn', { required: 'La date d’enfournement est requise.' })}
-          type="date"
+          required={t('kilnBatches.loadedOnRequired')}
         />
-        <Field
-          label="Date de défournement"
+        <DateField
+          label={t('kilnBatches.unloadedOnLabel')}
+          name="unloadedOn"
+          control={form.control}
           error={form.formState.errors.unloadedOn ?? updateRefusal.fields.unloadedOn}
-          input={form.register('unloadedOn')}
-          type="date"
         />
-        <p className="sub">Laissée vide tant que le lot est au four.</p>
+        <p className="sub">{t('kilnBatches.unloadedOnHint')}</p>
         <Field
-          label="Quantité (briques)"
+          label={t('kilnBatches.quantityLabel')}
           error={form.formState.errors.quantity ?? updateRefusal.fields.quantity}
           input={form.register('quantity', {
             validate: (value) =>
-              (/^\d+$/.test(value.trim()) && Number(value) >= MIN_KILN_BATCH_QUANTITY) ||
-              `Un lot est de ${MIN_KILN_BATCH_QUANTITY.toLocaleString('fr-FR')} briques au minimum.`,
+              (/^\d+$/.test(digitsOnly(value)) &&
+                Number(digitsOnly(value)) >= MIN_KILN_BATCH_QUANTITY) ||
+              t('kilnBatches.quantityRequired', { min: MIN_KILN_BATCH_QUANTITY.toLocaleString('fr-FR') }),
           })}
           inputMode="numeric"
         />
         {updateRefusal.message && (
-          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+          <p role="alert">
+            {t('common.saveFailedPrefix')} {updateRefusal.message}
+          </p>
         )}
         {cancel.isError && (
-          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
+          <p role="alert">
+            {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
+          </p>
         )}
         <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
-            Enregistrer
+            {t('common.save')}
           </button>
           {confirming ? (
             <>
               <button type="button" onClick={cancelBatch} disabled={busy}>
-                Confirmer l’annulation
+                {t('common.confirmCancellation')}
               </button>
               <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-                Garder le lot
+                {t('kilnBatches.keepBatch')}
               </button>
             </>
           ) : (
             <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-              Annuler le lot
+              {t('kilnBatches.cancelBatch')}
             </button>
           )}
         </p>
@@ -148,16 +163,17 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
 
 /** Linked expenses plus the works of the batch at their campaign rates. */
 function Cost({ cost }: { cost: KilnBatch['cost'] }) {
+  const { t } = useTranslation();
   return (
-    <section aria-label="Coût du lot">
+    <section aria-label={t('kilnBatches.costSectionLabel')}>
       <dl className="facts">
-        <dt>Dépenses</dt>
+        <dt>{t('kilnBatches.expensesLabel')}</dt>
         <dd>{formatAmount(cost.expenses)}</dd>
-        <dt>Main-d’œuvre</dt>
-        <dd>{cost.labour === null ? <em>Tarif à fixer</em> : formatAmount(cost.labour)}</dd>
-        <dt>Total</dt>
+        <dt>{t('kilnBatches.labourLabel')}</dt>
+        <dd>{cost.labour === null ? <em>{t('kilnBatches.rateToFixShort')}</em> : formatAmount(cost.labour)}</dd>
+        <dt>{t('kilnBatches.totalLabel')}</dt>
         <dd className="strong">
-          {cost.total === null ? <em>Tarif à fixer</em> : formatAmount(cost.total)}
+          {cost.total === null ? <em>{t('kilnBatches.rateToFixShort')}</em> : formatAmount(cost.total)}
         </dd>
       </dl>
     </section>

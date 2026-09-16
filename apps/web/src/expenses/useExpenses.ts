@@ -1,4 +1,5 @@
 import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
+import type { TranslationKey } from '../i18n/translations.js';
 
 export const expenseCategories = [
   'rice_field',
@@ -12,14 +13,14 @@ export const expenseCategories = [
 export type ExpenseCategory = (typeof expenseCategories)[number];
 
 /** The categories of the notebook; akofa and tai-charbon are kept as they are said. */
-export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
-  rice_field: 'Rizière',
-  akofa: 'Akofa',
-  tai_charbon: 'Tai-charbon',
-  fuel: 'Carburant',
-  repair: 'Réparation',
-  food: 'Nourriture',
-  other: 'Autre',
+export const EXPENSE_CATEGORY_KEY: Record<ExpenseCategory, TranslationKey> = {
+  rice_field: 'expenses.category.riceField',
+  akofa: 'expenses.category.akofa',
+  tai_charbon: 'expenses.category.taiCharbon',
+  fuel: 'expenses.category.fuel',
+  repair: 'expenses.category.repair',
+  food: 'expenses.category.food',
+  other: 'expenses.category.other',
 };
 
 /** Mirror of the API's ExpenseDto. The two links are free: neither is required. */

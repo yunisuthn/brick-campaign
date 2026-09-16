@@ -106,7 +106,7 @@ describe('ProductionPage', () => {
 
     const end = await screen.findByLabelText('Date de fin');
     expect(end).toHaveValue('');
-    await user.type(end, '2026-06-03');
+    await user.type(end, '03/06/2026');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(await screen.findByRole('heading', { name: /2 juin 2026 – 3 juin 2026/ })).toBeInTheDocument();

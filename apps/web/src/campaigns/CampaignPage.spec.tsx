@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
+import { isoToFrench } from '../form/dateMask.js';
 import { today } from '../format.js';
 import { renderRoutes } from '../test/render.js';
 import { server } from '../test/server.js';
@@ -56,9 +57,9 @@ describe('CampaignPage', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Clôturer la campagne' }));
     const date = screen.getByLabelText('Date de clôture');
-    expect(date).toHaveValue(today());
+    expect(date).toHaveValue(isoToFrench(today()));
     await user.clear(date);
-    await user.type(date, '2026-11-30');
+    await user.type(date, '30/11/2026');
     await user.click(screen.getByRole('button', { name: 'Confirmer la clôture' }));
 
     expect(await screen.findByText('Clôturée le 30 novembre 2026')).toBeInTheDocument();

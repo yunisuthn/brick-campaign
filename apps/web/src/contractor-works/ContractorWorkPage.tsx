@@ -7,24 +7,29 @@ import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { formatBricks, formatDate } from '../format.js';
-import { type ContractorWorkForm, ContractorWorkFields } from './contractorWorkFields.js';
+import { digitsOnly, formatBricks, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
+import { type ContractorWorkForm, ContractorWorkFields, WORK_TYPE_KEY } from './contractorWorkFields.js';
 import {
   type ContractorWork,
   type ContractorWorkType,
   useCancelContractorWork,
   useContractorWork,
   useUpdateContractorWork,
-  WORK_TYPE_LABELS,
 } from './useContractorWorks.js';
 
 export function ContractorWorkPage() {
   const { id = '' } = useParams();
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
-      {campaign ? <LoadedWork campaign={campaign} id={id} /> : <p>Aucune campagne.</p>}
+      {campaign ? (
+        <LoadedWork campaign={campaign} id={id} />
+      ) : (
+        <p>{t('contractorWorks.noCampaignShort')}</p>
+      )}
     </main>
   );
 }
@@ -32,14 +37,19 @@ export function ContractorWorkPage() {
 function LoadedWork({ campaign, id }: { campaign: Campaign; id: string }) {
   const work = useContractorWork(campaign.id, id);
   const contractors = useContractorBalances(campaign.id);
+  const { t } = useTranslation();
 
   if (work.isError) {
-    return <p role="alert">{loadErrorMessage(work.error, 'Prestation introuvable.')}</p>;
+    return <p role="alert">{loadErrorMessage(work.error, t('contractorWorks.notFound'))}</p>;
   }
   if (contractors.isError) {
-    return <p role="alert">Chargement impossible : {apiErrorMessage(contractors.error)}</p>;
+    return (
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {apiErrorMessage(contractors.error)}
+      </p>
+    );
   }
-  if (!work.isSuccess || !contractors.isSuccess) return <p role="status">Chargement…</p>;
+  if (!work.isSuccess || !contractors.isSuccess) return <p role="status">{t('common.loading')}</p>;
 
   return (
     <CorrectionForm
@@ -69,6 +79,7 @@ function CorrectionForm({
   const cancel = useCancelContractorWork(work.campaignId, work.id);
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
+  const { t } = useTranslation();
   const batchPath = `/lots/${work.kilnBatchId}`;
   const form = useForm<ContractorWorkForm>({
     defaultValues: {
@@ -89,7 +100,7 @@ function CorrectionForm({
         date: values.date,
         type: values.type as ContractorWorkType,
         contractorName: values.contractorName,
-        quantity: Number(values.quantity),
+        quantity: Number(digitsOnly(values.quantity)),
         rate: values.type === 'transport' && values.rate !== '' ? Number(values.rate) : null,
       },
       { onSuccess: (saved) => form.reset({ ...values, quantity: String(saved.quantity) }) },
@@ -101,44 +112,49 @@ function CorrectionForm({
   return (
     <>
       <p>
-        <Link to={batchPath}>Retour au lot</Link>
+        <Link to={batchPath}>{t('contractorWorks.backToBatch')}</Link>
       </p>
       <h1>
         {work.contractorName}
         <span className="title-sub">
-          {WORK_TYPE_LABELS[work.type]} · {formatDate(work.date)} · {formatBricks(work.quantity)}
+          {t(WORK_TYPE_KEY[work.type])} · {formatDate(work.date)} · {formatBricks(work.quantity)}
         </span>
       </h1>
       <form onSubmit={save} noValidate>
         <ContractorWorkFields
           register={form.register}
+          control={form.control}
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           contractorNames={contractorNames}
           type={type}
           rates={rates}
         />
         {updateRefusal.message && (
-          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+          <p role="alert">
+            {t('common.saveFailedPrefix')} {updateRefusal.message}
+          </p>
         )}
         {cancel.isError && (
-          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
+          <p role="alert">
+            {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
+          </p>
         )}
         <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
-            Enregistrer
+            {t('common.save')}
           </button>
           {confirming ? (
             <>
               <button type="button" onClick={cancelWork} disabled={busy}>
-                Confirmer l’annulation
+                {t('common.confirmCancellation')}
               </button>
               <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-                Garder la prestation
+                {t('contractorWorks.keepWork')}
               </button>
             </>
           ) : (
             <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-              Annuler la prestation
+              {t('contractorWorks.cancelWork')}
             </button>
           )}
         </p>

@@ -20,7 +20,7 @@ async function fillForm() {
   const user = userEvent.setup();
   await user.clear(screen.getByLabelText('Année'));
   await user.type(screen.getByLabelText('Année'), '2026');
-  await user.type(screen.getByLabelText('Date de début'), '2026-05-10');
+  await user.type(screen.getByLabelText('Date de début'), '10/05/2026');
   await addPrice(user, 'Moulage', '40');
   await addPrice(user, 'Transport', '10');
   // Kiln loading left empty: still under discussion.

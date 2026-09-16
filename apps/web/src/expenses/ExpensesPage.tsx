@@ -3,9 +3,10 @@ import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatAmount, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import {
   type Expense,
-  EXPENSE_CATEGORY_LABELS,
+  EXPENSE_CATEGORY_KEY,
   type ExpenseCategory,
   expenseCategories,
   useExpenses,
@@ -13,21 +14,26 @@ import {
 
 export function ExpensesPage() {
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page-wide">
-      <h1>Dépenses{campaign && ` · Campagne ${campaign.year}`}</h1>
+      <h1>
+        {t('expenses.title')}
+        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+      </h1>
       {campaign && (
         <p>
-          <Link to="/depenses/nouvelle">Saisir une dépense</Link>
+          <Link to="/depenses/nouvelle">{t('expenses.newLink')}</Link>
         </p>
       )}
       {campaign ? (
         <ExpenseList campaignId={campaign.id} />
       ) : (
         <p>
-          Aucune campagne : <Link to="/campagnes/nouvelle">créez la première</Link> avant de saisir
-          une dépense.
+          {t('common.noCampaignPrefix')}{' '}
+          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
+          {t('expenses.noCampaignSuffix')}
         </p>
       )}
     </main>
@@ -37,38 +43,39 @@ export function ExpensesPage() {
 function ExpenseList({ campaignId }: { campaignId: string }) {
   const [category, setCategory] = useState<ExpenseCategory | ''>('');
   const expenses = useExpenses(campaignId, category === '' ? {} : { category });
+  const { t } = useTranslation();
 
   return (
     <>
       <p>
         <label>
-          Catégorie
+          {t('expenses.categoryLabel')}
           <select
             value={category}
             onChange={(event) => setCategory(event.target.value as ExpenseCategory | '')}
           >
-            <option value="">Toutes</option>
+            <option value="">{t('expenses.allCategories')}</option>
             {expenseCategories.map((value) => (
               <option key={value} value={value}>
-                {EXPENSE_CATEGORY_LABELS[value]}
+                {t(EXPENSE_CATEGORY_KEY[value])}
               </option>
             ))}
           </select>
         </label>
       </p>
       {expenses.isError && (
-        <p role="alert">Chargement impossible : {apiErrorMessage(expenses.error)}</p>
+        <p role="alert">
+          {t('common.loadFailedPrefix')} {apiErrorMessage(expenses.error)}
+        </p>
       )}
-      {expenses.isPending && <p role="status">Chargement…</p>}
+      {expenses.isPending && <p role="status">{t('common.loading')}</p>}
       {expenses.isSuccess &&
         (expenses.data.length === 0 ? (
-          <p>
-            {category === '' ? 'Aucune dépense saisie.' : 'Aucune dépense dans cette catégorie.'}
-          </p>
+          <p>{t(category === '' ? 'expenses.noneAtAll' : 'expenses.noneForCategory')}</p>
         ) : (
           <>
             <p>
-              Total : <strong>{formatAmount(total(expenses.data))}</strong>
+              {t('expenses.totalLabel')} <strong>{formatAmount(total(expenses.data))}</strong>
             </p>
             <ul className="rows">
               {expenses.data.map((expense) => (
@@ -78,7 +85,7 @@ function ExpenseList({ campaignId }: { campaignId: string }) {
                       {expense.label}
                     </Link>
                     <span className="sub">
-                      {formatDate(expense.date)} · {EXPENSE_CATEGORY_LABELS[expense.category]}
+                      {formatDate(expense.date)} · {t(EXPENSE_CATEGORY_KEY[expense.category])}
                     </span>
                   </span>
                   <span className="figure">{formatAmount(expense.amount)}</span>

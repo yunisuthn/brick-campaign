@@ -1,7 +1,9 @@
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
+import { WORK_TYPE_KEY } from './contractorWorkFields.js';
 import { formatBricks, formatDate } from '../format.js';
-import { WORK_TYPE_LABELS, useContractorWorks } from './useContractorWorks.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
+import { useContractorWorks } from './useContractorWorks.js';
 
 /**
  * The works of one batch, shown on its page: a work always belongs to a batch, so this is the
@@ -9,18 +11,23 @@ import { WORK_TYPE_LABELS, useContractorWorks } from './useContractorWorks.js';
  */
 export function BatchWorks({ campaignId, batchId }: { campaignId: string; batchId: string }) {
   const works = useContractorWorks(campaignId, { kilnBatchId: batchId });
+  const { t } = useTranslation();
 
   return (
     <section aria-labelledby="works">
-      <h2 id="works">Prestations</h2>
+      <h2 id="works">{t('contractorWorks.sectionTitle')}</h2>
       <p>
-        <Link to={`/lots/${batchId}/prestations/nouvelle`}>Ajouter une prestation</Link>
+        <Link to={`/lots/${batchId}/prestations/nouvelle`}>{t('contractorWorks.addLink')}</Link>
       </p>
-      {works.isError && <p role="alert">Chargement impossible : {apiErrorMessage(works.error)}</p>}
-      {works.isPending && <p role="status">Chargement…</p>}
+      {works.isError && (
+        <p role="alert">
+          {t('common.loadFailedPrefix')} {apiErrorMessage(works.error)}
+        </p>
+      )}
+      {works.isPending && <p role="status">{t('common.loading')}</p>}
       {works.isSuccess &&
         (works.data.length === 0 ? (
-          <p>Aucune prestation sur ce lot.</p>
+          <p>{t('contractorWorks.noneAtAll')}</p>
         ) : (
           <ul className="rows">
             {works.data.map((work) => (
@@ -29,7 +36,7 @@ export function BatchWorks({ campaignId, batchId }: { campaignId: string; batchI
                   {work.contractorName}
                 </Link>
                 <span className="sub">
-                  {WORK_TYPE_LABELS[work.type]} · {formatDate(work.date)} ·{' '}
+                  {t(WORK_TYPE_KEY[work.type])} · {formatDate(work.date)} ·{' '}
                   {formatBricks(work.quantity)}
                 </span>
               </li>

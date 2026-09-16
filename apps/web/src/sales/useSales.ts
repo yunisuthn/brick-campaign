@@ -1,13 +1,14 @@
 import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
+import type { TranslationKey } from '../i18n/translations.js';
 
 export type SaleStatus = 'ordered' | 'delivered' | 'partially_paid' | 'paid';
 
 /** Derived by the API from the deliveries and the instalments, never stored. */
-export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
-  ordered: 'Commandée',
-  delivered: 'Livrée',
-  partially_paid: 'Partiellement payée',
-  paid: 'Payée',
+export const SALE_STATUS_KEY: Record<SaleStatus, TranslationKey> = {
+  ordered: 'sales.status.ordered',
+  delivered: 'sales.status.delivered',
+  partially_paid: 'sales.status.partiallyPaid',
+  paid: 'sales.status.paid',
 };
 
 /** Mirror of the API's SaleDto; everything below `unitPrice` is derived at read time. */

@@ -3,12 +3,6 @@ import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
 export const contractorWorkTypes = ['transport', 'kiln_loading'] as const;
 export type ContractorWorkType = (typeof contractorWorkTypes)[number];
 
-/** The two paid steps between moulding and firing (reference document, section 1). */
-export const WORK_TYPE_LABELS: Record<ContractorWorkType, string> = {
-  transport: 'Transport vers le four',
-  kiln_loading: 'Enfournement',
-};
-
 /** Mirror of the API's ContractorWorkDto: always attached to one kiln batch. */
 export interface ContractorWork {
   id: string;

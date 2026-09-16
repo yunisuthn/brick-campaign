@@ -4,6 +4,7 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, today } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { useStock } from '../stock/useStock.js';
 import { type DeliveryForm, DeliveryFields, toNewDelivery } from './deliveryFields.js';
 import { useCreateDelivery } from './useDeliveries.js';
@@ -11,14 +12,19 @@ import { useCreateDelivery } from './useDeliveries.js';
 export function NewDeliveryPage() {
   const { id: saleId = '' } = useParams();
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to={`/ventes/${saleId}`}>Retour à la vente</Link>
+        <Link to={`/ventes/${saleId}`}>{t('deliveries.backToSale')}</Link>
       </p>
-      <h1>Nouveau voyage</h1>
-      {campaign ? <TripForm campaignId={campaign.id} saleId={saleId} /> : <p>Aucune campagne.</p>}
+      <h1>{t('deliveries.newTitle')}</h1>
+      {campaign ? (
+        <TripForm campaignId={campaign.id} saleId={saleId} />
+      ) : (
+        <p>{t('common.noCampaignShort')}</p>
+      )}
     </main>
   );
 }
@@ -31,13 +37,18 @@ function TripForm({ campaignId, saleId }: { campaignId: string; saleId: string }
   const stock = useStock(campaignId);
   const create = useCreateDelivery(campaignId, saleId);
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const form = useForm<DeliveryForm>({
     defaultValues: { date: today(), quantity: '', cost: '', plate: '' },
   });
 
   if (stock.isError)
-    return <p role="alert">Chargement impossible : {apiErrorMessage(stock.error)}</p>;
-  if (!stock.isSuccess) return <p role="status">Chargement…</p>;
+    return (
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {apiErrorMessage(stock.error)}
+      </p>
+    );
+  if (!stock.isSuccess) return <p role="status">{t('common.loading')}</p>;
 
   const createRefusal = apiFormErrors(create, form);
 
@@ -47,17 +58,20 @@ function TripForm({ campaignId, saleId }: { campaignId: string; saleId: string }
 
   return (
     <form onSubmit={submit} noValidate>
-      <p role="status">Stock cuite : {formatBricks(stock.data.fired)}.</p>
+      <p role="status">{t('deliveries.firedStockLine', { stock: formatBricks(stock.data.fired) })}</p>
       <DeliveryFields
         register={form.register}
+        control={form.control}
         errors={{ ...form.formState.errors, ...createRefusal.fields }}
       />
       {createRefusal.message && (
-        <p role="alert">Enregistrement impossible : {createRefusal.message}</p>
+        <p role="alert">
+          {t('common.saveFailedPrefix')} {createRefusal.message}
+        </p>
       )}
       <p>
         <button type="submit" disabled={create.isPending}>
-          Enregistrer le voyage
+          {t('deliveries.saveTrip')}
         </button>
       </p>
     </form>

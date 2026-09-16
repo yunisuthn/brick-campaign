@@ -6,6 +6,7 @@ import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { type DeliveryForm, DeliveryFields, toNewDelivery } from './deliveryFields.js';
 import {
   type Delivery,
@@ -17,16 +18,17 @@ import {
 export function DeliveryPage() {
   const { id: saleId = '', deliveryId = '' } = useParams();
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to={`/ventes/${saleId}`}>Retour à la vente</Link>
+        <Link to={`/ventes/${saleId}`}>{t('deliveries.backToSale')}</Link>
       </p>
       {campaign ? (
         <LoadedDelivery campaignId={campaign.id} saleId={saleId} id={deliveryId} />
       ) : (
-        <p>Aucune campagne.</p>
+        <p>{t('common.noCampaignShort')}</p>
       )}
     </main>
   );
@@ -42,11 +44,12 @@ function LoadedDelivery({
   id: string;
 }) {
   const delivery = useDelivery(campaignId, saleId, id);
+  const { t } = useTranslation();
 
   if (delivery.isError) {
-    return <p role="alert">{loadErrorMessage(delivery.error, 'Voyage introuvable.')}</p>;
+    return <p role="alert">{loadErrorMessage(delivery.error, t('deliveries.notFound'))}</p>;
   }
-  if (!delivery.isSuccess) return <p role="status">Chargement…</p>;
+  if (!delivery.isSuccess) return <p role="status">{t('common.loading')}</p>;
   return <CorrectionForm key={delivery.data.id} campaignId={campaignId} delivery={delivery.data} />;
 }
 
@@ -57,6 +60,7 @@ function CorrectionForm({ campaignId, delivery }: { campaignId: string; delivery
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const salePath = `/ventes/${delivery.saleId}`;
+  const { t } = useTranslation();
   const form = useForm<DeliveryForm>({
     defaultValues: {
       date: delivery.date,
@@ -87,30 +91,35 @@ function CorrectionForm({ campaignId, delivery }: { campaignId: string; delivery
       <form onSubmit={save} noValidate>
         <DeliveryFields
           register={form.register}
+          control={form.control}
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
         />
         {updateRefusal.message && (
-          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+          <p role="alert">
+            {t('common.saveFailedPrefix')} {updateRefusal.message}
+          </p>
         )}
         {cancel.isError && (
-          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
+          <p role="alert">
+            {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
+          </p>
         )}
         <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
-            Enregistrer
+            {t('common.save')}
           </button>
           {confirming ? (
             <>
               <button type="button" onClick={cancelTrip} disabled={busy}>
-                Confirmer l’annulation
+                {t('common.confirmCancellation')}
               </button>
               <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-                Garder le voyage
+                {t('deliveries.keepTrip')}
               </button>
             </>
           ) : (
             <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-              Annuler le voyage
+              {t('deliveries.cancelTrip')}
             </button>
           )}
         </p>

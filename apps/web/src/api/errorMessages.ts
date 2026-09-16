@@ -43,6 +43,11 @@ const sentences: Record<ErrorCode, Sentence> = {
       ? 'Cette vente est déjà payée en entier.'
       : `Il ne reste que ${formatAmount(remaining)} à encaisser sur cette vente.`;
   },
+  payment_duplicate_type: (details) => {
+    const type = details.type;
+    const label = type === 'advance' ? 'une avance' : type === 'vatsy' ? 'un vatsy' : 'un versement';
+    return `Ce mouleur a déjà ${label} enregistré à cette date.`;
+  },
 
   session_required: 'Session expirée, reconnectez-vous.',
   invalid_credentials: 'Adresse ou mot de passe incorrect.',

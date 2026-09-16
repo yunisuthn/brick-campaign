@@ -7,26 +7,26 @@ import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
-import { type PaymentForm, PaymentFields, toNewPayment } from './paymentFields.js';
-import {
-  type Payment,
-  PAYMENT_TYPE_LABELS,
-  useCancelPayment,
-  usePayment,
-  useUpdatePayment,
-} from './usePayments.js';
+import { PAYMENT_TYPE_KEY, type PaymentForm, PaymentFields, toNewPayment } from './paymentFields.js';
+import { type Payment, useCancelPayment, usePayment, useUpdatePayment } from './usePayments.js';
 
 export function PaymentPage() {
   const { id = '' } = useParams();
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/versements">Tous les versements</Link>
+        <Link to="/versements">{t('payments.allPayments')}</Link>
       </p>
-      {campaign ? <LoadedPayment campaignId={campaign.id} id={id} /> : <p>Aucune campagne.</p>}
+      {campaign ? (
+        <LoadedPayment campaignId={campaign.id} id={id} />
+      ) : (
+        <p>{t('common.noCampaignShort')}</p>
+      )}
     </main>
   );
 }
@@ -36,17 +36,20 @@ function LoadedPayment({ campaignId, id }: { campaignId: string; id: string }) {
   const payment = usePayment(campaignId, id);
   const moulders = useMoulders(true);
   const contractors = useContractorBalances(campaignId);
+  const { t } = useTranslation();
 
   if (payment.isError) {
-    return <p role="alert">{loadErrorMessage(payment.error, 'Versement introuvable.')}</p>;
+    return <p role="alert">{loadErrorMessage(payment.error, t('payments.notFound'))}</p>;
   }
   const failed = [moulders, contractors].find((query) => query.isError);
   if (failed)
     return (
-      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
+      </p>
     );
   if (!payment.isSuccess || !moulders.isSuccess || !contractors.isSuccess) {
-    return <p role="status">Chargement…</p>;
+    return <p role="status">{t('common.loading')}</p>;
   }
 
   const choosable = moulders.data.filter((m) => m.active || m.id === payment.data.moulderId);
@@ -100,45 +103,51 @@ function CorrectionForm({ payment, moulders, contractorNames }: CorrectionFormPr
   const name =
     payment.contractorName ?? moulders.find((m) => m.id === payment.moulderId)?.name ?? '';
   const busy = update.isPending || cancel.isPending;
+  const { t } = useTranslation();
 
   return (
     <>
       <h1>
         {name}, {formatDate(payment.date)}
         <span className="title-sub">
-          {PAYMENT_TYPE_LABELS[payment.type]} · {formatAmount(payment.amount)}
+          {t(PAYMENT_TYPE_KEY[payment.type])} · {formatAmount(payment.amount)}
         </span>
       </h1>
       <form onSubmit={save} noValidate>
         <PaymentFields
           register={form.register}
           watch={form.watch}
+          control={form.control}
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
           moulders={moulders}
           contractorNames={contractorNames}
         />
         {updateRefusal.message && (
-          <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+          <p role="alert">
+            {t('common.saveFailedPrefix')} {updateRefusal.message}
+          </p>
         )}
         {cancel.isError && (
-          <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
+          <p role="alert">
+            {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
+          </p>
         )}
         <p className="actions">
           <button type="submit" disabled={busy || !form.formState.isDirty}>
-            Enregistrer
+            {t('common.save')}
           </button>
           {confirming ? (
             <>
               <button type="button" onClick={cancelPayment} disabled={busy}>
-                Confirmer l’annulation
+                {t('common.confirmCancellation')}
               </button>
               <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-                Garder le versement
+                {t('payments.keepPayment')}
               </button>
             </>
           ) : (
             <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-              Annuler le versement
+              {t('payments.cancelPayment')}
             </button>
           )}
         </p>

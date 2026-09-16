@@ -108,8 +108,8 @@ describe('ProductionsPage', () => {
     expect(screen.getByRole('option', { name: 'Parti (retiré)' })).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
-    await user.type(screen.getByLabelText('Du'), '2026-06-01');
-    await user.type(screen.getByLabelText('Au'), '2026-06-30');
+    await user.type(screen.getByLabelText('Du'), '01/06/2026');
+    await user.type(screen.getByLabelText('Au'), '30/06/2026');
 
     expect(await screen.findByText('Aucune production pour ces critères.')).toBeInTheDocument();
     expect(searches.at(-1)).toBe('?moulderId=m1&from=2026-06-01&to=2026-06-30');

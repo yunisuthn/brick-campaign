@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { formatAmount, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import type { Sale } from '../sales/useSales.js';
 import { useSalePayments } from './useSalePayments.js';
 
@@ -11,26 +12,36 @@ import { useSalePayments } from './useSalePayments.js';
  */
 export function SalePayments({ sale }: { sale: Sale }) {
   const payments = useSalePayments(sale.campaignId, sale.id);
+  const { t } = useTranslation();
 
   return (
     <section aria-labelledby="payments">
-      <h2 id="payments">Encaissements</h2>
+      <h2 id="payments">{t('salePayments.sectionTitle')}</h2>
       <p>
-        {formatAmount(sale.receivedAmount)} reçus sur {formatAmount(sale.total)}
-        {sale.outstanding > 0 && `, reste ${formatAmount(sale.outstanding)} à encaisser`}.
+        {t('salePayments.receivedLine', {
+          received: formatAmount(sale.receivedAmount),
+          total: formatAmount(sale.total),
+        })}
+        {sale.outstanding > 0 &&
+          t('salePayments.outstandingSuffix', { outstanding: formatAmount(sale.outstanding) })}
+        .
       </p>
       {sale.outstanding > 0 && (
         <p>
-          <Link to={`/ventes/${sale.id}/encaissements/nouveau`}>Encaisser un versement</Link>
+          <Link to={`/ventes/${sale.id}/encaissements/nouveau`}>
+            {t('salePayments.addPaymentLink')}
+          </Link>
         </p>
       )}
       {payments.isError && (
-        <p role="alert">Chargement impossible : {apiErrorMessage(payments.error)}</p>
+        <p role="alert">
+          {t('common.loadFailedPrefix')} {apiErrorMessage(payments.error)}
+        </p>
       )}
-      {payments.isPending && <p role="status">Chargement…</p>}
+      {payments.isPending && <p role="status">{t('common.loading')}</p>}
       {payments.isSuccess &&
         (payments.data.length === 0 ? (
-          <p>Rien reçu pour le moment.</p>
+          <p>{t('salePayments.noneAtAll')}</p>
         ) : (
           <ul className="rows">
             {payments.data.map((payment) => (

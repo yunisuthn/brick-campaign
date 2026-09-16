@@ -1,6 +1,15 @@
-import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
+import { DateField } from '../form/DateField.js';
 import { Field, SelectField } from '../form/Field.js';
-import { WORK_TYPE_LABELS } from './useContractorWorks.js';
+import { digitsOnly } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
+import type { TranslationKey } from '../i18n/translations.js';
+import { type ContractorWorkType, contractorWorkTypes } from './useContractorWorks.js';
+
+export const WORK_TYPE_KEY: Record<ContractorWorkType, TranslationKey> = {
+  transport: 'contractorWorks.type.transport',
+  kiln_loading: 'contractorWorks.type.kiln_loading',
+};
 
 /** The quantity stays text until submit, so an empty field is empty and not NaN; the rate is ''
  * while not yet fixed, and only means anything for a transport entry. */
@@ -12,11 +21,9 @@ export interface ContractorWorkForm {
   rate: string;
 }
 
-const TYPE_OPTIONS = Object.entries(WORK_TYPE_LABELS).map(([value, label]) => ({ value, label }));
-const RATE_TO_FIX = { value: '', label: 'À fixer' };
-
 interface ContractorWorkFieldsProps {
   register: UseFormRegister<ContractorWorkForm>;
+  control: Control<ContractorWorkForm>;
   errors: FieldErrors<ContractorWorkForm>;
   /** Contractor names already seen in the campaign, offered as suggestions. */
   contractorNames: ReadonlyArray<string>;
@@ -29,52 +36,57 @@ interface ContractorWorkFieldsProps {
 /** Shared by the entry and the correction. The batch a work belongs to comes from the URL. */
 export function ContractorWorkFields({
   register,
+  control,
   errors,
   contractorNames,
   type,
   rates,
 }: ContractorWorkFieldsProps) {
+  const { t } = useTranslation();
+  const typeOptions = contractorWorkTypes.map((value) => ({ value, label: t(WORK_TYPE_KEY[value]) }));
+
   return (
     <>
-      <Field
-        label="Date"
+      <DateField
+        label={t('common.date')}
+        name="date"
+        control={control}
         error={errors.date}
-        input={register('date', { required: 'La date est requise.' })}
-        type="date"
+        required={t('common.dateRequired')}
       />
       <SelectField
-        label="Type de prestation"
+        label={t('contractorWorks.typeLabel')}
         error={errors.type}
         input={register('type')}
-        options={TYPE_OPTIONS}
+        options={typeOptions}
       />
       <Field
-        label="Nom du prestataire"
+        label={t('contractorWorks.contractorNameLabel')}
         error={errors.contractorName}
         input={register('contractorName', {
           setValueAs: (value: string) => value.trim(),
-          required: 'Le nom du prestataire est requis.',
+          required: t('contractorWorks.contractorNameRequired'),
         })}
         suggestions={contractorNames}
       />
       <Field
-        label="Quantité (briques)"
+        label={t('contractorWorks.quantityLabel')}
         error={errors.quantity}
         input={register('quantity', {
           validate: (value) =>
-            (/^\d+$/.test(value.trim()) && Number(value) > 0) ||
-            'Un nombre entier de briques est attendu.',
+            (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
+            t('contractorWorks.quantityRequired'),
         })}
         inputMode="numeric"
       />
       {type === 'transport' && (
         <SelectField
-          label="Tarif de transport"
+          label={t('contractorWorks.rateLabel')}
           error={errors.rate}
           input={register('rate')}
           options={[
-            RATE_TO_FIX,
-            ...rates.map((rate) => ({ value: String(rate), label: `${rate} Ar la brique` })),
+            { value: '', label: t('contractorWorks.rateToFix') },
+            ...rates.map((rate) => ({ value: String(rate), label: t('contractorWorks.rateOption', { rate }) })),
           ]}
         />
       )}

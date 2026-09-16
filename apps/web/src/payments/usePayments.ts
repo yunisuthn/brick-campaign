@@ -3,13 +3,6 @@ import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
 export const paymentTypes = ['vatsy', 'advance', 'settlement'] as const;
 export type PaymentType = (typeof paymentTypes)[number];
 
-/** The words of the notebook; vatsy is kept as it is said. */
-export const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = {
-  vatsy: 'Vatsy',
-  advance: 'Avance',
-  settlement: 'Solde',
-};
-
 /** Mirror of the API's PaymentDto: paid to a moulder or to a named contractor, never both. */
 export interface Payment {
   id: string;

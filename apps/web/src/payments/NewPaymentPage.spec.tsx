@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
+import { isoToFrench } from '../form/dateMask.js';
 import { today } from '../format.js';
 import { renderWithProviders } from '../test/render.js';
 import { server } from '../test/server.js';
@@ -66,15 +67,15 @@ describe('NewPaymentPage', () => {
     const user = userEvent.setup();
     mount();
 
-    expect(await screen.findByLabelText('Date')).toHaveValue(today());
+    expect(await screen.findByLabelText('Date')).toHaveValue(isoToFrench(today()));
     await user.clear(screen.getByLabelText('Date'));
-    await user.type(screen.getByLabelText('Date'), '2026-06-05');
+    await user.type(screen.getByLabelText('Date'), '05/06/2026');
     await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
     await user.type(screen.getByLabelText('Montant (Ar)'), '50000');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent('Enregistré : Rakoto, 50');
-    expect(screen.getByLabelText('Date')).toHaveValue('2026-06-05');
+    expect(screen.getByLabelText('Date')).toHaveValue('05/06/2026');
     expect(screen.getByLabelText('Mouleur')).toHaveValue('');
     expect(screen.getByLabelText('Montant (Ar)')).toHaveValue('');
 

@@ -74,7 +74,7 @@ describe('NewSalePaymentPage', () => {
     // findByRole('status') would catch the loading line first; the text is what is waited for.
     expect(await screen.findByText('Reste à encaisser : 850 000 Ar.')).toBeInTheDocument();
     await user.clear(screen.getByLabelText('Date'));
-    await user.type(screen.getByLabelText('Date'), '2026-08-20');
+    await user.type(screen.getByLabelText('Date'), '20/08/2026');
     await user.type(screen.getByLabelText('Montant reçu (Ar)'), '850000');
     await user.click(screen.getByRole('button', { name: 'Encaisser' }));
 

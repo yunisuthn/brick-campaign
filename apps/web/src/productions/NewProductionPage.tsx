@@ -6,6 +6,7 @@ import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatBricks, today } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { useMoulders } from '../moulders/useMoulders.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type ProductionForm, ProductionFields, toNewProduction } from './productionFields.js';
@@ -13,19 +14,21 @@ import { useCreateProduction } from './useProductions.js';
 
 export function NewProductionPage() {
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/productions">Toutes les productions</Link>
+        <Link to="/productions">{t('productions.allProductions')}</Link>
       </p>
-      <h1>Nouvelle production</h1>
+      <h1>{t('productions.newTitle')}</h1>
       {campaign ? (
         <EntryForm campaign={campaign} />
       ) : (
         <p>
-          Aucune campagne : <Link to="/campagnes/nouvelle">créez la première</Link> avant de saisir
-          une production.
+          {t('common.noCampaignPrefix')}{' '}
+          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
+          {t('productions.noCampaignSuffix')}
         </p>
       )}
     </main>
@@ -42,6 +45,7 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
   const riceFields = useRiceFields();
   const create = useCreateProduction(campaign.id);
   const [saved, setSaved] = useState<string | null>(null);
+  const { t } = useTranslation();
   const form = useForm<ProductionForm>({
     defaultValues: {
       startedOn: today(),
@@ -55,9 +59,15 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
 
   if (moulders.isError || riceFields.isError) {
     const error = moulders.error ?? riceFields.error;
-    return <p role="alert">Chargement impossible : {error && apiErrorMessage(error)}</p>;
+    return (
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {error && apiErrorMessage(error)}
+      </p>
+    );
   }
-  if (!moulders.isSuccess || !riceFields.isSuccess) return <p role="status">Chargement…</p>;
+  if (!moulders.isSuccess || !riceFields.isSuccess) {
+    return <p role="status">{t('common.loading')}</p>;
+  }
 
   const createRefusal = apiFormErrors(create, form);
 
@@ -65,7 +75,9 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
     create.mutate(toNewProduction(values), {
       onSuccess: (production) => {
         const name = moulders.data.find((m) => m.id === production.moulderId)?.name ?? '';
-        setSaved(`Enregistré : ${name}, ${formatBricks(production.quantity)}.`);
+        setSaved(
+          t('productions.savedMessage', { name, quantity: formatBricks(production.quantity) }),
+        );
         form.reset({ ...values, moulderId: '', quantity: '' });
         form.setFocus('moulderId');
       },
@@ -76,13 +88,16 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
     <form onSubmit={submit} noValidate>
       <ProductionFields
         register={form.register}
+        control={form.control}
         errors={{ ...form.formState.errors, ...createRefusal.fields }}
         moulders={moulders.data}
         riceFields={riceFields.data}
         rates={campaign.mouldingRates}
       />
       {createRefusal.message && (
-        <p role="alert">Enregistrement impossible : {createRefusal.message}</p>
+        <p role="alert">
+          {t('common.saveFailedPrefix')} {createRefusal.message}
+        </p>
       )}
       {saved && !create.isError && (
         <p role="status" className="done">
@@ -91,7 +106,7 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
       )}
       <p>
         <button type="submit" disabled={create.isPending}>
-          Enregistrer
+          {t('common.save')}
         </button>
       </p>
     </form>

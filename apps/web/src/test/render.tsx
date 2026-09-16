@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { createMemoryRouter, type RouteObject, RouterProvider } from 'react-router';
+import { I18nProvider } from '../i18n/I18nProvider.js';
 import { createQueryClient } from '../queryClient.js';
 
 /** The production client, minus retries: a test asserts on the first answer, not a second try. */
@@ -16,9 +17,11 @@ function testQueryClient() {
 export function renderRoutes(routes: RouteObject[], path = '/') {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   const result = render(
-    <QueryClientProvider client={testQueryClient()}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
+    <I18nProvider>
+      <QueryClientProvider client={testQueryClient()}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </I18nProvider>,
   );
   return { ...result, router };
 }

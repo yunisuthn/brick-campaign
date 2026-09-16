@@ -5,7 +5,8 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { formatAmount } from '../format.js';
+import { digitsOnly, formatAmount } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { useSale } from '../sales/useSales.js';
 import { type SalePaymentForm, SalePaymentFields } from './salePaymentFields.js';
 import {
@@ -18,17 +19,18 @@ import {
 export function SalePaymentPage() {
   const { id: saleId = '', paymentId = '' } = useParams();
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to={`/ventes/${saleId}`}>Retour à la vente</Link>
+        <Link to={`/ventes/${saleId}`}>{t('salePayments.backToSale')}</Link>
       </p>
-      <h1>Encaissement</h1>
+      <h1>{t('salePayments.title')}</h1>
       {campaign ? (
         <Loaded campaignId={campaign.id} saleId={saleId} id={paymentId} />
       ) : (
-        <p>Aucune campagne.</p>
+        <p>{t('common.noCampaignShort')}</p>
       )}
     </main>
   );
@@ -37,12 +39,14 @@ export function SalePaymentPage() {
 function Loaded({ campaignId, saleId, id }: { campaignId: string; saleId: string; id: string }) {
   const payment = useSalePayment(campaignId, saleId, id);
   const sale = useSale(campaignId, saleId);
+  const { t } = useTranslation();
 
   if (payment.isError) {
-    return <p role="alert">{loadErrorMessage(payment.error, 'Encaissement introuvable.')}</p>;
+    return <p role="alert">{loadErrorMessage(payment.error, t('salePayments.notFound'))}</p>;
   }
-  if (sale.isError) return <p role="alert">{loadErrorMessage(sale.error, 'Vente introuvable.')}</p>;
-  if (!payment.isSuccess || !sale.isSuccess) return <p role="status">Chargement…</p>;
+  if (sale.isError)
+    return <p role="alert">{loadErrorMessage(sale.error, t('salePayments.saleNotFound'))}</p>;
+  if (!payment.isSuccess || !sale.isSuccess) return <p role="status">{t('common.loading')}</p>;
 
   return (
     <CorrectionForm
@@ -71,6 +75,7 @@ function CorrectionForm({
   const cancel = useCancelSalePayment(campaignId, saleId, payment.id);
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
+  const { t } = useTranslation();
   const form = useForm<SalePaymentForm>({
     defaultValues: { date: payment.date, amount: String(payment.amount) },
   });
@@ -79,7 +84,7 @@ function CorrectionForm({
 
   const save = form.handleSubmit((values) =>
     update.mutate(
-      { date: values.date, amount: Number(values.amount) },
+      { date: values.date, amount: Number(digitsOnly(values.amount)) },
       { onSuccess: (saved) => form.reset({ date: saved.date, amount: String(saved.amount) }) },
     ),
   );
@@ -89,33 +94,38 @@ function CorrectionForm({
 
   return (
     <form onSubmit={save} noValidate>
-      <p role="status">Cet encaissement peut aller jusqu’à {formatAmount(ceiling)}.</p>
+      <p role="status">{t('salePayments.ceilingLine', { ceiling: formatAmount(ceiling) })}</p>
       <SalePaymentFields
         register={form.register}
+        control={form.control}
         errors={{ ...form.formState.errors, ...updateRefusal.fields }}
       />
       {updateRefusal.message && (
-        <p role="alert">Enregistrement impossible : {updateRefusal.message}</p>
+        <p role="alert">
+          {t('common.saveFailedPrefix')} {updateRefusal.message}
+        </p>
       )}
       {cancel.isError && (
-        <p role="alert">Annulation impossible : {apiErrorMessage(cancel.error)}</p>
+        <p role="alert">
+          {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
+        </p>
       )}
       <p className="actions">
         <button type="submit" disabled={busy || !form.formState.isDirty}>
-          Enregistrer
+          {t('common.save')}
         </button>
         {confirming ? (
           <>
             <button type="button" onClick={cancelPayment} disabled={busy}>
-              Confirmer l’annulation
+              {t('common.confirmCancellation')}
             </button>
             <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-              Garder l’encaissement
+              {t('salePayments.keepPayment')}
             </button>
           </>
         ) : (
           <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-            Annuler l’encaissement
+            {t('salePayments.cancelPayment')}
           </button>
         )}
       </p>

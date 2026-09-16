@@ -2,22 +2,28 @@ import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { formatAmount, formatBricks, formatDate } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { StockSummary } from '../stock/StockSummary.js';
 import { useStock } from '../stock/useStock.js';
 import { type KilnBatch, useKilnBatches } from './useKilnBatches.js';
 
 export function KilnBatchesPage() {
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page-wide">
-      <h1>Lots de cuisson{campaign && ` · Campagne ${campaign.year}`}</h1>
+      <h1>
+        {t('kilnBatches.title')}
+        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+      </h1>
       {campaign ? (
         <Batches campaignId={campaign.id} />
       ) : (
         <p>
-          Aucune campagne : <Link to="/campagnes/nouvelle">créez la première</Link> avant
-          d’enfourner.
+          {t('common.noCampaignPrefix')}{' '}
+          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
+          {t('kilnBatches.noCampaignSuffix')}
         </p>
       )}
     </main>
@@ -27,22 +33,25 @@ export function KilnBatchesPage() {
 function Batches({ campaignId }: { campaignId: string }) {
   const stock = useStock(campaignId);
   const batches = useKilnBatches(campaignId);
+  const { t } = useTranslation();
 
   const failed = [stock, batches].find((query) => query.isError);
   if (failed)
     return (
-      <p role="alert">Chargement impossible : {failed.error && apiErrorMessage(failed.error)}</p>
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
+      </p>
     );
-  if (!stock.isSuccess || !batches.isSuccess) return <p role="status">Chargement…</p>;
+  if (!stock.isSuccess || !batches.isSuccess) return <p role="status">{t('common.loading')}</p>;
 
   return (
     <>
       <StockSummary stock={stock.data} />
       <p>
-        <Link to="/lots/nouveau">Enfourner un lot</Link>
+        <Link to="/lots/nouveau">{t('kilnBatches.newLink')}</Link>
       </p>
       {batches.data.length === 0 ? (
-        <p>Aucun lot enfourné.</p>
+        <p>{t('kilnBatches.noneAtAll')}</p>
       ) : (
         <ul className="rows">
           {batches.data.map((batch) => (
@@ -58,21 +67,22 @@ function Batches({ campaignId }: { campaignId: string }) {
 
 /** A batch is in the kiln until it is unloaded; its cost waits on the rates it needs. */
 function BatchRow({ batch }: { batch: KilnBatch }) {
+  const { t } = useTranslation();
   return (
     <>
       <Link to={`/lots/${batch.id}`} className="row-name">
         {formatBricks(batch.quantity)}
       </Link>
       <span className="sub">
-        Enfourné le {formatDate(batch.loadedOn)} ·{' '}
+        {t('kilnBatches.loadedOnMessage', { date: formatDate(batch.loadedOn) })} ·{' '}
         {batch.unloadedOn === null
-          ? 'encore au four'
-          : `défourné le ${formatDate(batch.unloadedOn)}`}
+          ? t('kilnBatches.stillInKiln')
+          : t('kilnBatches.unloadedOnMessage', { date: formatDate(batch.unloadedOn) })}
       </span>
       <span className="sub">
-        Coût :{' '}
+        {t('kilnBatches.costLabel')}{' '}
         {batch.cost.total === null ? (
-          <em>tarif de prestation à fixer</em>
+          <em>{t('kilnBatches.rateToFix')}</em>
         ) : (
           formatAmount(batch.cost.total)
         )}

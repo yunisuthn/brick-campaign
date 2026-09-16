@@ -3,7 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { today } from '../format.js';
+import { digitsOnly, today } from '../format.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import { useKilnBatches } from '../kiln-batches/useKilnBatches.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type ExpenseForm, ExpenseFields } from './expenseFields.js';
@@ -11,19 +12,21 @@ import { type ExpenseCategory, useCreateExpense } from './useExpenses.js';
 
 export function NewExpensePage() {
   const { campaign } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
     <main className="page">
       <p>
-        <Link to="/depenses">Toutes les dépenses</Link>
+        <Link to="/depenses">{t('expenses.allExpenses')}</Link>
       </p>
-      <h1>Nouvelle dépense</h1>
+      <h1>{t('expenses.newTitle')}</h1>
       {campaign ? (
         <EntryForm campaignId={campaign.id} />
       ) : (
         <p>
-          Aucune campagne : <Link to="/campagnes/nouvelle">créez la première</Link> avant de saisir
-          une dépense.
+          {t('common.noCampaignPrefix')}{' '}
+          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
+          {t('expenses.noCampaignSuffix')}
         </p>
       )}
     </main>
@@ -40,6 +43,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
   const batches = useKilnBatches(campaignId);
   const create = useCreateExpense(campaignId);
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const form = useForm<ExpenseForm>({
     defaultValues: {
       date: today(),
@@ -53,9 +57,13 @@ function EntryForm({ campaignId }: { campaignId: string }) {
 
   if (riceFields.isError || batches.isError) {
     const error = riceFields.error ?? batches.error;
-    return <p role="alert">Chargement impossible : {error && apiErrorMessage(error)}</p>;
+    return (
+      <p role="alert">
+        {t('common.loadFailedPrefix')} {error && apiErrorMessage(error)}
+      </p>
+    );
   }
-  if (!riceFields.isSuccess || !batches.isSuccess) return <p role="status">Chargement…</p>;
+  if (!riceFields.isSuccess || !batches.isSuccess) return <p role="status">{t('common.loading')}</p>;
 
   const createRefusal = apiFormErrors(create, form);
 
@@ -64,7 +72,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
       {
         date: values.date,
         category: values.category as ExpenseCategory,
-        amount: Number(values.amount),
+        amount: Number(digitsOnly(values.amount)),
         label: values.label,
         riceFieldId: values.riceFieldId === '' ? null : values.riceFieldId,
         kilnBatchId: values.kilnBatchId === '' ? null : values.kilnBatchId,
@@ -77,16 +85,19 @@ function EntryForm({ campaignId }: { campaignId: string }) {
     <form onSubmit={submit} noValidate>
       <ExpenseFields
         register={form.register}
+        control={form.control}
         errors={{ ...form.formState.errors, ...createRefusal.fields }}
         batches={batches.data}
         riceFields={riceFields.data}
       />
       {createRefusal.message && (
-        <p role="alert">Enregistrement impossible : {createRefusal.message}</p>
+        <p role="alert">
+          {t('common.saveFailedPrefix')} {createRefusal.message}
+        </p>
       )}
       <p>
         <button type="submit" disabled={create.isPending}>
-          Enregistrer
+          {t('common.save')}
         </button>
       </p>
     </form>

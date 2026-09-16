@@ -3,6 +3,7 @@ import { dateOnlySchema } from '../common/date-only.js';
 import { uuidSchema } from '../common/uuid.schema.js';
 
 export const paymentTypes = ['vatsy', 'advance', 'settlement'] as const;
+export type PaymentType = (typeof paymentTypes)[number];
 
 const paymentFields = z.object({
   date: dateOnlySchema,

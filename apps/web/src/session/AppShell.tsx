@@ -1,5 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { CurrentCampaignProvider, useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { type Lang, useTranslation } from '../i18n/I18nProvider.js';
+import type { TranslationKey } from '../i18n/translations.js';
 import { useLogout, useSession } from './useSession.js';
 
 /**
@@ -10,6 +12,7 @@ export function AppShell() {
   const session = useSession();
   const logout = useLogout();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const signOut = () =>
     logout.mutate(undefined, { onSuccess: () => navigate('/connexion', { replace: true }) });
@@ -17,11 +20,12 @@ export function AppShell() {
   return (
     <CurrentCampaignProvider>
       <header className="shell-header">
-        <strong>Briqueterie</strong>
+        <strong>{t('shell.appName')}</strong>
         <span className="shell-who">
+          <LangSwitcher />
           <span>{session.data?.email}</span>
           <button type="button" onClick={signOut} disabled={logout.isPending}>
-            Déconnexion
+            {t('shell.logout')}
           </button>
         </span>
       </header>
@@ -33,18 +37,30 @@ export function AppShell() {
   );
 }
 
-const sections = [
-  { to: '/', label: 'Tableau de bord' },
-  { to: '/campagnes', label: 'Campagnes' },
-  { to: '/mouleurs', label: 'Mouleurs' },
-  { to: '/rizieres', label: 'Rizières' },
-  { to: '/clients', label: 'Clients' },
-  { to: '/productions', label: 'Productions' },
-  { to: '/versements', label: 'Versements' },
-  { to: '/lots', label: 'Lots' },
-  { to: '/ventes', label: 'Ventes' },
-  { to: '/depenses', label: 'Dépenses' },
-  { to: '/soldes', label: 'Soldes' },
+/** French and Malagasy, kept as two plain buttons rather than a select: only two choices, and
+ * a button's own label stays readable in whichever language is not currently picked. */
+function LangSwitcher() {
+  const { lang, setLang, t } = useTranslation();
+  const other: Lang = lang === 'fr' ? 'mg' : 'fr';
+  return (
+    <button type="button" onClick={() => setLang(other)}>
+      {t(`shell.lang.${other}` as TranslationKey)}
+    </button>
+  );
+}
+
+const sections: ReadonlyArray<{ to: string; key: TranslationKey }> = [
+  { to: '/', key: 'nav.dashboard' },
+  { to: '/campagnes', key: 'nav.campaigns' },
+  { to: '/mouleurs', key: 'nav.moulders' },
+  { to: '/rizieres', key: 'nav.riceFields' },
+  { to: '/clients', key: 'nav.clients' },
+  { to: '/productions', key: 'nav.productions' },
+  { to: '/versements', key: 'nav.payments' },
+  { to: '/lots', key: 'nav.kilnBatches' },
+  { to: '/ventes', key: 'nav.sales' },
+  { to: '/depenses', key: 'nav.expenses' },
+  { to: '/soldes', key: 'nav.balances' },
 ];
 
 /**
@@ -54,22 +70,23 @@ const sections = [
  * where eleven links wrapped to three lines above every screen; the bottom bar takes over.
  */
 function MainNav() {
+  const { t } = useTranslation();
   return (
-    <nav aria-label="Sections" className="shell-nav">
+    <nav aria-label={t('nav.sections')} className="shell-nav">
       {sections.map((section) => (
         <NavLink key={section.to} to={section.to} end={section.to === '/'}>
-          {section.label}
+          {t(section.key)}
         </NavLink>
       ))}
     </nav>
   );
 }
 
-const bottomSections = [
-  { to: '/', label: 'Accueil' },
-  { to: '/productions', label: 'Productions' },
-  { to: '/ventes', label: 'Ventes' },
-  { to: '/plus', label: 'Plus' },
+const bottomSections: ReadonlyArray<{ to: string; key: TranslationKey }> = [
+  { to: '/', key: 'nav.home' },
+  { to: '/productions', key: 'nav.productions' },
+  { to: '/ventes', key: 'nav.sales' },
+  { to: '/plus', key: 'nav.more' },
 ];
 
 /**
@@ -78,11 +95,12 @@ const bottomSections = [
  * pixels; same routes as the top bar, so nothing needs keeping in sync between the two.
  */
 function BottomNav() {
+  const { t } = useTranslation();
   return (
-    <nav aria-label="Navigation" className="shell-bottom-nav">
+    <nav aria-label={t('nav.bottom')} className="shell-bottom-nav">
       {bottomSections.map((section) => (
         <NavLink key={section.to} to={section.to} end={section.to === '/'}>
-          {section.label}
+          {t(section.key)}
         </NavLink>
       ))}
     </nav>
@@ -92,21 +110,22 @@ function BottomNav() {
 /** A closed campaign can still be chosen, to read past figures; it says so in the option. */
 function CampaignPicker() {
   const { campaign, campaigns, choose } = useCurrentCampaign();
+  const { t } = useTranslation();
 
   return (
-    <nav aria-label="Campagne courante" className="shell-campaign">
+    <nav aria-label={t('shell.currentCampaign')} className="shell-campaign">
       <label>
-        Campagne courante
+        {t('shell.currentCampaign')}
         <select
           value={campaign?.id ?? ''}
           onChange={(event) => choose(event.target.value)}
           disabled={campaigns.length === 0}
         >
-          {campaigns.length === 0 && <option value="">Aucune</option>}
+          {campaigns.length === 0 && <option value="">{t('shell.noCampaign')}</option>}
           {campaigns.map((c) => (
             <option key={c.id} value={c.id}>
               {c.year}
-              {c.closedOn !== null && ' (clôturée)'}
+              {c.closedOn !== null && t('shell.closedSuffix')}
             </option>
           ))}
         </select>

@@ -8,6 +8,7 @@ import type {
   CreatePaymentDto,
   ListPaymentsQuery,
   PaymentDto,
+  PaymentType,
   UpdatePaymentDto,
 } from './payment.dto.js';
 
@@ -35,6 +36,9 @@ export class PaymentsService {
     this.refs.assertWithinCampaign(campaign, input.date);
     const { moulderId, contractorName, ...rest } = input;
     if (moulderId !== undefined) await this.refs.assertActiveMoulder(moulderId);
+    if (moulderId !== undefined) {
+      await this.assertNoDuplicateType(campaignId, moulderId, input.type, input.date);
+    }
     const row = await this.prisma.payment.create({
       data: {
         ...rest,
@@ -78,7 +82,7 @@ export class PaymentsService {
   }
 
   async update(campaignId: string, id: string, input: UpdatePaymentDto): Promise<PaymentDto> {
-    await this.findOne(campaignId, id);
+    const current = await this.findOne(campaignId, id);
     if (input.date !== undefined) {
       this.refs.assertWithinCampaign(await this.refs.campaignWindow(campaignId), input.date);
     }
@@ -94,8 +98,50 @@ export class PaymentsService {
     } else if (contractorName !== undefined) {
       Object.assign(data, { moulderId: null, contractorName });
     }
+    const effectiveMoulderId = moulderId ?? (contractorName !== undefined ? null : current.moulderId);
+    if (effectiveMoulderId !== null) {
+      await this.assertNoDuplicateType(
+        campaignId,
+        effectiveMoulderId,
+        input.type ?? current.type,
+        input.date ?? current.date,
+        id,
+      );
+    }
     const row = await this.prisma.payment.update({ where: { id }, data, select: paymentSelect });
     return toDto(row);
+  }
+
+  /**
+   * A moulder cannot be paid vatsy or an advance twice for the same day (reference document,
+   * section 5): a repeated entry is almost always a mistake, unlike settlement, which can land
+   * alongside a vatsy on the campaign's last day.
+   */
+  private async assertNoDuplicateType(
+    campaignId: string,
+    moulderId: string,
+    type: PaymentType,
+    date: string,
+    excludeId?: string,
+  ): Promise<void> {
+    if (type === 'settlement') return;
+    const existing = await this.prisma.payment.count({
+      where: {
+        campaignId,
+        moulderId,
+        type,
+        date: parseDateOnly(date),
+        cancelledAt: null,
+        id: excludeId === undefined ? undefined : { not: excludeId },
+      },
+    });
+    if (existing > 0) {
+      throw apiError(
+        'payment_duplicate_type',
+        `A ${type} payment already exists for moulder ${moulderId} on ${date}`,
+        { type },
+      );
+    }
   }
 
   async cancel(campaignId: string, id: string): Promise<void> {

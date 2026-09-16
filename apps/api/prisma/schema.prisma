@@ -17,3 +17,289 @@ model User {
 
   @@map("users")
 }
+
+// One season. The kiln loading rate lives here (one kiln, no variation); moulding and transport
+// instead offer a list of prices here, one of which is picked and frozen on each entry, since the
+// rice fields worked in a season are not all the same distance away.
+// Money is stored as integer Ariary: the currency has no subunit in daily use.
+model Campaign {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  year            Int       @unique
+  startedOn       DateTime  @map("started_on") @db.Date
+  closedOn        DateTime? @map("closed_on") @db.Date
+  mouldingRates   Int[]     @map("moulding_rates")
+  transportRates  Int[]     @map("transport_rates")
+  kilnLoadingRate Int?      @map("kiln_loading_rate")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  productions     Production[]
+  payments        Payment[]
+  kilnBatches     KilnBatch[]
+  contractorWorks ContractorWork[]
+  sales           Sale[]
+  expenses        Expense[]
+
+  @@map("campaigns")
+}
+
+// Production and pay unit: one person or a household of 2-3. A single person is a moulder of 1 member.
+// Reference data, not an entry: a mistaken or departed moulder is deactivated, never deleted.
+model Moulder {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  name        String
+  memberCount Int      @default(1) @map("member_count")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  productions Production[]
+  payments    Payment[]
+
+  @@map("moulders")
+}
+
+/// Land contract: `durable` spans seasons, `seasonal` is signed for one campaign.
+enum RiceFieldContract {
+  durable
+  seasonal
+}
+
+// Where the clay is dug. The contract cost is an Expense, not a field here.
+// Surface in whole square metres (1 are = 100 m2), optional: not every contract states it.
+model RiceField {
+  id           String            @id @default(uuid(7)) @db.Uuid
+  name         String
+  location     String
+  surfaceM2    Int?              @map("surface_m2")
+  contractType RiceFieldContract @map("contract_type")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  productions Production[]
+  expenses    Expense[]
+
+  @@map("rice_fields")
+}
+
+// Who buys the fired bricks. Reference data, not an entry: a mistaken client is corrected, never
+// deleted. Phone is free text (local numbers are written many ways) and optional: some clients
+// are only known by name and village.
+model Client {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String
+  phone     String?
+  locality  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sales Sale[]
+
+  @@map("clients")
+}
+
+// Moulding by one moulder on one rice field, over one or more days. Pay is quantity x rate, rate
+// picked at entry time from the campaign's moulding prices (null while not yet fixed, reference
+// document section 3). endedOn is null while the work is not finished yet. A wrong entry is
+// cancelled (cancelledAt), never deleted: cancelled rows leave the API but keep the history.
+model Production {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  campaignId  String    @map("campaign_id") @db.Uuid
+  moulderId   String    @map("moulder_id") @db.Uuid
+  riceFieldId String    @map("rice_field_id") @db.Uuid
+  startedOn   DateTime  @map("started_on") @db.Date
+  endedOn     DateTime? @map("ended_on") @db.Date
+  quantity    Int
+  rate        Int?
+  cancelledAt DateTime? @map("cancelled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  campaign  Campaign  @relation(fields: [campaignId], references: [id])
+  moulder   Moulder   @relation(fields: [moulderId], references: [id])
+  riceField RiceField @relation(fields: [riceFieldId], references: [id])
+
+  @@index([campaignId, moulderId])
+  @@map("productions")
+}
+
+/// Why money went out: weekly food allowance (vatsy), an advance, or the end-of-campaign settlement.
+enum PaymentType {
+  vatsy
+  advance
+  settlement
+}
+
+// Money paid to a moulder or to a named contractor (transport, kiln loading). Replaces the "paid"
+// column of the notebook. Exactly one beneficiary: moulder_id or contractor_name, enforced by a CHECK
+// constraint written by hand in the migration (Prisma has no syntax for it). Contractors are matched
+// by exact name: a known limit of the v1. A wrong entry is cancelled, never deleted.
+model Payment {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  campaignId     String      @map("campaign_id") @db.Uuid
+  moulderId      String?     @map("moulder_id") @db.Uuid
+  contractorName String?     @map("contractor_name")
+  type           PaymentType
+  date           DateTime    @db.Date
+  amount         Int
+  cancelledAt    DateTime?   @map("cancelled_at")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+  moulder  Moulder? @relation(fields: [moulderId], references: [id], onDelete: Restrict)
+
+  @@index([campaignId, moulderId])
+  @@index([campaignId, contractorName])
+  @@map("payments")
+}
+
+// One firing. Moves its quantity from raw stock (when loaded) to fired stock (when unloaded).
+// Breakage is not counted: what goes in comes out. A wrong entry is cancelled, never deleted.
+model KilnBatch {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  campaignId  String    @map("campaign_id") @db.Uuid
+  loadedOn    DateTime  @map("loaded_on") @db.Date
+  unloadedOn  DateTime? @map("unloaded_on") @db.Date
+  quantity    Int
+  cancelledAt DateTime? @map("cancelled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  campaign        Campaign         @relation(fields: [campaignId], references: [id])
+  contractorWorks ContractorWork[]
+  expenses        Expense[]
+
+  @@index([campaignId])
+  @@map("kiln_batches")
+}
+
+/// Paid-per-brick steps done by people other than the moulders.
+enum ContractorWorkType {
+  transport
+  kiln_loading
+}
+
+// Bricks carried to the kiln or loaded into it, by a contractor known by a free-text name, for one
+// firing. Kiln loading is paid at the campaign's single rate; transport is paid at a rate picked
+// at entry time from the campaign's transport prices, since a kiln batch can mix bricks carried
+// from several rice fields at different distances. What is owed is computed per exact name (known
+// limit of the v1). A wrong entry is cancelled, never deleted.
+model ContractorWork {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  campaignId     String             @map("campaign_id") @db.Uuid
+  kilnBatchId    String             @map("kiln_batch_id") @db.Uuid
+  type           ContractorWorkType
+  contractorName String             @map("contractor_name")
+  date           DateTime           @db.Date
+  quantity       Int
+  rate           Int?
+  cancelledAt    DateTime?          @map("cancelled_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  campaign  Campaign  @relation(fields: [campaignId], references: [id])
+  kilnBatch KilnBatch @relation(fields: [kilnBatchId], references: [id])
+
+  @@index([campaignId, contractorName])
+  @@index([kilnBatchId])
+  @@map("contractor_works")
+}
+
+// One order of fired bricks by a client, at a price negotiated for that sale. No total stored:
+// revenue is ordered_quantity x unit_price. The client pays once, when everything is delivered
+// (no partial payment in the v1): paid_on and amount_received are set together, enforced by a
+// CHECK constraint written by hand in the migration. A wrong entry is cancelled, never deleted.
+model Sale {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  campaignId      String    @map("campaign_id") @db.Uuid
+  clientId        String    @map("client_id") @db.Uuid
+  date            DateTime  @db.Date
+  orderedQuantity Int       @map("ordered_quantity")
+  unitPrice       Int       @map("unit_price")
+  cancelledAt     DateTime? @map("cancelled_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  campaign   Campaign      @relation(fields: [campaignId], references: [id])
+  client     Client        @relation(fields: [clientId], references: [id])
+  deliveries Delivery[]
+  payments   SalePayment[]
+
+  @@index([campaignId, clientId])
+  @@map("sales")
+}
+
+// One instalment received against a sale. A client taking forty thousand bricks pays as the
+// trips go (reference document, section 10.5), so what was received is a sum over these rows
+// and never a column on the sale.
+model SalePayment {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  saleId      String    @map("sale_id") @db.Uuid
+  date        DateTime  @db.Date
+  amount      Int
+  cancelledAt DateTime? @map("cancelled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  sale Sale @relation(fields: [saleId], references: [id])
+
+  @@index([saleId])
+  @@map("sale_payments")
+}
+
+// One truck trip for a sale (2 300-2 500 bricks per trip in practice, not enforced). Takes its
+// quantity out of the fired stock. The campaign is reached through the sale, not repeated here.
+// Cost is fuel plus driver, in integer Ariary. A wrong entry is cancelled, never deleted.
+model Delivery {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  saleId      String    @map("sale_id") @db.Uuid
+  date        DateTime  @db.Date
+  quantity    Int
+  cost        Int
+  plate       String?
+  cancelledAt DateTime? @map("cancelled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  sale Sale @relation(fields: [saleId], references: [id])
+
+  @@index([saleId])
+  @@map("deliveries")
+}
+
+/// Where the money went (reference document, section 3). `akofa` and `tai_charbon` are the firing fuels.
+enum ExpenseCategory {
+  rice_field
+  akofa
+  tai_charbon
+  fuel
+  repair
+  food
+  other
+}
+
+// Money spent on the campaign, in integer Ariary. The links to a firing or a rice field are free:
+// fuel is bought before any batch exists, so nothing forces them. Only what is explicitly linked
+// to a batch counts in that batch's cost. A wrong entry is cancelled, never deleted.
+model Expense {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  campaignId  String          @map("campaign_id") @db.Uuid
+  kilnBatchId String?         @map("kiln_batch_id") @db.Uuid
+  riceFieldId String?         @map("rice_field_id") @db.Uuid
+  date        DateTime        @db.Date
+  category    ExpenseCategory
+  amount      Int
+  label       String
+  cancelledAt DateTime?       @map("cancelled_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  campaign  Campaign   @relation(fields: [campaignId], references: [id])
+  kilnBatch KilnBatch? @relation(fields: [kilnBatchId], references: [id])
+  riceField RiceField? @relation(fields: [riceFieldId], references: [id])
+
+  @@index([campaignId, category])
+  @@index([kilnBatchId])
+  @@map("expenses")
+}

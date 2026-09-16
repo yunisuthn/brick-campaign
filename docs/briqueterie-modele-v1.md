@@ -21,7 +21,7 @@ Activité saisonnière de fabrication et de vente de briques cuites.
 2. Mouleurs, productions, versements, calcul du dû
 3. Prestations transport-four / enfournement (nom libre)
 4. Lots de cuisson
-5. Clients, ventes, livraisons
+5. Clients, ventes, livraisons, encaissements
 6. Dépenses par catégorie
 7. Tableau de bord par campagne
 
@@ -31,26 +31,26 @@ Activité saisonnière de fabrication et de vente de briques cuites.
 - Rôles et permissions
 - Types de briques
 - Comptage de la casse à la cuisson
-- Paiements clients partiels
 - Ajustements d'inventaire
 - Application native Android
 
 ## 3. Entités
 
-| Entité             | Champs                                                                                                              | Notes                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Campagne**       | année, date début, date clôture (nullable), tarif moulage/brique, tarif transport/brique, tarif enfournement/brique | Racine de toutes les données. Les tarifs vivent ici car ils changent par saison.                                                       |
-| **Rizière**        | nom, localisation, surface (opt.), type contrat (durable / campagne)                                                | Le coût du contrat est une Dépense, pas un champ ici.                                                                                  |
-| **Mouleur**        | nom du responsable, nombre de membres, actif                                                                        | Unité de production et de paie. Une personne seule = mouleur à 1 membre. Nom affiché dans l'UI à confirmer (« Mouleur » / « Équipe »). |
-| **Production**     | date, campagne, mouleur, rizière, quantité                                                                          | Aucun montant stocké.                                                                                                                  |
-| **Prestation**     | date, campagne, type (transport-four / enfournement), nom libre, quantité, lot de cuisson                           | Nom libre éditable. Le dû se calcule par nom exact — documenté comme limite connue.                                                    |
-| **Versement**      | date, campagne, bénéficiaire (mouleur ou nom libre de prestation), type (vatsy / avance / solde), montant           | Remplace la colonne « payé » du cahier.                                                                                                |
-| **Lot de cuisson** | campagne, date enfournement, date défournement (nullable), quantité                                                 | Fait passer la quantité de « crue » à « cuite ».                                                                                       |
-| **Client**         | nom, téléphone, localité                                                                                            |                                                                                                                                        |
-| **Vente**          | campagne, client, date, quantité commandée, prix unitaire, date paiement (nullable), montant encaissé               | Statut dérivé : commandée / livrée / payée.                                                                                            |
-| **Livraison**      | vente, date, quantité, coût (carburant + chauffeur), immatriculation (opt.)                                         | Une vente = plusieurs voyages.                                                                                                         |
-| **Dépense**        | campagne, date, catégorie, montant, libellé, lot (opt.), rizière (opt.)                                             | Catégories : rizière, akofa, tai-charbon, carburant, réparation, nourriture, autre.                                                    |
-| **Utilisateur**    | email, mot de passe haché                                                                                           | Deux comptes, pas de rôle.                                                                                                             |
+| Entité             | Champs                                                                                                                                    | Notes                                                                                                                                                                                      |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Campagne**       | année, date début, date clôture (nullable), tarif moulage/brique, tarif transport/brique, tarif enfournement/brique (les trois nullables) | Racine de toutes les données. Les tarifs vivent ici car ils changent par saison. Un tarif absent est « à fixer » : il se négocie parfois en cours de saison (décidé le 10 septembre 2026). |
+| **Rizière**        | nom, localisation, surface (opt.), type contrat (durable / campagne)                                                                      | Le coût du contrat est une Dépense, pas un champ ici.                                                                                                                                      |
+| **Mouleur**        | nom du responsable, nombre de membres, actif                                                                                              | Unité de production et de paie. Une personne seule = mouleur à 1 membre. Affiché « Mouleur » dans l'interface (tranché le 10 septembre 2026).                                              |
+| **Production**     | date, campagne, mouleur, rizière, quantité                                                                                                | Aucun montant stocké.                                                                                                                                                                      |
+| **Prestation**     | date, campagne, type (transport-four / enfournement), nom libre, quantité, lot de cuisson                                                 | Nom libre éditable. Le dû se calcule par nom exact — documenté comme limite connue.                                                                                                        |
+| **Versement**      | date, campagne, bénéficiaire (mouleur ou nom libre de prestation), type (vatsy / avance / solde), montant                                 | Remplace la colonne « payé » du cahier.                                                                                                                                                    |
+| **Lot de cuisson** | campagne, date enfournement, date défournement (nullable), quantité                                                                       | Fait passer la quantité de « crue » à « cuite ».                                                                                                                                           |
+| **Client**         | nom, téléphone, localité                                                                                                                  |                                                                                                                                                                                            |
+| **Vente**          | campagne, client, date, quantité commandée, prix unitaire                                                                                 | Statut dérivé : commandée / livrée / partiellement payée / payée. Aucun montant reçu ici, il se somme sur les encaissements.                                                               |
+| **Encaissement**   | vente, date, montant                                                                                                                      | Une vente = plusieurs encaissements (tranché le 11 septembre 2026, section 10.5).                                                                                                          |
+| **Livraison**      | vente, date, quantité, coût (carburant + chauffeur), immatriculation (opt.)                                                               | Une vente = plusieurs voyages.                                                                                                                                                             |
+| **Dépense**        | campagne, date, catégorie, montant, libellé, lot (opt.), rizière (opt.)                                                                   | Catégories : rizière, akofa, tai-charbon, carburant, réparation, nourriture, autre.                                                                                                        |
+| **Utilisateur**    | email, mot de passe haché                                                                                                                 | Deux comptes, pas de rôle.                                                                                                                                                                 |
 
 ## 4. Règles de calcul
 
@@ -63,10 +63,14 @@ Toutes dérivées à la lecture. Aucune n'est stockée.
 - **Dû à un prestataire** = Σ Prestation × tarif du type − Σ Versements (par nom)
 - **Coût d'un lot** = Σ Dépenses rattachées + Σ Prestations du lot × tarifs
 - **Chiffre d'affaires** = Σ quantité commandée × prix unitaire
-- **Encaissé** = Σ montant encaissé
+- **Encaissé d'une vente** = Σ encaissements de la vente
+- **Vente payée** ⇔ Σ encaissements ≥ quantité commandée × prix unitaire ; partiellement payée tant que la somme se tient entre zéro et ce total
+- **Encaissé** = Σ encaissements
 - **Résultat de campagne** = Encaissé − Σ Dépenses − Σ main-d'œuvre due (versée ou non) − Σ coûts de livraison
 
 Le tableau de bord distingue toujours chiffre d'affaires, encaissé et reste à encaisser.
+
+**Tarif à fixer.** Un calcul qui a besoin d'un tarif absent pour une quantité non nulle donne un montant inconnu (`null`), jamais 0 : dû, coût du lot, main-d'œuvre et résultat de campagne sont alors inconnus, et l'interface les affiche « tarif à fixer ». Une quantité nulle ne dépend d'aucun tarif. Un tarif fixé après coup s'applique à toute la campagne, y compris aux saisies antérieures : c'est le prix négocié pour la saison.
 
 ## 5. Décisions d'architecture et justification
 
@@ -98,5 +102,163 @@ Chaque chantier est terminé, testé et committé avant le suivant.
 
 ## 8. Points ouverts
 
-- Nom de l'entité `Mouleur` dans l'interface
 - Tarif enfournement : confirmé à la brique ? (supposé oui)
+
+Tranchés :
+
+- Tarifs nullables sur la campagne, « à fixer » tant qu'ils ne sont pas négociés (10 septembre 2026, section 3 et 4).
+- « Mouleur » est le nom affiché dans l'interface : le mot du cahier, valable pour une personne seule comme pour un foyer (10 septembre 2026).
+
+## 9. Front — plan des écrans
+
+Ajouté le 9 septembre 2026, une fois les sept chantiers de l'API livrés. Même règle : chaque chantier est terminé, testé et committé avant le suivant, sur la branche `feat/front`.
+
+### 9.1 Principes
+
+- **Téléphone d'abord.** Saisie le soir, sur mobile, d'une main. Un écran = une tâche. Les listes sont triées du plus récent au plus ancien, comme l'API.
+- **Interface en français**, vocabulaire du cahier (vatsy, akofa, tai-charbon gardés tels quels).
+- **L'API fait foi.** Le front n'a aucune règle de calcul : stock, dû, statut, coût, résultat viennent de l'API. Il valide seulement la forme (champ requis, nombre entier, date) et affiche les erreurs 400 renvoyées.
+- **Pas de hors-ligne en v1** (section 5). La PWA se limite à l'installation sur l'écran d'accueil et au chargement de la coquille.
+- **Une campagne courante** choisie en tête d'écran, gardée en session, préfixe de toutes les saisies.
+
+### 9.2 Choix techniques
+
+| Sujet         | Choix                                                        | Justification                                                                                                                                                                 |
+| ------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Application   | `apps/web` : React, Vite, TypeScript                         | Stack fixée en section 6, même monorepo, même lint et prettier                                                                                                                |
+| Routage       | React Router                                                 | Routes courtes sous la campagne courante (`/productions`, `/ventes/:id`), le sélecteur d'en-tête fixe la campagne (tranché le 10 septembre 2026)                              |
+| Données       | TanStack Query                                               | Cache par ressource, invalidation après chaque saisie, état de chargement uniforme                                                                                            |
+| Formulaires   | React Hook Form                                              | Formulaires nombreux et courts, validation de forme sans dupliquer les règles                                                                                                 |
+| Session       | Cookie de l'API, `GET /auth/me` au départ                    | Rien à stocker côté front ; un 401 renvoie à la connexion                                                                                                                     |
+| Style         | Une feuille de style globale, pas de librairie de composants | Revu le 12 septembre 2026, voir section 10.6. Une dizaine d'écrans simples et une dépendance de moins à porter, la raison n'a pas bougé ; ce sont les CSS modules qui tombent |
+| Tests         | Vitest + Testing Library, MSW pour l'API                     | Tester les écrans contre des réponses d'API réalistes, sans serveur                                                                                                           |
+| Développement | Proxy Vite vers l'API, port lu dans `.env`                   | Même origine, le cookie de session passe sans configuration CORS                                                                                                              |
+
+Les schémas Zod des DTO restent dans l'API. Si le front en a besoin, ils seront extraits dans `packages/contracts` à ce moment-là, pas avant.
+
+### 9.3 Ordre des chantiers
+
+1. **Squelette** : `apps/web` avec Vite, lint et prettier partagés, proxy vers l'API, manifeste PWA minimal, CI (lint, build, tests). Page vide qui appelle `GET /health`.
+2. **Session** : écran de connexion, déconnexion, garde des routes, rechargement de la session au démarrage.
+3. **Campagnes** : liste, création avec les trois tarifs, fiche, clôture. Choix de la campagne courante.
+4. **Référentiels** : mouleurs (avec retrait), rizières, clients. Liste et formulaire pour chacun.
+5. **Productions** : saisie du jour (mouleur, rizière, quantité), liste de la campagne, correction, annulation.
+6. **Versements et dû** : saisie d'un versement (mouleur ou prestataire), page des soldes mouleurs et prestataires.
+7. **Lots et prestations** : lots avec enfournement et défournement, prestations rattachées, coût du lot, stock crue / four / cuite.
+8. **Ventes et livraisons** : ventes avec statut, encaissement, livraisons par voyage.
+9. **Dépenses** : saisie par catégorie, rattachement optionnel à un lot ou une rizière, liste filtrée. Fait avant le chantier 8, le 10 septembre 2026 : à l'essai, le besoin de saisir le prix d'un contrat de rizière est apparu tout de suite. La fiche d'une rizière affiche donc le total des dépenses qui lui sont rattachées sur la campagne courante, et non un champ prix : une rizière est un référentiel partagé entre campagnes, un contrat se paie saison par saison.
+10. **Tableau de bord** : chiffre d'affaires, encaissé, reste à encaisser, dépenses par catégorie, main-d'œuvre due et versée, coûts de livraison, résultat, stock.
+11. **PWA** : icônes, installation, coquille en cache. Rien de plus.
+
+### 9.4 Points ouverts du front
+
+Aucun. Les deux derniers sont tranchés ci-dessous.
+
+Tranchés au chantier 3 (10 septembre 2026) :
+
+- Format des montants : `1 250 000 Ar`, dates « 10 mai 2026 ».
+- Campagne courante gardée en `localStorage`, pas en session : sur un téléphone l'onglet se ferme sans arrêt et la campagne est la même toute la saison. Sans choix, la campagne ouverte la plus récente est prise par défaut.
+
+Tranchés le 11 septembre 2026, les onze chantiers livrés :
+
+- Le tableau de bord est la page d'accueil d'une campagne (chantier 10). La liste des saisies du jour n'a pas été réclamée à l'essai.
+- Les erreurs de l'API s'affichent en français, traduites côté front à partir d'un code renvoyé par l'API (section 10.1).
+
+## 10. Après le front — ce qui reste avant la mise en ligne
+
+Ajouté le 11 septembre 2026, les sept chantiers de l'API (section 7) et les onze du front (section 9.3) étant livrés. Trois lots restent, dans cet ordre. Même règle qu'avant : chaque chantier terminé, testé et committé avant le suivant.
+
+### 10.1 Lot A — les erreurs dans la langue de l'interface
+
+Une saisie refusée affiche aujourd'hui « Création impossible : Validation failed », et un identifiant périmé « Chargement impossible : Campaign 8f3a… not found ». Le détail que l'API place dans `issues` n'est jamais lu par le front.
+
+**Tranché : le code vient de l'API, les mots viennent du front.** Chaque erreur métier de l'API porte un code stable (`campaign_not_found`, `date_outside_campaign`, `moulder_inactive`…) à côté de son message anglais, qui reste pour les journaux et les tests e2e. Le front traduit ce code. La langue de l'interface appartient à l'interface, comme le format des montants et des dates tranché au chantier 3, et l'API garde une surface qu'un autre client lirait de la même façon. Le prix est assumé : chaque exception doit recevoir son code, et un code sans traduction doit se voir en test plutôt qu'à l'écran.
+
+1. **Codes d'erreur dans l'API** : un code sur chaque exception métier, le tableau `issues` de la validation inchangé, e2e qui vérifient le code et non la phrase.
+2. **Traduction dans le front** : une table code → phrase française, un repli visible quand un code manque, les messages de chargement et d'enregistrement passés dessus.
+3. **Chaque erreur sous son champ** : les `issues` de validation rattachées au champ par leur `path`, ce qui ne vise aucun champ restant en tête de formulaire.
+
+### 10.2 Lot B — la mise en ligne
+
+L'application ne tourne qu'en développement : le front passe par le proxy Vite, `docker-compose.yml` ne lève que Postgres, et le dépôt n'a pas de README. Pour une saisie le soir depuis un lieu connecté (section 1) :
+
+4. **L'API sert le front construit** : même origine, cookie de session sans CORS, ce que le proxy Vite imite déjà en développement. Tranché le 11 septembre 2026 : un seul conteneur, pas de reverse proxy à tenir en plus, et le front et l'API ne peuvent plus se retrouver en versions différentes puisqu'ils partent ensemble. L'API prend le préfixe `/api`, celui que le front appelle déjà ; le proxy Vite cesse de le retirer, si bien que les chemins sont les mêmes en développement, en test et en ligne. Tout chemin qui n'est pas sous `/api` rend la coquille du front.
+5. **Image de production** et compose qui la lance avec Postgres, migrations appliquées au démarrage.
+6. **Hébergement et sauvegarde quotidienne de la base.** Une saison de saisies n'existe nulle part ailleurs.
+7. **README** : installer, développer, tester, déployer, créer les deux comptes.
+
+### 10.3 Lot C — finition
+
+8. **Fusion de `feat/front` dans `main`.**
+9. **Tests du front** : 120 s pour 45 fichiers parce que jsdom est reconstruit à chaque fichier. Fait le 11 septembre 2026, 13 s désormais. La voie qui gardait l'isolation par fichier (`pool: 'vmThreads'`) n'expose pas les globaux dont MSW a besoin et ne démarre pas ; c'est donc l'environnement partagé (`isolate: false`) qui est retenu. Les fichiers s'exécutent toujours l'un après l'autre et la mise en place remet à zéro les simulacres d'API, le DOM et `localStorage` entre chaque test : ce qui fuirait d'un fichier à l'autre est un état de module, à surveiller si un test devient capricieux.
+10. **Revue de sécurité** avant la mise en ligne.
+
+### 10.4 Points ouverts
+
+- Tarif d'enfournement à la brique : toujours supposé oui (section 8).
+- Hébergeur non choisi (chantier 6).
+
+### 10.5 Lot D — encaissements partiels
+
+Décidé le 11 septembre 2026 : l'hébergement attend, les fonctionnalités passent devant. La v1
+supposait, section 1, que « le client paie en une fois quand tout est livré ». De toutes les
+hypothèses du document c'est celle qui tombera la première : un client qui prend quarante mille
+briques paie au fil des voyages. Une vente ne porte donc plus une date et un montant, mais
+autant d'encaissements datés qu'il en arrive.
+
+**Un encaissement ne peut pas dépasser ce qui reste à payer.** Même raison qu'un lot qu'on
+refuse d'enfourner au-delà du stock crue (section 5) : une somme reçue supérieure au total
+signale une erreur de montant ou de prix, qui se corrige là où elle est, plutôt qu'un
+trop-perçu qui se propagerait ensuite dans le résultat de la campagne. Le reste à encaisser ne
+peut alors jamais devenir négatif.
+
+Un encaissement tombe dans la campagne et jamais avant la vente qu'il règle, comme un voyage.
+Il se corrige et s'annule, il ne se supprime pas. Une vente qui porte encore un encaissement
+vivant ne s'annule pas, comme elle ne s'annule pas tant qu'un voyage pointe sur elle.
+
+11. **API** : l'entité, la migration qui reverse chaque paiement existant en un encaissement,
+    les routes sous la vente, le statut dérivé, les sommes du tableau de bord.
+12. **Front** : les encaissements d'une vente, leur saisie, leur correction, leur annulation.
+
+### 10.6 Le style de l’interface
+
+Tranché le 12 septembre 2026. La section 9.2 annonçait des CSS modules ; il n'en a jamais été
+écrit un seul. Les onze chantiers du front ont mis leurs styles en ligne, et le même style se
+retrouve aujourd’hui dans quarante-cinq fichiers : la couleur d’une erreur trente-cinq fois,
+la largeur d’une page vingt-trois fois. Ce qui devait être scopé ne l’a jamais été parce que,
+dans cette application, presque rien n'est propre à un écran.
+
+**Une feuille de style globale, et les éléments stylés pour eux-mêmes.** Un champ, un
+sélecteur, un bouton, un titre se ressemblent partout : ils sont décrits une fois, par leur
+nom de balise, et la plupart des composants ne portent alors aucune classe. Les rares motifs
+partagés — la page, la liste, la ligne de boutons, le texte secondaire — prennent une classe
+chacun. Un CSS module par écran aurait demandé d'importer la même chose quarante-cinq fois, ou
+de la recopier.
+
+**Les tailles sont celles d'un pouce, pas d'une souris.** La saisie se fait le soir, sur un
+téléphone, d’une main (section 9.1) : les champs et les boutons font au moins 44 pixels de
+haut, et les zones cliquables ne se touchent pas.
+
+13. **Feuille de style** : les éléments, les quelques classes partagées, et les styles en
+    ligne retirés des écrans.
+
+### 10.7 La navigation sur téléphone
+
+Tranché le 12 septembre 2026. Les onze sections tiennent sur une ligne au-delà de 640 pixels,
+mesuré en section 10.6 ; en dessous elles passent à la ligne trois fois en haut de chaque écran,
+avant tout contenu. Refusé lors de la décision de style (section 10.6), repris maintenant seul.
+
+**Une barre basse à quatre destinations, sous le pouce, en dessous de 640 pixels.** Accueil (le
+tableau de bord, page d'accueil d'une campagne depuis le chantier 10), Productions, Ventes,
+Plus. Les deux premières saisies du soir ont leur onglet ; Versements, Lots et Dépenses le
+partagent avec les référentiels sous « Plus », une page qui liste ce qui reste : Campagnes,
+Mouleurs, Rizières, Clients, Versements, Lots, Dépenses, Soldes. Au-delà de 640 pixels la barre
+du haut existante reste seule : elle n'a jamais posé de problème à cette largeur.
+
+Deux écrans de navigation plutôt qu'un qui s'adapte : la barre du haut garde tous ses liens sur
+une grande fenêtre où la place ne manque pas, et la barre basse n'en isole que quatre là où elle
+compte le plus. Aucun état à synchroniser entre les deux : ce sont les mêmes routes, une classe
+CSS choisit laquelle des deux barres le navigateur affiche.
+
+14. **Barre basse** : quatre onglets, page « Plus » pour le reste, la barre du haut cachée en
+    dessous de 640 pixels.

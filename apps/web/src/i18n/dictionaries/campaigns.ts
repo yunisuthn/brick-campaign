@@ -1,0 +1,88 @@
+/** The Campagnes screens: the list, the detail (rates, closing), and the creation form. */
+export const fr = {
+  'campaigns.title': 'Campagnes',
+  'campaigns.newLink': 'Nouvelle campagne',
+  'campaigns.none': 'Aucune campagne.',
+  'campaigns.notFound': 'Campagne introuvable.',
+  'campaigns.allCampaigns': 'Toutes les campagnes',
+  'campaigns.cardTitle': 'Campagne {year}',
+
+  'campaigns.openSince': 'Ouverte depuis le {date}',
+  'campaigns.closedOn': 'Clôturée le {date}',
+  'campaigns.mouldingLabel': 'Moulage',
+  'campaigns.transportLabel': 'Transport',
+  'campaigns.kilnLoadingLabel': 'Enfournement',
+  'campaigns.rateToFix': 'À fixer',
+  'campaigns.rateUnit': '{amount} la brique',
+
+  'campaigns.editRates': 'Modifier les tarifs',
+  'campaigns.ratesFormLabel': 'Tarifs de la campagne',
+  'campaigns.saveRates': 'Enregistrer les tarifs',
+
+  'campaigns.closeCampaign': 'Clôturer la campagne',
+  'campaigns.closedOnLabel': 'Date de clôture',
+  'campaigns.closedOnRequired': 'La date de clôture est requise.',
+  'campaigns.closeFailedPrefix': 'Clôture impossible :',
+  'campaigns.confirmClose': 'Confirmer la clôture',
+
+  'campaigns.yearLabel': 'Année',
+  'campaigns.yearRequired': 'Une année entre 2000 et 2100 est attendue.',
+  'campaigns.startedOnLabel': 'Date de début',
+  'campaigns.startedOnRequired': 'La date de début est requise.',
+  'campaigns.rateHint': 'Un tarif encore en discussion se laisse vide ; il se fixe ensuite depuis la fiche.',
+  'campaigns.createFailedPrefix': 'Création impossible :',
+  'campaigns.createButton': 'Créer la campagne',
+  'campaigns.newTitle': 'Nouvelle campagne',
+
+  'campaigns.rates.noneYet': 'Aucun prix fixé pour l’instant.',
+  'campaigns.rates.remove': 'Retirer',
+  'campaigns.rates.newPriceLabel': 'Nouveau prix de {list}',
+  'campaigns.rates.add': 'Ajouter',
+  'campaigns.rates.kilnLoadingFieldLabel': 'Enfournement (Ar la brique)',
+  'campaigns.rates.priceListUnit': '(Ar la brique)',
+  'campaigns.rates.invalidRate': 'Un nombre entier positif est attendu, ou rien tant que le tarif n’est pas fixé.',
+} as const;
+
+export const mg: Record<keyof typeof fr, string> = {
+  'campaigns.title': 'Vanim-potoana',
+  'campaigns.newLink': 'Vanim-potoana vaovao',
+  'campaigns.none': 'Tsy misy vanim-potoana.',
+  'campaigns.notFound': 'Tsy hita ilay vanim-potoana.',
+  'campaigns.allCampaigns': 'Vanim-potoana rehetra',
+  'campaigns.cardTitle': 'Vanim-potoana {year}',
+
+  'campaigns.openSince': 'Nisokatra hatramin’ny {date}',
+  'campaigns.closedOn': 'Nihidy tamin’ny {date}',
+  'campaigns.mouldingLabel': 'Fanaovana biriky',
+  'campaigns.transportLabel': 'Fitaterana',
+  'campaigns.kilnLoadingLabel': 'Fampidirana am-patana',
+  'campaigns.rateToFix': 'Mbola hofaritana',
+  'campaigns.rateUnit': '{amount} isaky ny biriky',
+
+  'campaigns.editRates': 'Ovay ny tarify',
+  'campaigns.ratesFormLabel': 'Tarifin’ny vanim-potoana',
+  'campaigns.saveRates': 'Tehirizo ny tarify',
+
+  'campaigns.closeCampaign': 'Hidio ny vanim-potoana',
+  'campaigns.closedOnLabel': 'Daty nanidiana',
+  'campaigns.closedOnRequired': 'Ilaina ny daty nanidiana.',
+  'campaigns.closeFailedPrefix': 'Tsy voahidy :',
+  'campaigns.confirmClose': 'Hamarino ny fanidiana',
+
+  'campaigns.yearLabel': 'Taona',
+  'campaigns.yearRequired': 'Ilaina ny taona eo anelanelan’ny 2000 sy 2100.',
+  'campaigns.startedOnLabel': 'Daty nanombohana',
+  'campaigns.startedOnRequired': 'Ilaina ny daty nanombohana.',
+  'campaigns.rateHint': 'Ilay tarify mbola resahina dia avela ho banga ; hofaritana avy any amin’ny pejy manaraka.',
+  'campaigns.createFailedPrefix': 'Tsy voaforona :',
+  'campaigns.createButton': 'Forony ny vanim-potoana',
+  'campaigns.newTitle': 'Vanim-potoana vaovao',
+
+  'campaigns.rates.noneYet': 'Mbola tsy misy vidiny voafaritra.',
+  'campaigns.rates.remove': 'Esory',
+  'campaigns.rates.newPriceLabel': 'Vidiny vaovao ho an’ny {list}',
+  'campaigns.rates.add': 'Ampio',
+  'campaigns.rates.kilnLoadingFieldLabel': 'Fampidirana am-patana (Ar isaky ny biriky)',
+  'campaigns.rates.priceListUnit': '(Ar isaky ny biriky)',
+  'campaigns.rates.invalidRate': 'Ilaina ny isa manontolo tsy mihoatra ny aotra, na avelao ho banga raha mbola tsy voafaritra ny tarify.',
+};

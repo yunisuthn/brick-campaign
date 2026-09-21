@@ -63,7 +63,8 @@ function EntryForm({ campaignId }: { campaignId: string }) {
       </p>
     );
   }
-  if (!riceFields.isSuccess || !batches.isSuccess) return <p role="status">{t('common.loading')}</p>;
+  if (!riceFields.isSuccess || !batches.isSuccess)
+    return <p role="status">{t('common.loading')}</p>;
 
   const createRefusal = apiFormErrors(create, form);
 

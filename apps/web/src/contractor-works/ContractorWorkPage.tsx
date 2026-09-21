@@ -9,7 +9,11 @@ import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { digitsOnly, formatBricks, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
-import { type ContractorWorkForm, ContractorWorkFields, WORK_TYPE_KEY } from './contractorWorkFields.js';
+import {
+  type ContractorWorkForm,
+  ContractorWorkFields,
+  WORK_TYPE_KEY,
+} from './contractorWorkFields.js';
 import {
   type ContractorWork,
   type ContractorWorkType,

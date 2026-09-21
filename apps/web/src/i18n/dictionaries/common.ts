@@ -41,7 +41,7 @@ export const fr = {
   'common.cancelFailedPrefix': 'Annulation impossible :',
   'common.confirmCancellation': 'Confirmer l’annulation',
 
-  'common.campaignSuffix': ' · Campagne {year}',
+  'common.campaignSuffix': ' · Campagne {year} · Tranche {tranche}',
   'common.noCampaignPrefix': 'Aucune campagne :',
   'common.noCampaignLinkText': 'créez la première',
   'common.noCampaignShort': 'Aucune campagne.',
@@ -99,7 +99,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'common.cancelFailedPrefix': 'Tsy voafoana :',
   'common.confirmCancellation': 'Hamarino ny fanafoanana',
 
-  'common.campaignSuffix': ' · Vanim-potoana {year}',
+  'common.campaignSuffix': ' · Vanim-potoana {year} · Tranche {tranche}',
   'common.noCampaignPrefix': 'Tsy misy vanim-potoana :',
   'common.noCampaignLinkText': 'hamorona ny voalohany',
   'common.noCampaignShort': 'Tsy misy vanim-potoana.',

@@ -9,7 +9,12 @@ import { apiFormErrors } from '../form/apiFormErrors.js';
 import { formatAmount, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
-import { PAYMENT_TYPE_KEY, type PaymentForm, PaymentFields, toNewPayment } from './paymentFields.js';
+import {
+  PAYMENT_TYPE_KEY,
+  type PaymentForm,
+  PaymentFields,
+  toNewPayment,
+} from './paymentFields.js';
 import { type Payment, useCancelPayment, usePayment, useUpdatePayment } from './usePayments.js';
 
 export function PaymentPage() {

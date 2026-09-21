@@ -5,7 +5,8 @@ export const fr = {
   'campaigns.none': 'Aucune campagne.',
   'campaigns.notFound': 'Campagne introuvable.',
   'campaigns.allCampaigns': 'Toutes les campagnes',
-  'campaigns.cardTitle': 'Campagne {year}',
+  'campaigns.cardTitle': 'Campagne {year} · Tranche {tranche}',
+  'campaigns.trancheSuffix': ' · Tranche {tranche}',
 
   'campaigns.openSince': 'Ouverte depuis le {date}',
   'campaigns.closedOn': 'Clôturée le {date}',
@@ -15,6 +16,7 @@ export const fr = {
   'campaigns.rateToFix': 'À fixer',
   'campaigns.rateUnit': '{amount} la brique',
 
+  'campaigns.editStartDate': 'Modifier la date de début',
   'campaigns.editRates': 'Modifier les tarifs',
   'campaigns.ratesFormLabel': 'Tarifs de la campagne',
   'campaigns.saveRates': 'Enregistrer les tarifs',
@@ -27,9 +29,12 @@ export const fr = {
 
   'campaigns.yearLabel': 'Année',
   'campaigns.yearRequired': 'Une année entre 2000 et 2100 est attendue.',
+  'campaigns.trancheLabel': 'Tranche',
+  'campaigns.trancheRequired': 'Un numéro de tranche à partir de 1 est attendu.',
   'campaigns.startedOnLabel': 'Date de début',
   'campaigns.startedOnRequired': 'La date de début est requise.',
-  'campaigns.rateHint': 'Un tarif encore en discussion se laisse vide ; il se fixe ensuite depuis la fiche.',
+  'campaigns.rateHint':
+    'Un tarif encore en discussion se laisse vide ; il se fixe ensuite depuis la fiche.',
   'campaigns.createFailedPrefix': 'Création impossible :',
   'campaigns.createButton': 'Créer la campagne',
   'campaigns.newTitle': 'Nouvelle campagne',
@@ -40,7 +45,8 @@ export const fr = {
   'campaigns.rates.add': 'Ajouter',
   'campaigns.rates.kilnLoadingFieldLabel': 'Enfournement (Ar la brique)',
   'campaigns.rates.priceListUnit': '(Ar la brique)',
-  'campaigns.rates.invalidRate': 'Un nombre entier positif est attendu, ou rien tant que le tarif n’est pas fixé.',
+  'campaigns.rates.invalidRate':
+    'Un nombre entier positif est attendu, ou rien tant que le tarif n’est pas fixé.',
 } as const;
 
 export const mg: Record<keyof typeof fr, string> = {
@@ -49,7 +55,8 @@ export const mg: Record<keyof typeof fr, string> = {
   'campaigns.none': 'Tsy misy vanim-potoana.',
   'campaigns.notFound': 'Tsy hita ilay vanim-potoana.',
   'campaigns.allCampaigns': 'Vanim-potoana rehetra',
-  'campaigns.cardTitle': 'Vanim-potoana {year}',
+  'campaigns.cardTitle': 'Vanim-potoana {year} · Tranche {tranche}',
+  'campaigns.trancheSuffix': ' · Tranche {tranche}',
 
   'campaigns.openSince': 'Nisokatra hatramin’ny {date}',
   'campaigns.closedOn': 'Nihidy tamin’ny {date}',
@@ -59,6 +66,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'campaigns.rateToFix': 'Mbola hofaritana',
   'campaigns.rateUnit': '{amount} isaky ny biriky',
 
+  'campaigns.editStartDate': 'Ovay ny daty nanombohana',
   'campaigns.editRates': 'Ovay ny tarify',
   'campaigns.ratesFormLabel': 'Tarifin’ny vanim-potoana',
   'campaigns.saveRates': 'Tehirizo ny tarify',
@@ -71,9 +79,12 @@ export const mg: Record<keyof typeof fr, string> = {
 
   'campaigns.yearLabel': 'Taona',
   'campaigns.yearRequired': 'Ilaina ny taona eo anelanelan’ny 2000 sy 2100.',
+  'campaigns.trancheLabel': 'Tranche',
+  'campaigns.trancheRequired': 'Ilaina ny nomeraon’ny tranche, manomboka amin’ny 1.',
   'campaigns.startedOnLabel': 'Daty nanombohana',
   'campaigns.startedOnRequired': 'Ilaina ny daty nanombohana.',
-  'campaigns.rateHint': 'Ilay tarify mbola resahina dia avela ho banga ; hofaritana avy any amin’ny pejy manaraka.',
+  'campaigns.rateHint':
+    'Ilay tarify mbola resahina dia avela ho banga ; hofaritana avy any amin’ny pejy manaraka.',
   'campaigns.createFailedPrefix': 'Tsy voaforona :',
   'campaigns.createButton': 'Forony ny vanim-potoana',
   'campaigns.newTitle': 'Vanim-potoana vaovao',
@@ -84,5 +95,6 @@ export const mg: Record<keyof typeof fr, string> = {
   'campaigns.rates.add': 'Ampio',
   'campaigns.rates.kilnLoadingFieldLabel': 'Fampidirana am-patana (Ar isaky ny biriky)',
   'campaigns.rates.priceListUnit': '(Ar isaky ny biriky)',
-  'campaigns.rates.invalidRate': 'Ilaina ny isa manontolo tsy mihoatra ny aotra, na avelao ho banga raha mbola tsy voafaritra ny tarify.',
+  'campaigns.rates.invalidRate':
+    'Ilaina ny isa manontolo tsy mihoatra ny aotra, na avelao ho banga raha mbola tsy voafaritra ny tarify.',
 };

@@ -3,12 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderRoutes } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { SalePage } from './SalePage.js';
 
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -106,7 +108,8 @@ describe('SalePage', () => {
     const user = userEvent.setup();
     renderRoutes(routes, '/ventes/s1');
 
-    await user.selectOptions(await screen.findByLabelText('Client'), 'cl2');
+    await screen.findByLabelText('Client');
+    await chooseOption(user, 'Client', 'Vola');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(await screen.findByRole('heading', { name: /Vola/ })).toBeInTheDocument();

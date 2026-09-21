@@ -56,6 +56,7 @@ function RiceFieldForm({ field }: { field: RiceField }) {
       <form onSubmit={save} noValidate>
         <RiceFieldFields
           register={form.register}
+          control={form.control}
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
         />
         {updateRefusal.message && (

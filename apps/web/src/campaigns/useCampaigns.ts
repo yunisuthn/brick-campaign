@@ -16,6 +16,8 @@ export interface CampaignRates {
 export interface Campaign extends CampaignRates {
   id: string;
   year: number;
+  /** A year can hold more than one campaign — tranche 1, 2, 3… — unique together with the year. */
+  tranche: number;
   startedOn: string;
   closedOn: string | null;
 }

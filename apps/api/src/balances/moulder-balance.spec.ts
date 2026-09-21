@@ -6,7 +6,7 @@ describe('moulderBalance', () => {
       bricks: 0,
       earned: 0,
       paid: 0,
-      paidByType: { vatsy: 0, advance: 0, settlement: 0 },
+      paidByType: { vatsy: 0, advance: 0, settlement: 0, fee: 0 },
       due: 0,
     });
   });
@@ -27,9 +27,16 @@ describe('moulderBalance', () => {
       bricks: 2500,
       earned: 50000,
       paid: 35000,
-      paidByType: { vatsy: 20000, advance: 15000, settlement: 0 },
+      paidByType: { vatsy: 20000, advance: 15000, settlement: 0, fee: 0 },
       due: 15000,
     });
+  });
+
+  it('subtracts a fee the same as any other payment, even alone with no other payment', () => {
+    const result = moulderBalance([{ quantity: 1000, rate: 20 }], [{ type: 'fee', amount: 5000 }]);
+    expect(result.paidByType.fee).toBe(5000);
+    expect(result.paid).toBe(5000);
+    expect(result.due).toBe(15000);
   });
 
   it('sums entries at different rates, since rice fields are not all the same distance away', () => {
@@ -69,7 +76,7 @@ describe('moulderBalance with a rate not fixed', () => {
       bricks: 2500,
       earned: null,
       paid: 10000,
-      paidByType: { vatsy: 10000, advance: 0, settlement: 0 },
+      paidByType: { vatsy: 10000, advance: 0, settlement: 0, fee: 0 },
       due: null,
     });
   });

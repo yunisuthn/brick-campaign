@@ -8,6 +8,7 @@ import { RiceFieldExpenses } from './RiceFieldExpenses.js';
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -57,7 +58,7 @@ describe('RiceFieldExpenses', () => {
     mount();
 
     expect(
-      await screen.findByRole('heading', { name: 'Coût sur la campagne 2026' }),
+      await screen.findByRole('heading', { name: 'Coût sur la campagne 2026 · Tranche 1' }),
     ).toBeInTheDocument();
     expect(await screen.findByText('520 000 Ar')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Contrat' })).toHaveAttribute('href', '/depenses/e1');

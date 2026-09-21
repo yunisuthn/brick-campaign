@@ -4,12 +4,14 @@ import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { today } from '../format.js';
 import { renderRoutes } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { NewSalePage } from './NewSalePage.js';
 
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -61,7 +63,8 @@ describe('NewSalePage', () => {
     const user = userEvent.setup();
     const { router } = renderRoutes(routes, '/ventes/nouvelle');
 
-    await user.selectOptions(await screen.findByLabelText('Client'), 'cl1');
+    await screen.findByLabelText('Client');
+    await chooseOption(user, 'Client', 'Rabe');
     await user.type(screen.getByLabelText('Quantité commandée (briques)'), '5000');
     await user.type(screen.getByLabelText('Prix unitaire (Ar la brique)'), '250');
     expect(screen.getByRole('status')).toHaveTextContent('Total : 1 250 000 Ar');

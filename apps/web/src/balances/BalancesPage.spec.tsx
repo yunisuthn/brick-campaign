@@ -8,6 +8,7 @@ import { BalancesPage } from './BalancesPage.js';
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -66,6 +67,8 @@ describe('BalancesPage', () => {
     mount();
 
     const moulders = await screen.findByRole('region', { name: 'Mouleurs' });
+    // 75 000 owed to Rakoto, netted against 5 000 overpaid to Rasoa.
+    expect(within(moulders).getByText('Total reste dû : 70 000 Ar')).toBeInTheDocument();
     const [rakoto, rasoa] = within(moulders).getAllByRole('listitem');
     expect(within(rakoto!).getByText('2 500 briques')).toBeInTheDocument();
     expect(within(rakoto!).getByText('Reste dû')).toBeInTheDocument();
@@ -96,7 +99,8 @@ describe('BalancesPage', () => {
     );
     mount();
 
-    expect(await screen.findByText('Tarif de moulage à fixer')).toBeInTheDocument();
+    // Said both for the one moulder's own earnings and for the total that sums them.
+    expect(await screen.findAllByText('Tarif de moulage à fixer')).toHaveLength(2);
     expect(screen.getByText('Inconnu tant que le tarif n’est pas fixé')).toBeInTheDocument();
     expect(
       screen.getByText('Aucune prestation ni versement sur cette campagne.'),

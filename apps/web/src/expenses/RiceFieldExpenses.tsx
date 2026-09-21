@@ -19,7 +19,8 @@ export function RiceFieldExpenses({ riceFieldId }: { riceFieldId: string }) {
     <section aria-labelledby="rice-field-cost">
       <h2 id="rice-field-cost">
         {t('expenses.costOnCampaign')}
-        {campaign && ` ${campaign.year}`}
+        {campaign &&
+          ` ${campaign.year}${t('campaigns.trancheSuffix', { tranche: campaign.tranche })}`}
       </h2>
       {campaign ? (
         <Linked campaignId={campaign.id} riceFieldId={riceFieldId} />

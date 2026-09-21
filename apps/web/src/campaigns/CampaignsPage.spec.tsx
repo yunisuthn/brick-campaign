@@ -7,6 +7,7 @@ import { CampaignsPage } from './CampaignsPage.js';
 const open = {
   id: 'c2',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -28,12 +29,12 @@ describe('CampaignsPage', () => {
     renderWithProviders(<CampaignsPage />);
 
     const [first, second] = await screen.findAllByRole('article');
-    expect(first).toHaveAccessibleName('Campagne 2026');
-    expect(within(first!).getByRole('link', { name: 'Campagne 2026' })).toHaveAttribute(
+    expect(first).toHaveAccessibleName('Campagne 2026 · Tranche 1');
+    expect(within(first!).getByRole('link', { name: 'Campagne 2026 · Tranche 1' })).toHaveAttribute(
       'href',
       '/campagnes/c2',
     );
-    expect(second).toHaveAccessibleName('Campagne 2025');
+    expect(second).toHaveAccessibleName('Campagne 2025 · Tranche 1');
     expect(within(first!).getByText('Ouverte depuis le 10 mai 2026')).toBeInTheDocument();
     expect(within(first!).getByText('40 Ar la brique')).toBeInTheDocument();
     expect(within(second!).getByText('Clôturée le 30 novembre 2025')).toBeInTheDocument();

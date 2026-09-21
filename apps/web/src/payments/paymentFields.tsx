@@ -11,6 +11,7 @@ export const PAYMENT_TYPE_KEY: Record<PaymentType, TranslationKey> = {
   vatsy: 'payments.type.vatsy',
   advance: 'payments.type.advance',
   settlement: 'payments.type.settlement',
+  fee: 'payments.type.fee',
 };
 
 /**
@@ -60,7 +61,10 @@ export function PaymentFields({
     { value: 'moulder', label: t('common.moulderLabel') },
     { value: 'contractor', label: t('payments.contractorLabel') },
   ];
-  const typeOptions = paymentTypes.map((type) => ({ value: type, label: t(PAYMENT_TYPE_KEY[type]) }));
+  const typeOptions = paymentTypes.map((type) => ({
+    value: type,
+    label: t(PAYMENT_TYPE_KEY[type]),
+  }));
 
   return (
     <>
@@ -74,17 +78,20 @@ export function PaymentFields({
       <SelectField
         label={t('payments.beneficiaryLabel')}
         error={errors.kind}
-        input={register('kind')}
+        name="kind"
+        control={control}
         options={kindOptions}
       />
       {kind === 'moulder' ? (
         <SelectField
           label={t('common.moulderLabel')}
           error={errors.moulderId}
-          input={register('moulderId', {
+          name="moulderId"
+          control={control}
+          rules={{
             validate: (value, form) =>
               form.kind !== 'moulder' || value !== '' || t('common.moulderRequired'),
-          })}
+          }}
           options={[
             { value: '', label: t('common.choose') },
             ...moulders.map((m) => ({ value: m.id, label: m.name })),
@@ -106,7 +113,8 @@ export function PaymentFields({
       <SelectField
         label={t('common.type')}
         error={errors.type}
-        input={register('type')}
+        name="type"
+        control={control}
         options={typeOptions}
       />
       <Field

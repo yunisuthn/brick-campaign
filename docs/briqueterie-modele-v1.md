@@ -36,21 +36,21 @@ Activité saisonnière de fabrication et de vente de briques cuites.
 
 ## 3. Entités
 
-| Entité             | Champs                                                                                                                                    | Notes                                                                                                                                                                                      |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Campagne**       | année, date début, date clôture (nullable), tarif moulage/brique, tarif transport/brique, tarif enfournement/brique (les trois nullables) | Racine de toutes les données. Les tarifs vivent ici car ils changent par saison. Un tarif absent est « à fixer » : il se négocie parfois en cours de saison (décidé le 10 septembre 2026). |
-| **Rizière**        | nom, localisation, surface (opt.), type contrat (durable / campagne)                                                                      | Le coût du contrat est une Dépense, pas un champ ici.                                                                                                                                      |
-| **Mouleur**        | nom du responsable, nombre de membres, actif                                                                                              | Unité de production et de paie. Une personne seule = mouleur à 1 membre. Affiché « Mouleur » dans l'interface (tranché le 10 septembre 2026).                                              |
-| **Production**     | date, campagne, mouleur, rizière, quantité                                                                                                | Aucun montant stocké.                                                                                                                                                                      |
-| **Prestation**     | date, campagne, type (transport-four / enfournement), nom libre, quantité, lot de cuisson                                                 | Nom libre éditable. Le dû se calcule par nom exact — documenté comme limite connue.                                                                                                        |
-| **Versement**      | date, campagne, bénéficiaire (mouleur ou nom libre de prestation), type (vatsy / avance / solde), montant                                 | Remplace la colonne « payé » du cahier.                                                                                                                                                    |
-| **Lot de cuisson** | campagne, date enfournement, date défournement (nullable), quantité                                                                       | Fait passer la quantité de « crue » à « cuite ».                                                                                                                                           |
-| **Client**         | nom, téléphone, localité                                                                                                                  |                                                                                                                                                                                            |
-| **Vente**          | campagne, client, date, quantité commandée, prix unitaire                                                                                 | Statut dérivé : commandée / livrée / partiellement payée / payée. Aucun montant reçu ici, il se somme sur les encaissements.                                                               |
-| **Encaissement**   | vente, date, montant                                                                                                                      | Une vente = plusieurs encaissements (tranché le 11 septembre 2026, section 10.5).                                                                                                          |
-| **Livraison**      | vente, date, quantité, coût (carburant + chauffeur), immatriculation (opt.)                                                               | Une vente = plusieurs voyages.                                                                                                                                                             |
-| **Dépense**        | campagne, date, catégorie, montant, libellé, lot (opt.), rizière (opt.)                                                                   | Catégories : rizière, akofa, tai-charbon, carburant, réparation, nourriture, autre.                                                                                                        |
-| **Utilisateur**    | email, mot de passe haché                                                                                                                 | Deux comptes, pas de rôle.                                                                                                                                                                 |
+| Entité             | Champs                                                                                                                                             | Notes                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Campagne**       | année, tranche, date début, date clôture (nullable), tarif moulage/brique, tarif transport/brique, tarif enfournement/brique (les trois nullables) | Racine de toutes les données. Les tarifs vivent ici car ils changent par saison. Un tarif absent est « à fixer » : il se négocie parfois en cours de saison (décidé le 10 septembre 2026). Une année peut porter plusieurs campagnes (tranche 1, 2, 3…) ; le couple (année, tranche) est unique, pas l'année seule (décidé le 18 septembre 2026, section 10.8). |
+| **Rizière**        | nom, localisation, surface (opt.), type contrat (durable / campagne)                                                                               | Le coût du contrat est une Dépense, pas un champ ici.                                                                                                                                                                                                                                                                                                           |
+| **Mouleur**        | nom du responsable, nombre de membres, actif                                                                                                       | Unité de production et de paie. Une personne seule = mouleur à 1 membre. Affiché « Mouleur » dans l'interface (tranché le 10 septembre 2026).                                                                                                                                                                                                                   |
+| **Production**     | date, campagne, mouleur, rizière, quantité                                                                                                         | Aucun montant stocké.                                                                                                                                                                                                                                                                                                                                           |
+| **Prestation**     | date, campagne, type (transport-four / enfournement), nom libre, quantité, lot de cuisson                                                          | Nom libre éditable. Le dû se calcule par nom exact — documenté comme limite connue.                                                                                                                                                                                                                                                                             |
+| **Versement**      | date, campagne, bénéficiaire (mouleur ou nom libre de prestation), type (vatsy / avance / solde / frais), montant                                  | Remplace la colonne « payé » du cahier. Un frais est une retenue sur le dû (matériel, outils), au plus un par mouleur et par campagne (décidé le 18 septembre 2026, section 10.9).                                                                                                                                                                              |
+| **Lot de cuisson** | campagne, date enfournement, date défournement (nullable), quantité                                                                                | Fait passer la quantité de « crue » à « cuite ».                                                                                                                                                                                                                                                                                                                |
+| **Client**         | nom, téléphone, localité                                                                                                                           |                                                                                                                                                                                                                                                                                                                                                                 |
+| **Vente**          | campagne, client, date, quantité commandée, prix unitaire                                                                                          | Statut dérivé : commandée / livrée / partiellement payée / payée. Aucun montant reçu ici, il se somme sur les encaissements.                                                                                                                                                                                                                                    |
+| **Encaissement**   | vente, date, montant                                                                                                                               | Une vente = plusieurs encaissements (tranché le 11 septembre 2026, section 10.5).                                                                                                                                                                                                                                                                               |
+| **Livraison**      | vente, date, quantité, coût (carburant + chauffeur), immatriculation (opt.)                                                                        | Une vente = plusieurs voyages.                                                                                                                                                                                                                                                                                                                                  |
+| **Dépense**        | campagne, date, catégorie, montant, libellé, lot (opt.), rizière (opt.)                                                                            | Catégories : rizière, akofa, tai-charbon, carburant, réparation, nourriture, autre.                                                                                                                                                                                                                                                                             |
+| **Utilisateur**    | email, mot de passe haché                                                                                                                          | Deux comptes, pas de rôle.                                                                                                                                                                                                                                                                                                                                      |
 
 ## 4. Règles de calcul
 
@@ -262,3 +262,48 @@ CSS choisit laquelle des deux barres le navigateur affiche.
 
 14. **Barre basse** : quatre onglets, page « Plus » pour le reste, la barre du haut cachée en
     dessous de 640 pixels.
+
+### 10.8 Plusieurs campagnes par année
+
+Décidé le 18 septembre 2026. La section 1 supposait une campagne par année, débutant en mai ;
+l'année seule identifiait donc une campagne (`year` unique en base). Dans les faits une brickerie
+peut lancer plusieurs campagnes dans la même année — une deuxième tranche une fois la première
+close, par exemple — ce que le modèle actuel refuse.
+
+**Un numéro de tranche par année, pas une année libérée de toute contrainte.** La campagne garde
+son année et gagne un entier `tranche` saisi à la création (1, 2, 3…) ; c'est le couple (année,
+tranche) qui est unique, pas l'année seule. Une tranche sans numéro explicite aurait laissé
+deviner l'ordre à partir des dates de début, une information qui se lit déjà ailleurs sur
+l'écran ; le numéro la rend explicite et nommable partout où une campagne s'affiche.
+
+**« Tranche » reste tel quel dans les deux langues**, comme vatsy, akofa et tai-charbon (section
+9.1) : c'est le mot que l'exploitante emploie, pas un terme à traduire.
+
+Une campagne s'affiche désormais « Campagne {année} · Tranche {tranche} » partout où elle
+l'était par sa seule année (sélecteur d'en-tête, fiche, listes, en-tête des écrans qui la
+nomment).
+
+15. **API** : la migration (`tranche` par défaut à 1 pour les campagnes déjà en base, contrainte
+    d'unicité sur le couple), le DTO, le code d'erreur de conflit renommé.
+16. **Front** : le champ à la création, l'affichage partout où l'année seule identifiait une
+    campagne.
+
+### 10.9 Un type de versement Frais
+
+Décidé le 18 septembre 2026. Le mouleur reçoit du matériel et des outils au fil de la campagne
+(section 1) ; leur coût se retient parfois sur ce qui lui est dû, un versement de plus à côté du
+vatsy, de l'avance et du solde.
+
+**Frais compte comme les trois autres dans le calcul du dû**, additionné dans versé au même
+titre (`due = earned - paid`, section 4) : rien à changer côté calcul, seul le type change de
+liste.
+
+**Un frais ne se répète pas dans la campagne, sur aucun jour en particulier.** Contrairement au
+vatsy et à l'avance, plafonnés à un par jour (section 5), un frais capte un coût qui ne revient
+pas chaque semaine ; contrairement au solde, il n'est pas garanti d'exister non plus — une
+campagne peut ne compter aucun frais. La règle retenue : au plus un frais par mouleur et par
+campagne, peu importe la date, et aucun n'est requis.
+
+17. **API** : la valeur d'enum, la règle de doublon limitée à la campagne plutôt qu'au jour pour
+    ce seul type.
+18. **Front** : le type ajouté au formulaire de versement et à ses traductions.

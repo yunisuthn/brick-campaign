@@ -15,6 +15,7 @@ export function NewCampaignPage() {
   const form = useForm<NewCampaign>({
     defaultValues: {
       year: new Date().getFullYear(),
+      tranche: 1,
       startedOn: '',
       mouldingRates: [],
       transportRates: [],
@@ -41,6 +42,16 @@ export function NewCampaignPage() {
             validate: (value) =>
               (Number.isInteger(value) && value >= 2000 && value <= 2100) ||
               t('campaigns.yearRequired'),
+          })}
+          inputMode="numeric"
+        />
+        <Field
+          label={t('campaigns.trancheLabel')}
+          error={errors.tranche ?? createRefusal.fields.tranche}
+          input={form.register('tranche', {
+            setValueAs: (value: string) => Number(digitsOnly(value)),
+            validate: (value) =>
+              (Number.isInteger(value) && value >= 1) || t('campaigns.trancheRequired'),
           })}
           inputMode="numeric"
         />

@@ -6,6 +6,7 @@ describe('Campaigns (e2e)', () => {
   const years = [2099, 2098];
   const body = {
     year: years[0],
+    tranche: 1,
     startedOn: '2099-05-01',
     mouldingRates: [20, 28],
     transportRates: [5, 8],
@@ -76,7 +77,7 @@ describe('Campaigns (e2e)', () => {
       .set('Cookie', cookie)
       .send(body)
       .expect(409)
-      .expect(hasCode('campaign_year_taken'));
+      .expect(hasCode('campaign_year_tranche_taken'));
 
     await request(server)
       .post('/api/campaigns')
@@ -112,7 +113,7 @@ describe('Campaigns (e2e)', () => {
       .set('Cookie', cookie)
       .send({ year: years[1] })
       .expect(409)
-      .expect(hasCode('campaign_year_taken'));
+      .expect(hasCode('campaign_year_tranche_taken'));
   });
 
   it('creates a campaign with the rates still to be fixed, then fixes one', async () => {
@@ -122,7 +123,7 @@ describe('Campaigns (e2e)', () => {
     const created = await request(server)
       .post('/api/campaigns')
       .set('Cookie', cookie)
-      .send({ year: years[0], startedOn: '2099-05-01' })
+      .send({ year: years[0], tranche: 1, startedOn: '2099-05-01' })
       .expect(201);
     expect(created.body).toMatchObject({
       mouldingRates: [],

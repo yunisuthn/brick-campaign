@@ -20,6 +20,9 @@ export const fr = {
   'balances.overpaid': 'Trop versé',
   'balances.due': 'Reste dû',
   'balances.unknownUntilRate': 'Inconnu tant que le tarif n’est pas fixé',
+
+  'balances.totalDue': 'Total reste dû',
+  'balances.totalOverpaid': 'Total trop versé',
 } as const;
 
 export const mg: Record<keyof typeof fr, string> = {
@@ -43,4 +46,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'balances.overpaid': 'Nihoa-pandoa',
   'balances.due': 'Sisa tavela',
   'balances.unknownUntilRate': 'Tsy fantatra raha mbola tsy voafaritra ny tarify',
+
+  'balances.totalDue': 'Fitambaran’ny sisa tavela',
+  'balances.totalOverpaid': 'Fitambaran’ny nihoa-pandoa',
 };

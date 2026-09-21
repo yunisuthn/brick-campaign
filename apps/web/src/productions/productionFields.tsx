@@ -78,13 +78,17 @@ export function ProductionFields({
       <SelectField
         label={t('common.moulderLabel')}
         error={errors.moulderId}
-        input={register('moulderId', { required: t('common.moulderRequired') })}
+        name="moulderId"
+        control={control}
+        rules={{ required: t('common.moulderRequired') }}
         options={[choose, ...moulders.map((m) => ({ value: m.id, label: m.name }))]}
       />
       <SelectField
         label={t('productions.riceFieldLabel')}
         error={errors.riceFieldId}
-        input={register('riceFieldId', { required: t('productions.riceFieldRequired') })}
+        name="riceFieldId"
+        control={control}
+        rules={{ required: t('productions.riceFieldRequired') }}
         options={[choose, ...riceFields.map((f) => ({ value: f.id, label: f.name }))]}
       />
       <Field
@@ -100,10 +104,14 @@ export function ProductionFields({
       <SelectField
         label={t('productions.rateLabel')}
         error={errors.rate}
-        input={register('rate')}
+        name="rate"
+        control={control}
         options={[
           { value: '', label: t('productions.rateToFix') },
-          ...rates.map((rate) => ({ value: String(rate), label: t('productions.rateOption', { rate }) })),
+          ...rates.map((rate) => ({
+            value: String(rate),
+            label: t('productions.rateOption', { rate }),
+          })),
         ]}
       />
     </>

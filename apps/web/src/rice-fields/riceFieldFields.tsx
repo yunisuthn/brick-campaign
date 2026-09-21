@@ -1,4 +1,4 @@
-import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 import { Field, SelectField } from '../form/Field.js';
 import { digitsOnly } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
@@ -22,11 +22,12 @@ export function surfaceText(
 
 interface RiceFieldFieldsProps {
   register: UseFormRegister<NewRiceField>;
+  control: Control<NewRiceField>;
   errors: FieldErrors<NewRiceField>;
 }
 
 /** Shared by creation and edit. The surface is optional: left empty, it is null. */
-export function RiceFieldFields({ register, errors }: RiceFieldFieldsProps) {
+export function RiceFieldFields({ register, control, errors }: RiceFieldFieldsProps) {
   const { t } = useTranslation();
   return (
     <>
@@ -62,7 +63,8 @@ export function RiceFieldFields({ register, errors }: RiceFieldFieldsProps) {
       <SelectField
         label={t('riceFields.contractTypeLabel')}
         error={errors.contractType}
-        input={register('contractType')}
+        name="contractType"
+        control={control}
         options={(Object.keys(CONTRACT_TYPE_KEY) as ContractType[]).map((value) => ({
           value,
           label: t(CONTRACT_TYPE_KEY[value]),

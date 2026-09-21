@@ -4,12 +4,14 @@ import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { today } from '../format.js';
 import { renderRoutes } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { NewContractorWorkPage } from './NewContractorWorkPage.js';
 
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -62,7 +64,8 @@ describe('NewContractorWorkPage', () => {
     const user = userEvent.setup();
     const { router } = renderRoutes(routes, '/lots/b1/prestations/nouvelle');
 
-    await user.selectOptions(await screen.findByLabelText('Type de prestation'), 'kiln_loading');
+    await screen.findByLabelText('Type de prestation');
+    await chooseOption(user, 'Type de prestation', 'Enfournement');
     await user.type(screen.getByLabelText('Nom du prestataire'), ' Solo ');
     await user.type(screen.getByLabelText('Quantité (briques)'), '40000');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));

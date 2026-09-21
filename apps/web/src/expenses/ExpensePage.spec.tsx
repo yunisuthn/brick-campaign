@@ -3,12 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderRoutes } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { ExpensePage } from './ExpensePage.js';
 
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -64,7 +66,7 @@ describe('ExpensePage', () => {
     renderRoutes(routes, '/depenses/e1');
 
     expect(await screen.findByRole('heading', { name: /Contrat Riz-1/ })).toBeInTheDocument();
-    expect(screen.getByLabelText('Rizière (facultatif)')).toHaveValue('r1');
+    expect(screen.getByLabelText('Rizière (facultatif)')).toHaveTextContent('Riz-1');
 
     const amount = screen.getByLabelText('Montant (Ar)');
     await user.clear(amount);
@@ -95,7 +97,8 @@ describe('ExpensePage', () => {
     const user = userEvent.setup();
     renderRoutes(routes, '/depenses/e1');
 
-    await user.selectOptions(await screen.findByLabelText('Rizière (facultatif)'), '');
+    await screen.findByLabelText('Rizière (facultatif)');
+    await chooseOption(user, 'Rizière (facultatif)', 'Aucun');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     await screen.findByRole('heading', { name: /Contrat Riz-1/ });

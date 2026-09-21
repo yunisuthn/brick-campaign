@@ -31,13 +31,72 @@ export function CampaignPage() {
       )}
       {campaign.isSuccess && (
         <>
-          <h1>{t('campaigns.cardTitle', { year: campaign.data.year })}</h1>
+          <h1>
+            {t('campaigns.cardTitle', { year: campaign.data.year, tranche: campaign.data.tranche })}
+          </h1>
           <CampaignFacts campaign={campaign.data} />
-          <EditRates campaign={campaign.data} />
-          {campaign.data.closedOn === null && <CloseCampaign campaign={campaign.data} />}
+          <div className="actions">
+            <EditStartDate campaign={campaign.data} />
+            <EditRates campaign={campaign.data} />
+            {campaign.data.closedOn === null && <CloseCampaign campaign={campaign.data} />}
+          </div>
         </>
       )}
     </main>
+  );
+}
+
+/**
+ * The start date can be corrected after the fact; the API refuses one that falls after the
+ * closing date and its message is shown.
+ */
+function EditStartDate({ campaign }: { campaign: Campaign }) {
+  const [open, setOpen] = useState(false);
+  const update = useUpdateCampaign(campaign.id);
+  const { t } = useTranslation();
+  const form = useForm<{ startedOn: string }>({
+    defaultValues: { startedOn: campaign.startedOn },
+  });
+
+  if (!open) {
+    return (
+      <p>
+        <button type="button" onClick={() => setOpen(true)}>
+          {t('campaigns.editStartDate')}
+        </button>
+      </p>
+    );
+  }
+
+  const refusal = apiFormErrors(update, form);
+
+  const submit = form.handleSubmit(({ startedOn }) =>
+    update.mutate({ startedOn }, { onSuccess: () => setOpen(false) }),
+  );
+
+  return (
+    <form onSubmit={submit} noValidate className="inline-form">
+      <DateField
+        label={t('campaigns.startedOnLabel')}
+        name="startedOn"
+        control={form.control}
+        error={form.formState.errors.startedOn ?? refusal.fields.startedOn}
+        required={t('campaigns.startedOnRequired')}
+      />
+      {refusal.message && (
+        <p role="alert">
+          {t('common.saveFailedPrefix')} {refusal.message}
+        </p>
+      )}
+      <p className="actions">
+        <button type="submit" disabled={update.isPending}>
+          {t('common.save')}
+        </button>
+        <button type="button" onClick={() => setOpen(false)}>
+          {t('common.cancel')}
+        </button>
+      </p>
+    </form>
   );
 }
 

@@ -15,6 +15,8 @@ const rateListSchema = z.array(z.int().nonnegative());
 
 const campaignFields = z.object({
   year: z.int().min(2000).max(2100),
+  /** A year can hold more than one campaign — tranche 1, 2, 3… — unique together with the year. */
+  tranche: z.int().min(1),
   startedOn: dateOnlySchema,
   closedOn: dateOnlySchema.nullable(),
   mouldingRates: rateListSchema,
@@ -48,6 +50,7 @@ export type UpdateCampaignDto = z.infer<typeof updateCampaignSchema>;
 export interface CampaignDto {
   id: string;
   year: number;
+  tranche: number;
   startedOn: string;
   closedOn: string | null;
   mouldingRates: number[];

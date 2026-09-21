@@ -9,6 +9,7 @@ import { ProductionPage } from './ProductionPage.js';
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -72,8 +73,11 @@ describe('ProductionPage', () => {
 
     expect(await screen.findByRole('heading', { name: /Parti, 2 juin 2026/ })).toBeInTheDocument();
     const moulder = screen.getByLabelText('Mouleur');
-    expect(moulder).toHaveValue('gone');
+    expect(moulder).toHaveTextContent('Parti');
+    await user.click(moulder);
+    expect(screen.getByRole('option', { name: 'Parti' })).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: 'Autre retiré' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('option', { name: 'Parti' }));
 
     const quantity = screen.getByLabelText('Quantité (briques)');
     await user.clear(quantity);
@@ -109,7 +113,9 @@ describe('ProductionPage', () => {
     await user.type(end, '03/06/2026');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    expect(await screen.findByRole('heading', { name: /2 juin 2026 – 3 juin 2026/ })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /2 juin 2026 – 3 juin 2026/ }),
+    ).toBeInTheDocument();
     expect(body).toMatchObject({ endedOn: '2026-06-03' });
   });
 

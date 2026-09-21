@@ -17,7 +17,13 @@ const routes = [
   },
 ];
 
-const base = { startedOn: '2026-05-10', mouldingRates: [40], transportRates: [10], kilnLoadingRate: 5 };
+const base = {
+  tranche: 1,
+  startedOn: '2026-05-10',
+  mouldingRates: [40],
+  transportRates: [10],
+  kilnLoadingRate: 5,
+};
 const open2026 = { ...base, id: 'c2', year: 2026, closedOn: null };
 const closed2025 = { ...base, id: 'c1', year: 2025, closedOn: '2025-11-30' };
 
@@ -49,12 +55,15 @@ describe('AppShell', () => {
     );
     renderRoutes(routes, '/');
 
-    const picker = await screen.findByRole('combobox', { name: 'Campagne courante' });
-    expect(await screen.findByRole('option', { name: '2025 (clôturée)' })).toBeInTheDocument();
-    expect(picker).toHaveValue('c2');
+    const nav = await screen.findByRole('navigation', { name: 'Campagne courante' });
+    await within(nav).findByText('2026 · Tranche 1');
+    const picker = within(nav).getByRole('button');
 
-    await userEvent.selectOptions(picker, 'c1');
-    expect(picker).toHaveValue('c1');
+    await userEvent.click(picker);
+    expect(screen.getByRole('option', { name: '2025 · Tranche 1 (clôturée)' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('option', { name: '2025 · Tranche 1 (clôturée)' }));
+
+    expect(picker).toHaveTextContent('2025 · Tranche 1 (clôturée)');
     expect(localStorage.getItem('currentCampaignId')).toBe('c1');
   });
 
@@ -91,8 +100,9 @@ describe('AppShell', () => {
     );
     renderRoutes(routes, '/');
 
-    const picker = await screen.findByRole('combobox', { name: 'Campagne courante' });
+    const nav = await screen.findByRole('navigation', { name: 'Campagne courante' });
+    const picker = within(nav).getByRole('button');
     expect(picker).toBeDisabled();
-    expect(screen.getByRole('option', { name: 'Aucune' })).toBeInTheDocument();
+    expect(picker).toHaveTextContent('Aucune');
   });
 });

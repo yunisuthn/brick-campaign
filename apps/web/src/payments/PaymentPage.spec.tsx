@@ -3,12 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderRoutes } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { PaymentPage } from './PaymentPage.js';
 
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -66,12 +68,16 @@ describe('PaymentPage', () => {
     renderRoutes(routes, '/versements/v1');
 
     expect(await screen.findByRole('heading', { name: /Parti, 5 juin 2026/ })).toBeInTheDocument();
-    expect(screen.getByLabelText('Mouleur')).toHaveValue('gone');
+    const moulder = screen.getByLabelText('Mouleur');
+    expect(moulder).toHaveTextContent('Parti');
+    await user.click(moulder);
+    expect(screen.getByRole('option', { name: 'Parti' })).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: 'Autre retiré' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('option', { name: 'Parti' }));
 
-    await user.selectOptions(screen.getByLabelText('Bénéficiaire'), 'contractor');
+    await chooseOption(user, 'Bénéficiaire', 'Prestataire');
     await user.type(screen.getByLabelText('Nom du prestataire'), 'Solo');
-    await user.selectOptions(screen.getByLabelText('Type'), 'settlement');
+    await chooseOption(user, 'Type', 'Solde');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(await screen.findByRole('heading', { name: /Solo, 5 juin 2026/ })).toBeInTheDocument();

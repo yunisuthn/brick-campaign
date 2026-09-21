@@ -26,7 +26,7 @@ describe('apiError', () => {
 
   it('gives the same code one status wherever it is thrown', () => {
     expect(apiError('date_outside_campaign', 'a').getStatus()).toBe(400);
-    expect(apiError('campaign_year_taken', 'b').getStatus()).toBe(409);
+    expect(apiError('campaign_year_tranche_taken', 'b').getStatus()).toBe(409);
     expect(apiError('invalid_credentials', 'c').getStatus()).toBe(401);
   });
 });

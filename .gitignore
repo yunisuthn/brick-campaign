@@ -13,3 +13,6 @@ Thumbs.db
 
 # Prisma generated client (re-created by `prisma generate`)
 apps/api/src/generated/
+
+# Database exports (business data, not source)
+exports/

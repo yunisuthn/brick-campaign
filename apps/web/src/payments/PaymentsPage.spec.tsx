@@ -10,6 +10,7 @@ import { PaymentsPage } from './PaymentsPage.js';
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -67,9 +68,7 @@ describe('PaymentsPage', () => {
     let deleted = false;
     server.use(
       http.get('/api/campaigns', () => HttpResponse.json([campaign])),
-      http.get('/api/campaigns/c1/payments', () =>
-        HttpResponse.json(deleted ? [] : [toMoulder]),
-      ),
+      http.get('/api/campaigns/c1/payments', () => HttpResponse.json(deleted ? [] : [toMoulder])),
       http.get('/api/moulders', () =>
         HttpResponse.json([{ id: 'm1', name: 'Rakoto', memberCount: 3, active: true }]),
       ),
@@ -99,20 +98,25 @@ describe('PaymentsPage', () => {
       http.get('/api/moulders', () =>
         HttpResponse.json([{ id: 'm1', name: 'Rakoto', memberCount: 3, active: true }]),
       ),
+      http.get('/api/campaigns/c1/balances/contractors', () =>
+        HttpResponse.json([{ contractorName: 'Solo' }]),
+      ),
     );
     const user = userEvent.setup();
     mount();
 
     expect(await screen.findByText('Aucun versement saisi.')).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
+    await user.click(screen.getByLabelText('Mouleur'));
+    await user.click(screen.getByRole('option', { name: 'Rakoto' }));
     expect(await screen.findByText('Aucun versement pour ces critères.')).toBeInTheDocument();
     expect(searches.at(-1)).toBe('?moulderId=m1');
 
-    await user.type(screen.getByLabelText('Prestataire'), 'Solo');
+    await user.click(screen.getByLabelText('Prestataire'));
+    await user.click(screen.getByRole('option', { name: 'Solo' }));
     await screen.findByText('Aucun versement pour ces critères.');
     expect(searches.at(-1)).toBe('?contractorName=Solo');
-    expect(screen.getByLabelText('Mouleur')).toHaveValue('');
+    expect(screen.getByLabelText('Mouleur')).toHaveTextContent('Tous');
   });
 
   it('asks for a campaign first when there is none', async () => {

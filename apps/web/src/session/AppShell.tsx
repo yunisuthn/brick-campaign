@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { CurrentCampaignProvider, useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { Select } from '../form/Select.js';
 import { type Lang, useTranslation } from '../i18n/I18nProvider.js';
 import type { TranslationKey } from '../i18n/translations.js';
 import { useLogout, useSession } from './useSession.js';
@@ -114,22 +115,20 @@ function CampaignPicker() {
 
   return (
     <nav aria-label={t('shell.currentCampaign')} className="shell-campaign">
-      <label>
-        {t('shell.currentCampaign')}
-        <select
-          value={campaign?.id ?? ''}
-          onChange={(event) => choose(event.target.value)}
-          disabled={campaigns.length === 0}
-        >
-          {campaigns.length === 0 && <option value="">{t('shell.noCampaign')}</option>}
-          {campaigns.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.year}
-              {c.closedOn !== null && t('shell.closedSuffix')}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select
+        label={t('shell.currentCampaign')}
+        value={campaign?.id ?? ''}
+        onChange={choose}
+        disabled={campaigns.length === 0}
+        options={
+          campaigns.length === 0
+            ? [{ value: '', label: t('shell.noCampaign') }]
+            : campaigns.map((c) => ({
+                value: c.id,
+                label: `${c.year}${t('campaigns.trancheSuffix', { tranche: c.tranche })}${c.closedOn !== null ? t('shell.closedSuffix') : ''}`,
+              }))
+        }
+      />
     </nav>
   );
 }

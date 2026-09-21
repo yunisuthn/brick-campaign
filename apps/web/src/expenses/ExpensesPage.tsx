@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
+import { Select } from '../form/Select.js';
 import { formatAmount, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import {
@@ -20,7 +21,7 @@ export function ExpensesPage() {
     <main className="page-wide">
       <h1>
         {t('expenses.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
       </h1>
       {campaign && (
         <p>
@@ -48,20 +49,15 @@ function ExpenseList({ campaignId }: { campaignId: string }) {
   return (
     <>
       <p>
-        <label>
-          {t('expenses.categoryLabel')}
-          <select
-            value={category}
-            onChange={(event) => setCategory(event.target.value as ExpenseCategory | '')}
-          >
-            <option value="">{t('expenses.allCategories')}</option>
-            {expenseCategories.map((value) => (
-              <option key={value} value={value}>
-                {t(EXPENSE_CATEGORY_KEY[value])}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label={t('expenses.categoryLabel')}
+          value={category}
+          onChange={(value) => setCategory(value as ExpenseCategory | '')}
+          options={[
+            { value: '', label: t('expenses.allCategories') },
+            ...expenseCategories.map((value) => ({ value, label: t(EXPENSE_CATEGORY_KEY[value]) })),
+          ]}
+        />
       </p>
       {expenses.isError && (
         <p role="alert">

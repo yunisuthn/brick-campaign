@@ -4,12 +4,14 @@ import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { today } from '../format.js';
 import { renderRoutes } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { NewExpensePage } from './NewExpensePage.js';
 
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -67,7 +69,8 @@ describe('NewExpensePage', () => {
     const user = userEvent.setup();
     const { router } = renderRoutes(routes, '/depenses/nouvelle');
 
-    await user.selectOptions(await screen.findByLabelText('Catégorie'), 'fuel');
+    await screen.findByLabelText('Catégorie');
+    await chooseOption(user, 'Catégorie', 'Carburant');
     await user.type(screen.getByLabelText('Montant (Ar)'), '60000');
     await user.type(screen.getByLabelText('Libellé'), ' Gasoil ');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
@@ -99,8 +102,8 @@ describe('NewExpensePage', () => {
     const user = userEvent.setup();
     renderRoutes(routes, '/depenses/nouvelle?category=rice_field&riceFieldId=r1');
 
-    expect(await screen.findByLabelText('Catégorie')).toHaveValue('rice_field');
-    expect(screen.getByLabelText('Rizière (facultatif)')).toHaveValue('r1');
+    expect(await screen.findByLabelText('Catégorie')).toHaveTextContent('Rizière');
+    expect(screen.getByLabelText('Rizière (facultatif)')).toHaveTextContent('Riz-1');
 
     await user.type(screen.getByLabelText('Montant (Ar)'), '500000');
     await user.type(screen.getByLabelText('Libellé'), 'Contrat Riz-1');

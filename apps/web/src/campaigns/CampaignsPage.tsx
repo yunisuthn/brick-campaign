@@ -42,7 +42,9 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
   return (
     <article aria-labelledby={`campaign-${campaign.id}`} className="card">
       <h2 id={`campaign-${campaign.id}`}>
-        <Link to={`/campagnes/${campaign.id}`}>{t('campaigns.cardTitle', { year: campaign.year })}</Link>
+        <Link to={`/campagnes/${campaign.id}`}>
+          {t('campaigns.cardTitle', { year: campaign.year, tranche: campaign.tranche })}
+        </Link>
       </h2>
       <CampaignFacts campaign={campaign} />
     </article>

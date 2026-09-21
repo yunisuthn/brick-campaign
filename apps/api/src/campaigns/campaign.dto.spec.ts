@@ -2,6 +2,7 @@ import { createCampaignSchema, updateCampaignSchema } from './campaign.dto.js';
 
 const valid = {
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-01',
   mouldingRates: [20, 28],
   transportRates: [5, 8],
@@ -14,9 +15,10 @@ describe('createCampaignSchema', () => {
   });
 
   it('lets the price lists and the kiln loading rate be left out: to be fixed once negotiated', () => {
-    const { year, startedOn } = valid;
-    expect(createCampaignSchema.parse({ year, startedOn, transportRates: [] })).toEqual({
+    const { year, tranche, startedOn } = valid;
+    expect(createCampaignSchema.parse({ year, tranche, startedOn, transportRates: [] })).toEqual({
       year,
+      tranche,
       startedOn,
       closedOn: null,
       mouldingRates: [],
@@ -27,6 +29,7 @@ describe('createCampaignSchema', () => {
 
   it.each([
     ['a year outside the range', { year: 1999 }],
+    ['a tranche below 1', { tranche: 0 }],
     ['a date with a time part', { startedOn: '2026-05-01T00:00:00Z' }],
     ['an invalid calendar date', { startedOn: '2026-13-01' }],
     ['a negative price in the moulding list', { mouldingRates: [-1] }],

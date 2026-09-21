@@ -85,7 +85,9 @@ function SaleForm({ campaignId }: { campaignId: string }) {
       <SelectField
         label={t('sales.clientLabel')}
         error={form.formState.errors.clientId ?? createRefusal.fields.clientId}
-        input={form.register('clientId', { required: t('sales.clientRequired') })}
+        name="clientId"
+        control={form.control}
+        rules={{ required: t('sales.clientRequired') }}
         options={[
           { value: '', label: t('common.choose') },
           ...clients.data.map((client) => ({ value: client.id, label: client.name })),

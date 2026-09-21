@@ -62,7 +62,11 @@ function LoadForm({ campaignId }: { campaignId: string }) {
 
   const submit = form.handleSubmit((values) =>
     create.mutate(
-      { loadedOn: values.loadedOn, unloadedOn: null, quantity: Number(digitsOnly(values.quantity)) },
+      {
+        loadedOn: values.loadedOn,
+        unloadedOn: null,
+        quantity: Number(digitsOnly(values.quantity)),
+      },
       { onSuccess: (batch) => navigate(`/lots/${batch.id}`) },
     ),
   );
@@ -84,7 +88,9 @@ function LoadForm({ campaignId }: { campaignId: string }) {
           validate: (value) =>
             (/^\d+$/.test(digitsOnly(value)) &&
               Number(digitsOnly(value)) >= MIN_KILN_BATCH_QUANTITY) ||
-            t('kilnBatches.quantityRequired', { min: MIN_KILN_BATCH_QUANTITY.toLocaleString('fr-FR') }),
+            t('kilnBatches.quantityRequired', {
+              min: MIN_KILN_BATCH_QUANTITY.toLocaleString('fr-FR'),
+            }),
         })}
         inputMode="numeric"
       />

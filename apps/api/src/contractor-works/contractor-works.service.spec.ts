@@ -59,7 +59,10 @@ describe('ContractorWorksService', () => {
       closedOn: null,
       transportRates: [8],
     });
-    await rejectsWithCode(service.create(campaignId, { ...input, rate: 12 }), 'unknown_transport_rate');
+    await rejectsWithCode(
+      service.create(campaignId, { ...input, rate: 12 }),
+      'unknown_transport_rate',
+    );
     await expect(service.create(campaignId, { ...input, rate: 8 })).resolves.toBeDefined();
     // A kiln loading entry never checks against the transport rates, even a rate no campaign offers.
     await expect(

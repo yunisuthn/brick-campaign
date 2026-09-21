@@ -4,7 +4,9 @@ import type { Campaign } from './useCampaigns.js';
 
 /** A rate not negotiated yet reads "à fixer", never 0 (reference document, section 4). */
 export function rateText(rate: number | null, t: ReturnType<typeof useTranslation>['t']): string {
-  return rate === null ? t('campaigns.rateToFix') : t('campaigns.rateUnit', { amount: formatAmount(rate) });
+  return rate === null
+    ? t('campaigns.rateToFix')
+    : t('campaigns.rateUnit', { amount: formatAmount(rate) });
 }
 
 /** Several prices read as a choice, since one is picked per entry (rice fields are not all the

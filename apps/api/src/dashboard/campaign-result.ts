@@ -15,7 +15,11 @@ export interface CampaignEntries {
   salePayments: ReadonlyArray<{ amount: number }>;
   expenses: ReadonlyArray<{ category: ExpenseCategory; amount: number }>;
   productions: ReadonlyArray<{ quantity: number; rate: number | null }>;
-  contractorWorks: ReadonlyArray<{ type: ContractorWorkType; quantity: number; rate: number | null }>;
+  contractorWorks: ReadonlyArray<{
+    type: ContractorWorkType;
+    quantity: number;
+    rate: number | null;
+  }>;
   /** To moulders and contractors alike: every Ariary that went out for labour. */
   payments: ReadonlyArray<{ amount: number }>;
   deliveries: ReadonlyArray<{ cost: number }>;

@@ -48,3 +48,13 @@ COPY --from=pruned /repo/apps/web/dist ./apps/web/dist
 USER node
 EXPOSE 3000
 CMD ["node", "apps/api/dist/main.js"]
+
+# For hosts that build the last stage and give no way to run a step before the server (Render's
+# free plan): migrate, create the account named by SEED_USER_EMAIL/SEED_USER_PASSWORD if both
+# are set (an existing one is left alone), then serve. It keeps the build tools, so it is
+# heavier than `runtime`; compose names its targets and is not affected.
+FROM build AS hosted
+ENV NODE_ENV=production
+ENV WEB_ROOT=/repo/apps/web/dist
+EXPOSE 3000
+CMD ["sh", "-c", "pnpm --filter api exec prisma migrate deploy && { [ -z \"$SEED_USER_EMAIL\" ] || pnpm --filter api create-user || true; } && exec node apps/api/dist/main.js"]

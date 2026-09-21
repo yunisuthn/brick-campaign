@@ -45,7 +45,9 @@ const sentences: Record<ErrorCode, Sentence> = {
   },
   payment_duplicate_type: (details) => {
     const type = details.type;
-    const label = type === 'advance' ? 'une avance' : type === 'vatsy' ? 'un vatsy' : 'un versement';
+    if (type === 'fee') return 'Ce mouleur a déjà des frais enregistrés pour cette campagne.';
+    const label =
+      type === 'advance' ? 'une avance' : type === 'vatsy' ? 'un vatsy' : 'un versement';
     return `Ce mouleur a déjà ${label} enregistré à cette date.`;
   },
 
@@ -66,11 +68,11 @@ const sentences: Record<ErrorCode, Sentence> = {
   sale_payment_not_found: 'Cet encaissement n’existe plus.',
   expense_not_found: 'Cette dépense n’existe plus.',
 
-  campaign_year_taken: (details) => {
+  campaign_year_tranche_taken: (details) => {
     const year = numberOf(details, 'year');
-    return year === null
-      ? 'Une campagne existe déjà pour cette année.'
-      : `Une campagne existe déjà pour ${year}.`;
+    const tranche = numberOf(details, 'tranche');
+    if (year === null || tranche === null) return 'Cette tranche existe déjà pour cette année.';
+    return `La tranche ${tranche} de ${year} existe déjà.`;
   },
   kiln_batch_has_works: (details) =>
     holdSentence(numberOf(details, 'works'), 'prestation', 'prestations', 'Ce lot porte encore'),

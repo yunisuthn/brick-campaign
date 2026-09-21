@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
+import { chooseOption } from '../test/select.js';
 import { renderRoutes } from '../test/render.js';
 import { server } from '../test/server.js';
 import { RiceFieldPage } from './RiceFieldPage.js';
@@ -19,6 +20,7 @@ const routes = [{ path: '/rizieres/:id', element: <Page /> }];
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -55,9 +57,9 @@ describe('RiceFieldPage', () => {
 
     const surface = await screen.findByLabelText('Surface (m²)');
     expect(surface).toHaveValue('2500');
-    expect(screen.getByLabelText('Type de contrat')).toHaveValue('durable');
+    expect(screen.getByLabelText('Type de contrat')).toHaveTextContent('Durable');
     await user.clear(surface);
-    await user.selectOptions(screen.getByLabelText('Type de contrat'), 'seasonal');
+    await chooseOption(user, 'Type de contrat', 'De campagne');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     await screen.findByRole('button', { name: 'Enregistrer' });

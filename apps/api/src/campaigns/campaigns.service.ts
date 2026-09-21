@@ -8,6 +8,7 @@ import type { CampaignDto, CreateCampaignDto, UpdateCampaignDto } from './campai
 const campaignSelect = {
   id: true,
   year: true,
+  tranche: true,
   startedOn: true,
   closedOn: true,
   mouldingRates: true,
@@ -32,14 +33,14 @@ export class CampaignsService {
         },
         select: campaignSelect,
       })
-      .catch(rethrowYearConflict(input.year));
+      .catch(rethrowYearTrancheConflict(input.year, input.tranche));
     return toDto(row);
   }
 
   async findAll(): Promise<CampaignDto[]> {
     const rows = await this.prisma.campaign.findMany({
       select: campaignSelect,
-      orderBy: { year: 'desc' },
+      orderBy: [{ year: 'desc' }, { tranche: 'desc' }],
     });
     return rows.map(toDto);
   }
@@ -66,7 +67,9 @@ export class CampaignsService {
         },
         select: campaignSelect,
       })
-      .catch(rethrowYearConflict(input.year ?? current.year));
+      .catch(
+        rethrowYearTrancheConflict(input.year ?? current.year, input.tranche ?? current.tranche),
+      );
     return toDto(row);
   }
 }
@@ -78,10 +81,14 @@ function assertDatesOrdered(startedOn: string, closedOn: string | null): void {
   }
 }
 
-function rethrowYearConflict(year: number): (error: unknown) => never {
+function rethrowYearTrancheConflict(year: number, tranche: number): (error: unknown) => never {
   return (error) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw apiError('campaign_year_taken', `A campaign for ${year} already exists`, { year });
+      throw apiError(
+        'campaign_year_tranche_taken',
+        `A campaign for ${year} tranche ${tranche} already exists`,
+        { year, tranche },
+      );
     }
     throw error;
   };

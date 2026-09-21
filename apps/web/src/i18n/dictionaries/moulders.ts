@@ -22,6 +22,9 @@ export const fr = {
   'moulders.createFailedPrefix': 'Création impossible :',
   'moulders.createButton': 'Créer le mouleur',
   'moulders.newTitle': 'Nouveau mouleur',
+
+  'moulders.balanceOnCampaign': 'Versements sur la campagne',
+  'moulders.noEntriesOnCampaign': 'Aucune saisie sur cette campagne.',
 } as const;
 
 export const mg: Record<keyof typeof fr, string> = {
@@ -47,4 +50,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'moulders.createFailedPrefix': 'Tsy voaforona :',
   'moulders.createButton': 'Forony ilay mpanao biriky',
   'moulders.newTitle': 'Mpanao biriky vaovao',
+
+  'moulders.balanceOnCampaign': 'Fandoavam-bola amin’ny vanim-potoana',
+  'moulders.noEntriesOnCampaign': 'Tsy misy fidirana tamin’ity vanim-potoana ity.',
 };

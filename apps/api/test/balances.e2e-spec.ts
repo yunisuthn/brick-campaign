@@ -118,7 +118,7 @@ describe('Balances (e2e)', () => {
         bricks: 2500,
         earned: 50000,
         paid: 25000,
-        paidByType: { vatsy: 10000, advance: 15000, settlement: 0 },
+        paidByType: { vatsy: 10000, advance: 15000, settlement: 0, fee: 0 },
         due: 25000,
       },
       {
@@ -127,7 +127,7 @@ describe('Balances (e2e)', () => {
         bricks: 800,
         earned: 16000,
         paid: 0,
-        paidByType: { vatsy: 0, advance: 0, settlement: 0 },
+        paidByType: { vatsy: 0, advance: 0, settlement: 0, fee: 0 },
         due: 16000,
       },
     ]);

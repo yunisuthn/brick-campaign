@@ -55,7 +55,8 @@ export function ExpenseFields({
       <SelectField
         label={t('expenses.categoryLabel')}
         error={errors.category}
-        input={register('category')}
+        name="category"
+        control={control}
         options={categoryOptions}
       />
       <Field
@@ -79,13 +80,15 @@ export function ExpenseFields({
       <SelectField
         label={t('expenses.riceFieldLabel')}
         error={errors.riceFieldId}
-        input={register('riceFieldId')}
+        name="riceFieldId"
+        control={control}
         options={[noLink, ...riceFields.map((f) => ({ value: f.id, label: f.name }))]}
       />
       <SelectField
         label={t('expenses.kilnBatchLabel')}
         error={errors.kilnBatchId}
-        input={register('kilnBatchId')}
+        name="kilnBatchId"
+        control={control}
         options={[
           noLink,
           ...batches.map((b) => ({

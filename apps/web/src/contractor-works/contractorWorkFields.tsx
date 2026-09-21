@@ -43,7 +43,10 @@ export function ContractorWorkFields({
   rates,
 }: ContractorWorkFieldsProps) {
   const { t } = useTranslation();
-  const typeOptions = contractorWorkTypes.map((value) => ({ value, label: t(WORK_TYPE_KEY[value]) }));
+  const typeOptions = contractorWorkTypes.map((value) => ({
+    value,
+    label: t(WORK_TYPE_KEY[value]),
+  }));
 
   return (
     <>
@@ -57,7 +60,8 @@ export function ContractorWorkFields({
       <SelectField
         label={t('contractorWorks.typeLabel')}
         error={errors.type}
-        input={register('type')}
+        name="type"
+        control={control}
         options={typeOptions}
       />
       <Field
@@ -83,10 +87,14 @@ export function ContractorWorkFields({
         <SelectField
           label={t('contractorWorks.rateLabel')}
           error={errors.rate}
-          input={register('rate')}
+          name="rate"
+          control={control}
           options={[
             { value: '', label: t('contractorWorks.rateToFix') },
-            ...rates.map((rate) => ({ value: String(rate), label: t('contractorWorks.rateOption', { rate }) })),
+            ...rates.map((rate) => ({
+              value: String(rate),
+              label: t('contractorWorks.rateOption', { rate }),
+            })),
           ]}
         />
       )}

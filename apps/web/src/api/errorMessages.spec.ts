@@ -53,8 +53,8 @@ describe('apiErrorMessage', () => {
   });
 
   it('still reads when the numbers the sentence wanted are missing', () => {
-    expect(apiErrorMessage(refusal(409, 'campaign_year_taken'))).toBe(
-      'Une campagne existe déjà pour cette année.',
+    expect(apiErrorMessage(refusal(409, 'campaign_year_tranche_taken'))).toBe(
+      'Cette tranche existe déjà pour cette année.',
     );
     expect(apiErrorMessage(refusal(400, 'raw_stock_too_low'))).toBe(
       'Le stock de briques crues ne couvre pas cette saisie.',

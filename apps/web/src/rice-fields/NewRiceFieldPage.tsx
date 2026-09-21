@@ -25,6 +25,7 @@ export function NewRiceFieldPage() {
       <form onSubmit={submit} noValidate>
         <RiceFieldFields
           register={form.register}
+          control={form.control}
           errors={{ ...form.formState.errors, ...createRefusal.fields }}
         />
         {createRefusal.message && (

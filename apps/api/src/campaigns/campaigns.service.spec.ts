@@ -12,6 +12,7 @@ describe('CampaignsService', () => {
 
   const input = {
     year: 2026,
+    tranche: 1,
     startedOn: '2026-05-01',
     closedOn: null,
     mouldingRates: [20, 28],
@@ -55,9 +56,9 @@ describe('CampaignsService', () => {
       expect(create).not.toHaveBeenCalled();
     });
 
-    it('maps a unique violation on year to 409', async () => {
+    it('maps a unique violation on year and tranche to 409', async () => {
       create.mockRejectedValue(uniqueViolation);
-      await rejectsWithCode(service.create(input), 'campaign_year_taken');
+      await rejectsWithCode(service.create(input), 'campaign_year_tranche_taken');
     });
 
     it('lets other database errors through', async () => {
@@ -109,14 +110,20 @@ describe('CampaignsService', () => {
 
     it('throws 404 before updating an unknown campaign', async () => {
       findUnique.mockResolvedValue(null);
-      await rejectsWithCode(service.update('missing', { mouldingRates: [25] }), 'campaign_not_found');
+      await rejectsWithCode(
+        service.update('missing', { mouldingRates: [25] }),
+        'campaign_not_found',
+      );
       expect(update).not.toHaveBeenCalled();
     });
 
-    it('maps a year collision to 409', async () => {
+    it('maps a year/tranche collision to 409', async () => {
       findUnique.mockResolvedValue(row);
       update.mockRejectedValue(uniqueViolation);
-      await rejectsWithCode(service.update('campaign-id', { year: 2025 }), 'campaign_year_taken');
+      await rejectsWithCode(
+        service.update('campaign-id', { year: 2025 }),
+        'campaign_year_tranche_taken',
+      );
     });
   });
 });

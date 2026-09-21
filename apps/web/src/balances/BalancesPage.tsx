@@ -19,7 +19,7 @@ export function BalancesPage() {
     <main className="page-wide">
       <h1>
         {t('balances.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
       </h1>
       {campaign ? (
         <Balances campaignId={campaign.id} />
@@ -46,7 +46,8 @@ function Balances({ campaignId }: { campaignId: string }) {
         {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
       </p>
     );
-  if (!moulders.isSuccess || !contractors.isSuccess) return <p role="status">{t('common.loading')}</p>;
+  if (!moulders.isSuccess || !contractors.isSuccess)
+    return <p role="status">{t('common.loading')}</p>;
 
   return (
     <>
@@ -55,18 +56,21 @@ function Balances({ campaignId }: { campaignId: string }) {
         {moulders.data.length === 0 ? (
           <p>{t('balances.mouldersNone')}</p>
         ) : (
-          <ul className="rows">
-            {moulders.data.map((line) => (
-              <li key={line.moulderId}>
-                <BalanceCard
-                  name={line.name}
-                  work={formatBricks(line.bricks)}
-                  balance={line}
-                  missingRate={t('balances.mouldingRateToFix')}
-                />
-              </li>
-            ))}
-          </ul>
+          <>
+            <TotalDue balances={moulders.data} />
+            <ul className="rows">
+              {moulders.data.map((line) => (
+                <li key={line.moulderId}>
+                  <BalanceCard
+                    name={line.name}
+                    work={formatBricks(line.bricks)}
+                    balance={line}
+                    missingRate={t('balances.mouldingRateToFix')}
+                  />
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
       <section aria-labelledby="contractors">
@@ -98,12 +102,40 @@ function contractorWork(
 ): string {
   const parts: string[] = [];
   if (line.bricksByType.transport > 0) {
-    parts.push(t('balances.bricksTransported', { quantity: formatBricks(line.bricksByType.transport) }));
+    parts.push(
+      t('balances.bricksTransported', { quantity: formatBricks(line.bricksByType.transport) }),
+    );
   }
   if (line.bricksByType.kiln_loading > 0) {
-    parts.push(t('balances.bricksLoaded', { quantity: formatBricks(line.bricksByType.kiln_loading) }));
+    parts.push(
+      t('balances.bricksLoaded', { quantity: formatBricks(line.bricksByType.kiln_loading) }),
+    );
   }
   return parts.length === 0 ? t('balances.noWork') : parts.join(' · ');
+}
+
+/** Summed across every moulder listed below; unknown as a whole as soon as one of them is
+ * (reference document, section 4), rather than adding up the known ones and leaving out the rest. */
+function TotalDue({ balances }: { balances: ReadonlyArray<Pick<MoulderBalance, 'due'>> }) {
+  const { t } = useTranslation();
+  const total = balances.some((line) => line.due === null)
+    ? null
+    : balances.reduce((sum, line) => sum + (line.due ?? 0), 0);
+
+  return (
+    <p className="strong">
+      {total === null ? (
+        <>
+          {t('balances.totalDue')} : <em>{t('balances.mouldingRateToFix')}</em>
+        </>
+      ) : (
+        <>
+          {total < 0 ? t('balances.totalOverpaid') : t('balances.totalDue')} :{' '}
+          {formatAmount(Math.abs(total))}
+        </>
+      )}
+    </p>
+  );
 }
 
 interface BalanceCardProps {
@@ -129,7 +161,11 @@ function BalanceCard({ name, work, balance, missingRate }: BalanceCardProps) {
           {balance.earned === null ? <em>{missingRate}</em> : formatAmount(balance.earned)}
         </Line>
         <Line label={t('balances.paid')}>{formatAmount(balance.paid)}</Line>
-        <Line label={balance.due !== null && balance.due < 0 ? t('balances.overpaid') : t('balances.due')}>
+        <Line
+          label={
+            balance.due !== null && balance.due < 0 ? t('balances.overpaid') : t('balances.due')
+          }
+        >
           {balance.due === null ? (
             <em>{t('balances.unknownUntilRate')}</em>
           ) : (

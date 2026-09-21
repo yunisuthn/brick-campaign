@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 import { loadErrorMessage } from '../api/loadError.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { MoulderBalance } from './MoulderBalance.js';
 import { MoulderFields } from './moulderFields.js';
 import { type Moulder, type NewMoulder, useMoulder, useUpdateMoulder } from './useMoulders.js';
 
@@ -69,6 +70,7 @@ function MoulderForm({ moulder }: { moulder: Moulder }) {
           </button>
         </p>
       </form>
+      <MoulderBalance moulderId={moulder.id} />
     </>
   );
 }

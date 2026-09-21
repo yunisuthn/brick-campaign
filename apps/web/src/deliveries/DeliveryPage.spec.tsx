@@ -10,6 +10,7 @@ import { DeliveryPage } from './DeliveryPage.js';
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],

@@ -48,6 +48,7 @@ describe('NewCampaignPage', () => {
     expect(router.state.location.pathname).toBe('/campagnes/c1');
     expect(body).toEqual({
       year: 2026,
+      tranche: 1,
       startedOn: '2026-05-10',
       mouldingRates: [40],
       transportRates: [10],
@@ -55,14 +56,14 @@ describe('NewCampaignPage', () => {
     });
   });
 
-  it('names the year when the API answers that it already has a campaign', async () => {
+  it('names the year and tranche when the API answers that it already has a campaign', async () => {
     server.use(
       http.post('/api/campaigns', () =>
         HttpResponse.json(
           {
-            code: 'campaign_year_taken',
-            message: 'A campaign for 2026 already exists',
-            details: { year: 2026 },
+            code: 'campaign_year_tranche_taken',
+            message: 'A campaign for 2026 tranche 1 already exists',
+            details: { year: 2026, tranche: 1 },
           },
           { status: 409 },
         ),
@@ -74,7 +75,7 @@ describe('NewCampaignPage', () => {
     await user.click(screen.getByRole('button', { name: 'Créer la campagne' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Création impossible : Une campagne existe déjà pour 2026.',
+      'Création impossible : La tranche 1 de 2026 existe déjà.',
     );
   });
 

@@ -16,7 +16,7 @@ export function DashboardPage() {
     <main className="page-wide">
       <h1>
         {t('dashboard.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
       </h1>
       {campaign ? (
         <Overview campaignId={campaign.id} />

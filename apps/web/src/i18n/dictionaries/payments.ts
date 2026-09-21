@@ -23,6 +23,7 @@ export const fr = {
   'payments.type.vatsy': 'Vatsy',
   'payments.type.advance': 'Avance',
   'payments.type.settlement': 'Solde',
+  'payments.type.fee': 'Frais',
 
   'payments.keepPayment': 'Garder le versement',
   'payments.cancelPayment': 'Annuler le versement',
@@ -53,6 +54,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'payments.type.vatsy': 'Vatsy',
   'payments.type.advance': 'Zotra',
   'payments.type.settlement': 'Sisa aloa',
+  'payments.type.fee': 'Sarany',
 
   'payments.keepPayment': 'Tazomy ny fandoavam-bola',
   'payments.cancelPayment': 'Foano ny fandoavam-bola',

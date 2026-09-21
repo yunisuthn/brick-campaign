@@ -1,6 +1,6 @@
 import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
 
-export const paymentTypes = ['vatsy', 'advance', 'settlement'] as const;
+export const paymentTypes = ['vatsy', 'advance', 'settlement', 'fee'] as const;
 export type PaymentType = (typeof paymentTypes)[number];
 
 /** Mirror of the API's PaymentDto: paid to a moulder or to a named contractor, never both. */

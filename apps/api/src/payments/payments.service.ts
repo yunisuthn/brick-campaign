@@ -98,7 +98,8 @@ export class PaymentsService {
     } else if (contractorName !== undefined) {
       Object.assign(data, { moulderId: null, contractorName });
     }
-    const effectiveMoulderId = moulderId ?? (contractorName !== undefined ? null : current.moulderId);
+    const effectiveMoulderId =
+      moulderId ?? (contractorName !== undefined ? null : current.moulderId);
     if (effectiveMoulderId !== null) {
       await this.assertNoDuplicateType(
         campaignId,
@@ -115,7 +116,9 @@ export class PaymentsService {
   /**
    * A moulder cannot be paid vatsy or an advance twice for the same day (reference document,
    * section 5): a repeated entry is almost always a mistake, unlike settlement, which can land
-   * alongside a vatsy on the campaign's last day.
+   * alongside a vatsy on the campaign's last day. A fee is rarer still and does not repeat: at
+   * most one per moulder per campaign, whichever day it falls on, decided or not (18 September
+   * 2026, section 10.9).
    */
   private async assertNoDuplicateType(
     campaignId: string,
@@ -130,7 +133,7 @@ export class PaymentsService {
         campaignId,
         moulderId,
         type,
-        date: parseDateOnly(date),
+        date: type === 'fee' ? undefined : parseDateOnly(date),
         cancelledAt: null,
         id: excludeId === undefined ? undefined : { not: excludeId },
       },
@@ -138,7 +141,9 @@ export class PaymentsService {
     if (existing > 0) {
       throw apiError(
         'payment_duplicate_type',
-        `A ${type} payment already exists for moulder ${moulderId} on ${date}`,
+        type === 'fee'
+          ? `A fee payment already exists for moulder ${moulderId} in campaign ${campaignId}`
+          : `A ${type} payment already exists for moulder ${moulderId} on ${date}`,
         { type },
       );
     }

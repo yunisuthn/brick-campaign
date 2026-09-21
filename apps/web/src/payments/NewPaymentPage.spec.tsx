@@ -5,12 +5,14 @@ import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { isoToFrench } from '../form/dateMask.js';
 import { today } from '../format.js';
 import { renderWithProviders } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { NewPaymentPage } from './NewPaymentPage.js';
 
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -70,16 +72,16 @@ describe('NewPaymentPage', () => {
     expect(await screen.findByLabelText('Date')).toHaveValue(isoToFrench(today()));
     await user.clear(screen.getByLabelText('Date'));
     await user.type(screen.getByLabelText('Date'), '05/06/2026');
-    await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
+    await chooseOption(user, 'Mouleur', 'Rakoto');
     await user.type(screen.getByLabelText('Montant (Ar)'), '50000');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent('Enregistré : Rakoto, 50');
     expect(screen.getByLabelText('Date')).toHaveValue('05/06/2026');
-    expect(screen.getByLabelText('Mouleur')).toHaveValue('');
+    expect(screen.getByLabelText('Mouleur')).toHaveTextContent('Choisir…');
     expect(screen.getByLabelText('Montant (Ar)')).toHaveValue('');
 
-    await user.selectOptions(screen.getByLabelText('Mouleur'), 'm2');
+    await chooseOption(user, 'Mouleur', 'Rasoa');
     await user.type(screen.getByLabelText('Montant (Ar)'), '40000');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
@@ -107,7 +109,8 @@ describe('NewPaymentPage', () => {
     const user = userEvent.setup();
     mount();
 
-    await user.selectOptions(await screen.findByLabelText('Bénéficiaire'), 'contractor');
+    await screen.findByLabelText('Bénéficiaire');
+    await chooseOption(user, 'Bénéficiaire', 'Prestataire');
     const name = screen.getByLabelText('Nom du prestataire');
     expect(screen.queryByLabelText('Mouleur')).not.toBeInTheDocument();
     // The known names are offered as a datalist, which has no accessible surface of its own.
@@ -115,7 +118,7 @@ describe('NewPaymentPage', () => {
     expect([...(list?.querySelectorAll('option') ?? [])].map((o) => o.value)).toEqual(['Solo']);
 
     await user.type(name, ' Solo ');
-    await user.selectOptions(screen.getByLabelText('Type'), 'advance');
+    await chooseOption(user, 'Type', 'Avance');
     await user.type(screen.getByLabelText('Montant (Ar)'), '120000');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
@@ -142,7 +145,7 @@ describe('NewPaymentPage', () => {
       'Un montant entier en ariary est attendu.',
     ]);
 
-    await user.selectOptions(screen.getByLabelText('Bénéficiaire'), 'contractor');
+    await chooseOption(user, 'Bénéficiaire', 'Prestataire');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
     alerts = await screen.findAllByRole('alert');
     expect(alerts.map((alert) => alert.textContent)).toEqual([

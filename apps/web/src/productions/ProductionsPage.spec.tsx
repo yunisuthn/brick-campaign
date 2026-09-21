@@ -10,6 +10,7 @@ import { ProductionsPage } from './ProductionsPage.js';
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -64,7 +65,7 @@ describe('ProductionsPage', () => {
     mount();
 
     expect(
-      await screen.findByRole('heading', { name: 'Productions · Campagne 2026' }),
+      await screen.findByRole('heading', { name: 'Productions · Campagne 2026 · Tranche 1' }),
     ).toBeInTheDocument();
     const rows = await screen.findAllByRole('listitem');
     expect(screen.getByRole('link', { name: 'Rakoto' })).toHaveAttribute('href', '/productions/p2');
@@ -105,9 +106,10 @@ describe('ProductionsPage', () => {
     mount();
 
     expect(await screen.findByText('Aucune production saisie.')).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Parti (retiré)' })).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
+    await user.click(screen.getByLabelText('Mouleur'));
+    expect(screen.getByRole('option', { name: 'Parti (retiré)' })).toBeInTheDocument();
+    await user.click(screen.getByRole('option', { name: 'Rakoto' }));
     await user.type(screen.getByLabelText('Du'), '01/06/2026');
     await user.type(screen.getByLabelText('Au'), '30/06/2026');
 

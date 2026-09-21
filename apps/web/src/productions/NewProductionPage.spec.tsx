@@ -5,12 +5,14 @@ import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { isoToFrench } from '../form/dateMask.js';
 import { today } from '../format.js';
 import { renderWithProviders } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { NewProductionPage } from './NewProductionPage.js';
 
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40, 55],
@@ -65,22 +67,22 @@ describe('NewProductionPage', () => {
     expect(date).toHaveValue(isoToFrench(today()));
     await user.clear(date);
     await user.type(date, '02/06/2026');
-    await user.selectOptions(screen.getByLabelText('Mouleur'), 'm1');
-    await user.selectOptions(screen.getByLabelText('Rizière'), 'r1');
+    await chooseOption(user, 'Mouleur', 'Rakoto');
+    await chooseOption(user, 'Rizière', 'Ambany');
     await user.type(screen.getByLabelText('Quantité (briques)'), '1200');
-    await user.selectOptions(screen.getByLabelText('Tarif de moulage'), '40');
+    await chooseOption(user, 'Tarif de moulage', '40 Ar la brique');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent(
       'Enregistré : Rakoto, 1 200 briques.',
     );
     expect(screen.getByLabelText('Date de début')).toHaveValue('02/06/2026');
-    expect(screen.getByLabelText('Rizière')).toHaveValue('r1');
-    expect(screen.getByLabelText('Mouleur')).toHaveValue('');
+    expect(screen.getByLabelText('Rizière')).toHaveTextContent('Ambany');
+    expect(screen.getByLabelText('Mouleur')).toHaveTextContent('Choisir…');
     expect(screen.getByLabelText('Quantité (briques)')).toHaveValue('');
-    expect(screen.getByLabelText('Tarif de moulage')).toHaveValue('40');
+    expect(screen.getByLabelText('Tarif de moulage')).toHaveTextContent('40 Ar la brique');
 
-    await user.selectOptions(screen.getByLabelText('Mouleur'), 'm2');
+    await chooseOption(user, 'Mouleur', 'Rasoa');
     await user.type(screen.getByLabelText('Quantité (briques)'), '800');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
@@ -147,8 +149,9 @@ describe('NewProductionPage', () => {
     const user = userEvent.setup();
     mount();
 
-    await user.selectOptions(await screen.findByLabelText('Mouleur'), 'm1');
-    await user.selectOptions(screen.getByLabelText('Rizière'), 'r1');
+    await screen.findByLabelText('Mouleur');
+    await chooseOption(user, 'Mouleur', 'Rakoto');
+    await chooseOption(user, 'Rizière', 'Ambany');
     await user.type(screen.getByLabelText('Quantité (briques)'), '500');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
@@ -173,8 +176,9 @@ describe('NewProductionPage', () => {
     const user = userEvent.setup();
     mount();
 
-    await user.selectOptions(await screen.findByLabelText('Mouleur'), 'm1');
-    await user.selectOptions(screen.getByLabelText('Rizière'), 'r1');
+    await screen.findByLabelText('Mouleur');
+    await chooseOption(user, 'Mouleur', 'Rakoto');
+    await chooseOption(user, 'Rizière', 'Ambany');
     await user.type(screen.getByLabelText('Quantité (briques)'), '500');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 

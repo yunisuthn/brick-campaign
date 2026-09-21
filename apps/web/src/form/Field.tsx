@@ -1,5 +1,14 @@
 import { useId, type ChangeEvent } from 'react';
-import type { FieldError, UseFormRegisterReturn } from 'react-hook-form';
+import {
+  Controller,
+  type Control,
+  type FieldError,
+  type FieldPath,
+  type FieldValues,
+  type RegisterOptions,
+  type UseFormRegisterReturn,
+} from 'react-hook-form';
+import { Select, type SelectOption } from './Select.js';
 
 interface FieldProps {
   label: string;
@@ -26,7 +35,10 @@ function groupDigits(digits: string): string {
  * (what validation and `Number(...)` downstream expect); only the input's own display gets the
  * grouping spaces, with the caret kept at the same digit rather than jumping to the end.
  */
-function handleNumericChange(event: ChangeEvent<HTMLInputElement>, onChange: UseFormRegisterReturn['onChange']) {
+function handleNumericChange(
+  event: ChangeEvent<HTMLInputElement>,
+  onChange: UseFormRegisterReturn['onChange'],
+) {
   const target = event.target;
   const caret = target.selectionStart ?? target.value.length;
   const digitsBeforeCaret = target.value.slice(0, caret).replace(/\D/g, '').length;
@@ -78,26 +90,39 @@ export function Field({ label, input, error, type = 'text', inputMode, suggestio
   );
 }
 
-interface SelectFieldProps {
+interface SelectFieldProps<T extends FieldValues> {
   label: string;
-  input: UseFormRegisterReturn;
+  name: FieldPath<T>;
+  control: Control<T>;
   error: FieldError | undefined;
-  options: ReadonlyArray<{ value: string; label: string }>;
+  options: ReadonlyArray<SelectOption>;
+  rules?: RegisterOptions<T, FieldPath<T>>;
 }
 
-/** Same as Field, for a closed list of values. */
-export function SelectField({ label, input, error, options }: SelectFieldProps) {
+/** Same as Field, for a closed list of values; the dropdown itself is our own, not the
+ * browser's — see Select.tsx for why. */
+export function SelectField<T extends FieldValues>({
+  label,
+  name,
+  control,
+  error,
+  options,
+  rules,
+}: SelectFieldProps<T>) {
   return (
-    <label>
-      {label}
-      <select aria-invalid={!!error} {...input}>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <ErrorLine error={error} />
-    </label>
+    <Controller
+      name={name}
+      control={control}
+      rules={rules}
+      render={({ field }) => (
+        <Select
+          label={label}
+          value={(field.value as string | undefined) ?? ''}
+          onChange={field.onChange}
+          options={options}
+          error={error}
+        />
+      )}
+    />
   );
 }

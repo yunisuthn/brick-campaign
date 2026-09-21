@@ -24,7 +24,8 @@ model User {
 // Money is stored as integer Ariary: the currency has no subunit in daily use.
 model Campaign {
   id              String    @id @default(uuid(7)) @db.Uuid
-  year            Int       @unique
+  year            Int
+  tranche         Int       @default(1)
   startedOn       DateTime  @map("started_on") @db.Date
   closedOn        DateTime? @map("closed_on") @db.Date
   mouldingRates   Int[]     @map("moulding_rates")
@@ -40,6 +41,7 @@ model Campaign {
   sales           Sale[]
   expenses        Expense[]
 
+  @@unique([year, tranche])
   @@map("campaigns")
 }
 
@@ -123,11 +125,13 @@ model Production {
   @@map("productions")
 }
 
-/// Why money went out: weekly food allowance (vatsy), an advance, or the end-of-campaign settlement.
+/// Why money went out: weekly food allowance (vatsy), an advance, the end-of-campaign settlement,
+/// or a fee withheld for material/tools — at most one of the latter per moulder per campaign.
 enum PaymentType {
   vatsy
   advance
   settlement
+  fee
 }
 
 // Money paid to a moulder or to a named contractor (transport, kiln loading). Replaces the "paid"

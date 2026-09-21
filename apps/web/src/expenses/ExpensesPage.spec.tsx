@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderWithProviders } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { plain } from '../test/text.js';
 import { server } from '../test/server.js';
 import { ExpensesPage } from './ExpensesPage.js';
@@ -10,6 +11,7 @@ import { ExpensesPage } from './ExpensesPage.js';
 const campaign = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -77,7 +79,7 @@ describe('ExpensesPage', () => {
     mount();
 
     expect(await screen.findByText('Aucune dépense saisie.')).toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText('Catégorie'), 'rice_field');
+    await chooseOption(user, 'Catégorie', 'Rizière');
 
     expect(await screen.findByText('Aucune dépense dans cette catégorie.')).toBeInTheDocument();
     expect(searches.at(-1)).toBe('?category=rice_field');

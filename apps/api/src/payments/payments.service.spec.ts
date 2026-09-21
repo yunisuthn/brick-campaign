@@ -106,6 +106,25 @@ describe('PaymentsService', () => {
       expect(create).not.toHaveBeenCalled();
     });
 
+    it('rejects a second fee for the same moulder in the campaign, on any day', async () => {
+      count.mockResolvedValue(1);
+      await rejectsWithCode(
+        service.create(campaignId, { ...base, type: 'fee', moulderId: 'moulder-id' }),
+        'payment_duplicate_type',
+      );
+      expect(count).toHaveBeenCalledWith({
+        where: {
+          campaignId,
+          moulderId: 'moulder-id',
+          type: 'fee',
+          date: undefined,
+          cancelledAt: null,
+          id: undefined,
+        },
+      });
+      expect(create).not.toHaveBeenCalled();
+    });
+
     it('never checks for a duplicate settlement, or for a contractor payment', async () => {
       count.mockResolvedValue(1);
       create.mockResolvedValue({ ...row, type: 'settlement' });

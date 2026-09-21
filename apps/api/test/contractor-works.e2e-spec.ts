@@ -146,7 +146,7 @@ describe('Contractor works (e2e)', () => {
       bricksByType: { transport: 40000, kiln_loading: 40000 },
       earned: 320000,
       paid: 100000,
-      paidByType: { vatsy: 0, advance: 100000, settlement: 0 },
+      paidByType: { vatsy: 0, advance: 100000, settlement: 0, fee: 0 },
       due: 220000,
     });
     const all = await request(server)

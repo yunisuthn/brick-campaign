@@ -14,7 +14,7 @@ export function SalesPage() {
     <main className="page-wide">
       <h1>
         {t('sales.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
       </h1>
       {campaign && (
         <p>

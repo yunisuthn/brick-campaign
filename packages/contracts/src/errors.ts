@@ -48,7 +48,7 @@ export const errorStatuses = {
   expense_not_found: 404,
 
   // 409 — the row exists and something else holds it.
-  campaign_year_taken: 409,
+  campaign_year_tranche_taken: 409,
   kiln_batch_has_works: 409,
   sale_has_deliveries: 409,
   sale_has_payments: 409,

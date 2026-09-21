@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { DateBox } from '../form/DateField.js';
+import { Select } from '../form/Select.js';
 import { formatBricks, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
@@ -17,7 +18,7 @@ export function ProductionsPage() {
     <main className="page-wide">
       <h1>
         {t('productions.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
       </h1>
       {campaign && (
         <p>
@@ -97,21 +98,18 @@ function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
       onSubmit={(event) => event.preventDefault()}
       className="filters"
     >
-      <label>
-        {t('common.moulderLabel')}
-        <select
-          value={filters.moulderId ?? ''}
-          onChange={(event) => set({ moulderId: event.target.value || undefined })}
-        >
-          <option value="">{t('common.all')}</option>
-          {moulders.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-              {!m.active && t('common.retiredSuffix')}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select
+        label={t('common.moulderLabel')}
+        value={filters.moulderId ?? ''}
+        onChange={(moulderId) => set({ moulderId: moulderId || undefined })}
+        options={[
+          { value: '', label: t('common.all') },
+          ...moulders.map((m) => ({
+            value: m.id,
+            label: `${m.name}${!m.active ? t('common.retiredSuffix') : ''}`,
+          })),
+        ]}
+      />
       <DateBox
         label={t('common.from')}
         value={filters.from ?? ''}

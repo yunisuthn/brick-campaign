@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { renderRoutes } from '../test/render.js';
+import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { NewRiceFieldPage } from './NewRiceFieldPage.js';
 
@@ -24,7 +25,7 @@ describe('NewRiceFieldPage', () => {
 
     await user.type(screen.getByLabelText('Nom'), 'Ambany');
     await user.type(screen.getByLabelText('Localisation'), 'Sud');
-    await user.selectOptions(screen.getByLabelText('Type de contrat'), 'durable');
+    await chooseOption(user, 'Type de contrat', 'Durable');
     await user.click(screen.getByRole('button', { name: 'Créer la rizière' }));
 
     expect(await screen.findByText('Liste des rizières')).toBeInTheDocument();

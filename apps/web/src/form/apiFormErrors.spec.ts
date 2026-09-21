@@ -30,10 +30,10 @@ describe('apiFormErrors', () => {
   });
 
   it('leaves a refusal that is not about the body above the form', () => {
-    const error = new ApiError(409, { code: 'campaign_year_taken', message: 'taken' });
+    const error = new ApiError(409, { code: 'campaign_year_tranche_taken', message: 'taken' });
     expect(apiFormErrors({ error }, form)).toEqual({
       fields: {},
-      message: 'Une campagne existe déjà pour cette année.',
+      message: 'Cette tranche existe déjà pour cette année.',
     });
   });
 

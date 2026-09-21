@@ -8,7 +8,7 @@ describe('contractorBalance', () => {
       bricksByType: { transport: 0, kiln_loading: 0 },
       earned: 0,
       paid: 0,
-      paidByType: { vatsy: 0, advance: 0, settlement: 0 },
+      paidByType: { vatsy: 0, advance: 0, settlement: 0, fee: 0 },
       due: 0,
     });
   });
@@ -27,7 +27,7 @@ describe('contractorBalance', () => {
       bricksByType: { transport: 50000, kiln_loading: 40000 },
       earned: 370000,
       paid: 100000,
-      paidByType: { vatsy: 0, advance: 100000, settlement: 0 },
+      paidByType: { vatsy: 0, advance: 100000, settlement: 0, fee: 0 },
       due: 270000,
     });
   });

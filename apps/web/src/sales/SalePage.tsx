@@ -12,13 +12,7 @@ import { apiFormErrors } from '../form/apiFormErrors.js';
 import { digitsOnly, formatAmount, formatBricks, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { SalePayments } from '../sale-payments/SalePayments.js';
-import {
-  type Sale,
-  SALE_STATUS_KEY,
-  useCancelSale,
-  useSale,
-  useUpdateSale,
-} from './useSales.js';
+import { type Sale, SALE_STATUS_KEY, useCancelSale, useSale, useUpdateSale } from './useSales.js';
 
 interface SaleForm {
   clientId: string;
@@ -72,7 +66,8 @@ function LoadedSale({ campaignId, id }: { campaignId: string; id: string }) {
 
 function SaleHeading({ sale, clients }: { sale: Sale; clients: ReadonlyArray<Client> }) {
   const { t } = useTranslation();
-  const name = clients.find((client) => client.id === sale.clientId)?.name ?? t('sales.unknownClient');
+  const name =
+    clients.find((client) => client.id === sale.clientId)?.name ?? t('sales.unknownClient');
   return (
     <h1>
       {name}
@@ -126,7 +121,9 @@ function SaleForm({ sale, clients }: { sale: Sale; clients: ReadonlyArray<Client
       <SelectField
         label={t('sales.clientLabel')}
         error={form.formState.errors.clientId ?? updateRefusal.fields.clientId}
-        input={form.register('clientId', { required: t('sales.clientRequired') })}
+        name="clientId"
+        control={form.control}
+        rules={{ required: t('sales.clientRequired') }}
         options={clients.map((client) => ({ value: client.id, label: client.name }))}
       />
       <DateField

@@ -1,8 +1,10 @@
+import { useContractorBalances } from '../balances/useBalances.js';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { DateBox } from '../form/DateField.js';
+import { Select } from '../form/Select.js';
 import { formatAmount, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
@@ -17,7 +19,7 @@ export function PaymentsPage() {
     <main className="page-wide">
       <h1>
         {t('payments.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
       </h1>
       {campaign && (
         <p>
@@ -41,8 +43,9 @@ function PaymentList({ campaignId }: { campaignId: string }) {
   const [filters, setFilters] = useState<PaymentFilters>({});
   const payments = usePayments(campaignId, filters);
   const moulders = useMoulders(true);
+  const contractors = useContractorBalances(campaignId);
 
-  const failed = [payments, moulders].find((query) => query.isError);
+  const failed = [payments, moulders, contractors].find((query) => query.isError);
   const loaded = payments.isSuccess && moulders.isSuccess;
   const filtered = Object.values(filters).some(Boolean);
 
@@ -52,7 +55,12 @@ function PaymentList({ campaignId }: { campaignId: string }) {
     <>
       <details className="filters-toggle" open={filtered}>
         <summary>{t('common.filters')}</summary>
-        <FilterBar moulders={moulders.data ?? []} filters={filters} onChange={setFilters} />
+        <FilterBar
+          moulders={moulders.data ?? []}
+          contractorNames={(contractors.data ?? []).map((c) => c.contractorName)}
+          filters={filters}
+          onChange={setFilters}
+        />
       </details>
       {failed && (
         <p role="alert">
@@ -182,12 +190,13 @@ function PaymentRow({
 
 interface FilterBarProps {
   moulders: ReadonlyArray<Moulder>;
+  contractorNames: ReadonlyArray<string>;
   filters: PaymentFilters;
   onChange: (filters: PaymentFilters) => void;
 }
 
 /** A beneficiary is filtered either as a moulder or as a contractor name, never both. */
-function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
+function FilterBar({ moulders, contractorNames, filters, onChange }: FilterBarProps) {
   const set = (patch: PaymentFilters) => onChange({ ...filters, ...patch });
   const { t } = useTranslation();
   return (
@@ -196,33 +205,31 @@ function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
       onSubmit={(event) => event.preventDefault()}
       className="filters"
     >
-      <label>
-        {t('common.moulderLabel')}
-        <select
-          value={filters.moulderId ?? ''}
-          onChange={(event) =>
-            set({ moulderId: event.target.value || undefined, contractorName: undefined })
-          }
-        >
-          <option value="">{t('common.all')}</option>
-          {moulders.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-              {!m.active && t('common.retiredSuffix')}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        {t('payments.contractorLabel')}
-        <input
-          type="search"
-          value={filters.contractorName ?? ''}
-          onChange={(event) =>
-            set({ contractorName: event.target.value || undefined, moulderId: undefined })
-          }
-        />
-      </label>
+      <Select
+        label={t('common.moulderLabel')}
+        value={filters.moulderId ?? ''}
+        onChange={(moulderId) =>
+          set({ moulderId: moulderId || undefined, contractorName: undefined })
+        }
+        options={[
+          { value: '', label: t('common.all') },
+          ...moulders.map((m) => ({
+            value: m.id,
+            label: `${m.name}${!m.active ? t('common.retiredSuffix') : ''}`,
+          })),
+        ]}
+      />
+      <Select
+        label={t('payments.contractorLabel')}
+        value={filters.contractorName ?? ''}
+        onChange={(contractorName) =>
+          set({ contractorName: contractorName || undefined, moulderId: undefined })
+        }
+        options={[
+          { value: '', label: t('common.all') },
+          ...contractorNames.map((name) => ({ value: name, label: name })),
+        ]}
+      />
       <DateBox
         label={t('common.from')}
         value={filters.from ?? ''}

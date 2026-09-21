@@ -13,7 +13,7 @@ export function StockSummary({ stock }: { stock: Stock }) {
 
   return (
     <section aria-label={t('dashboard.stock.label')} className="card">
-      <dl className="actions">
+      <dl className="actions stock-levels">
         {levels.map((level) => (
           <div key={level.label}>
             <dt className="sub">{level.label}</dt>

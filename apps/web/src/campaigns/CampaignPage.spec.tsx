@@ -12,6 +12,7 @@ const routes = [{ path: '/campagnes/:id', element: <CampaignPage /> }];
 const open = {
   id: 'c1',
   year: 2026,
+  tranche: 1,
   startedOn: '2026-05-10',
   closedOn: null,
   mouldingRates: [40],
@@ -24,7 +25,9 @@ describe('CampaignPage', () => {
     server.use(http.get('/api/campaigns/c1', () => HttpResponse.json(open)));
     renderRoutes(routes, '/campagnes/c1');
 
-    expect(await screen.findByRole('heading', { name: 'Campagne 2026' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Campagne 2026 · Tranche 1' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Ouverte depuis le 10 mai 2026')).toBeInTheDocument();
     expect(screen.getByText('5 Ar la brique')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Toutes les campagnes' })).toHaveAttribute(

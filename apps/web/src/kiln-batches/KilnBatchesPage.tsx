@@ -15,7 +15,7 @@ export function KilnBatchesPage() {
     <main className="page-wide">
       <h1>
         {t('kilnBatches.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year })}
+        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
       </h1>
       {campaign ? (
         <Batches campaignId={campaign.id} />

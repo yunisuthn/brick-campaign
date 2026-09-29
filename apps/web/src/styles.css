@@ -357,6 +357,31 @@ button:disabled {
 }
 
 /* Label and value side by side: the facts of a campaign, a batch, a balance. */
+/* Paying a moulder's balance, at the end of the name's line. Once asked to confirm, the two
+   buttons and any refusal take a line of their own under the name, rather than squeezing it. */
+.row-split:has(.settle) {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
+
+.settle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.settle.is-confirming {
+  flex-basis: 100%;
+}
+
+.settle p {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: right;
+}
+
 .facts {
   display: grid;
   grid-template-columns: 10rem 1fr;
@@ -450,11 +475,27 @@ span[role='alert'] {
   border-color: currentColor;
 }
 
+/* The app's name with who is signed in beside it; the email gives way first on a narrow phone. */
 .shell-who {
   display: flex;
-  flex-wrap: wrap;
   gap: var(--gap);
+  align-items: baseline;
+  min-width: 0;
+}
+
+.shell-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+/* Language and sign-out stay side by side, never stacked. */
+.shell-actions {
+  display: flex;
+  gap: 0.5rem;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .shell-campaign {
@@ -474,6 +515,19 @@ span[role='alert'] {
 .shell-campaign .select {
   width: auto;
   margin: 0;
+}
+
+/* "2026 · Tranche 3" stays on one line inside the field, in a slightly smaller type. */
+.shell-campaign .select-trigger,
+.shell-campaign .select-list li {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+/* Wider than the field when a label says "clôturée": opened leftwards, so it stays on screen. */
+.shell-campaign .select-list {
+  left: auto;
+  min-width: max-content;
 }
 
 .shell-nav {

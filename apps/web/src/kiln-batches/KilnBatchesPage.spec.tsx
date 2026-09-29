@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderWithProviders } from '../test/render.js';
@@ -71,7 +72,35 @@ describe('KilnBatchesPage', () => {
     expect(within(first!).getByText('tarif de prestation à fixer')).toBeInTheDocument();
     expect(within(second!).getByText(/défourné le 20 juin 2026/)).toBeInTheDocument();
     expect(within(second!).getByText(/520/)).toBeInTheDocument();
-    expect(within(first!).getByRole('link')).toHaveAttribute('href', '/lots/b2');
+    expect(within(first!).getByRole('link', { name: /briques/ })).toHaveAttribute(
+      'href',
+      '/lots/b2',
+    );
+    expect(within(first!).getByRole('link', { name: 'Éditer' })).toHaveAttribute(
+      'href',
+      '/lots/b2',
+    );
+  });
+
+  it('deletes a batch from its row, behind a confirmation', async () => {
+    let deleted = false;
+    server.use(
+      http.get('/api/campaigns', () => HttpResponse.json([campaign])),
+      http.get('/api/campaigns/c1/stock', () => HttpResponse.json(stock)),
+      http.get('/api/campaigns/c1/kiln-batches', () => HttpResponse.json(deleted ? [] : [inKiln])),
+      http.delete('/api/campaigns/c1/kiln-batches/b2', () => {
+        deleted = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const user = userEvent.setup();
+    mount();
+
+    await user.click(await screen.findByRole('button', { name: 'Supprimer' }));
+    expect(deleted).toBe(false);
+
+    await user.click(screen.getByRole('button', { name: 'Confirmer la suppression' }));
+    expect(await screen.findByText('Aucun lot enfourné.')).toBeInTheDocument();
   });
 
   it('says so when nothing has been fired yet', async () => {

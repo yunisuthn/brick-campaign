@@ -12,6 +12,9 @@ export const fr = {
   'shell.closedSuffix': ' (clôturée)',
   'shell.lang.fr': 'Français',
   'shell.lang.mg': 'Malagasy',
+  'shell.switchToFr': 'Passer en français',
+  'shell.switchToMg': 'Passer en malagasy',
+  'shell.accountMenu': 'Menu du compte',
 
   'nav.sections': 'Sections',
   'nav.bottom': 'Navigation',
@@ -32,6 +35,7 @@ export const fr = {
   'common.loading': 'Chargement…',
   'common.save': 'Enregistrer',
   'common.cancel': 'Annuler',
+  'common.close': 'Fermer',
   'common.confirm': 'Confirmer',
   'common.keep': 'Garder',
   'common.delete': 'Supprimer',
@@ -42,6 +46,7 @@ export const fr = {
   'common.confirmCancellation': 'Confirmer l’annulation',
 
   'common.campaignSuffix': ' · Campagne {year} · Tranche {tranche}',
+  'common.campaignName': 'Campagne {year} · Tranche {tranche}',
   'common.noCampaignPrefix': 'Aucune campagne :',
   'common.noCampaignLinkText': 'créez la première',
   'common.noCampaignShort': 'Aucune campagne.',
@@ -70,6 +75,9 @@ export const mg: Record<keyof typeof fr, string> = {
   'shell.closedSuffix': ' (efa mihidy)',
   'shell.lang.fr': 'Frantsay',
   'shell.lang.mg': 'Malagasy',
+  'shell.switchToFr': 'Hiova amin’ny teny frantsay',
+  'shell.switchToMg': 'Hiova amin’ny teny malagasy',
+  'shell.accountMenu': 'Safidin’ny kaonty',
 
   'nav.sections': 'Fizarana',
   'nav.bottom': 'Fizorana',
@@ -90,6 +98,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'common.loading': 'Eo am-piandrasana…',
   'common.save': 'Tehirizo',
   'common.cancel': 'Foano',
+  'common.close': 'Hidio',
   'common.confirm': 'Hamarino',
   'common.keep': 'Tazomy',
   'common.delete': 'Fafao',
@@ -100,6 +109,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'common.confirmCancellation': 'Hamarino ny fanafoanana',
 
   'common.campaignSuffix': ' · Vanim-potoana {year} · Tranche {tranche}',
+  'common.campaignName': 'Vanim-potoana {year} · Tranche {tranche}',
   'common.noCampaignPrefix': 'Tsy misy vanim-potoana :',
   'common.noCampaignLinkText': 'hamorona ny voalohany',
   'common.noCampaignShort': 'Tsy misy vanim-potoana.',

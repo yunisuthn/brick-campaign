@@ -123,16 +123,16 @@ Ajouté le 9 septembre 2026, une fois les sept chantiers de l'API livrés. Même
 
 ### 9.2 Choix techniques
 
-| Sujet         | Choix                                                        | Justification                                                                                                                                                                 |
-| ------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Application   | `apps/web` : React, Vite, TypeScript                         | Stack fixée en section 6, même monorepo, même lint et prettier                                                                                                                |
-| Routage       | React Router                                                 | Routes courtes sous la campagne courante (`/productions`, `/ventes/:id`), le sélecteur d'en-tête fixe la campagne (tranché le 10 septembre 2026)                              |
-| Données       | TanStack Query                                               | Cache par ressource, invalidation après chaque saisie, état de chargement uniforme                                                                                            |
-| Formulaires   | React Hook Form                                              | Formulaires nombreux et courts, validation de forme sans dupliquer les règles                                                                                                 |
-| Session       | Cookie de l'API, `GET /auth/me` au départ                    | Rien à stocker côté front ; un 401 renvoie à la connexion                                                                                                                     |
-| Style         | Une feuille de style globale, pas de librairie de composants | Revu le 12 septembre 2026, voir section 10.6. Une dizaine d'écrans simples et une dépendance de moins à porter, la raison n'a pas bougé ; ce sont les CSS modules qui tombent |
-| Tests         | Vitest + Testing Library, MSW pour l'API                     | Tester les écrans contre des réponses d'API réalistes, sans serveur                                                                                                           |
-| Développement | Proxy Vite vers l'API, port lu dans `.env`                   | Même origine, le cookie de session passe sans configuration CORS                                                                                                              |
+| Sujet         | Choix                                                          | Justification                                                                                                                                                                      |
+| ------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Application   | `apps/web` : React, Vite, TypeScript                           | Stack fixée en section 6, même monorepo, même lint et prettier                                                                                                                     |
+| Routage       | React Router                                                   | Routes courtes sous la campagne courante (`/productions`, `/ventes/:id`), le sélecteur d'en-tête fixe la campagne (tranché le 10 septembre 2026)                                   |
+| Données       | TanStack Query                                                 | Cache par ressource, invalidation après chaque saisie, état de chargement uniforme                                                                                                 |
+| Formulaires   | React Hook Form                                                | Formulaires nombreux et courts, validation de forme sans dupliquer les règles                                                                                                      |
+| Session       | Cookie de l'API, `GET /auth/me` au départ                      | Rien à stocker côté front ; un 401 renvoie à la connexion                                                                                                                          |
+| Style         | Tailwind CSS + shadcn/ui, la feuille globale en couche de base | Revu le 29 septembre 2026, voir section 10.11 : la refonte visuelle commence par le tableau de bord, les autres écrans gardent la feuille globale (section 10.6) jusqu'à leur tour |
+| Tests         | Vitest + Testing Library, MSW pour l'API                       | Tester les écrans contre des réponses d'API réalistes, sans serveur                                                                                                                |
+| Développement | Proxy Vite vers l'API, port lu dans `.env`                     | Même origine, le cookie de session passe sans configuration CORS                                                                                                                   |
 
 Les schémas Zod des DTO restent dans l'API. Si le front en a besoin, ils seront extraits dans `packages/contracts` à ce moment-là, pas avant.
 
@@ -324,3 +324,38 @@ inconnu, section 4), ni pour un mouleur à jour ou trop payé.
 
 19. **Front** : le bouton et sa confirmation sur la carte du mouleur, les soldes relus après le
     versement.
+
+### 10.11 Tailwind CSS et shadcn/ui, en commençant par le tableau de bord
+
+Décidé le 29 septembre 2026. Revient sur la section 10.6 (« pas de librairie de composants »).
+L'interface doit gagner en lisibilité sur téléphone — cartes, badges, barre de progression,
+formulaire en tiroir — et ces motifs se composent plus vite avec Tailwind et les composants
+shadcn/ui (Radix dessous, donc clavier et lecteur d'écran gérés) qu'en étendant la feuille
+globale à la main.
+
+**La refonte avance écran par écran, en commençant par le tableau de bord et la coquille**
+(en-tête, sélecteur de campagne, barre basse). La feuille globale n'est pas retirée : elle est
+chargée dans la couche `base` de Tailwind, si bien que les classes utilitaires l'emportent sur
+elle là où un écran refait les emploie, et que les écrans pas encore refaits restent tels quels.
+Le reset de Tailwind (preflight) n'est pas chargé, pour la même raison.
+
+**Le thème vit dans les variables CSS de shadcn**, jamais en dur dans un composant : brique
+`#9A3412` en couleur principale, fond `#FAF8F5`, bordures `#E7E1D9`, texte secondaire `#6B645D`,
+cartes à 12 pixels d'arrondi, boutons et champs à 8 pixels et 44 pixels de haut au moins
+(section 10.6). Police Geist, embarquée dans l'application plutôt que chargée d'un CDN.
+
+**Deux soustractions d'affichage, pas des règles de calcul** (section 9.1, l'API fait foi) :
+
+- la carte Résultat détaille « Encaissé · Coûts », les coûts étant encaissé − résultat, deux
+  chiffres de l'API ; le résultat se calcule sur l'encaissé (section 4), pas sur le chiffre
+  d'affaires, d'où le libellé ;
+- quand le versé dépasse le total dû de la main-d'œuvre, l'écran n'affiche pas un reste à verser
+  négatif mais une **avance aux ouvriers** de versé − total dû, dans un encadré ambre.
+
+**Une vente se saisit aussi depuis le tableau de bord**, dans un tiroir qui monte du bas :
+client, date (du jour par défaut), quantité, prix unitaire et un montant encaissé facultatif. Le
+tiroir crée la vente puis, si le montant n'est pas nul, un encaissement : deux appels existants,
+rien de nouveau côté API. La page Nouvelle vente reste en place.
+
+20. **Front** : Tailwind, shadcn/ui et Geist installés ; thème ; coquille et tableau de bord
+    refaits ; tiroir Nouvelle vente ; textes nouveaux en français et en malgache.

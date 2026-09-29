@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
@@ -5,7 +6,7 @@ import { formatAmount, formatBricks, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { StockSummary } from '../stock/StockSummary.js';
 import { useStock } from '../stock/useStock.js';
-import { type KilnBatch, useKilnBatches } from './useKilnBatches.js';
+import { type KilnBatch, useCancelKilnBatch, useKilnBatches } from './useKilnBatches.js';
 
 export function KilnBatchesPage() {
   const { campaign } = useCurrentCampaign();
@@ -55,9 +56,7 @@ function Batches({ campaignId }: { campaignId: string }) {
       ) : (
         <ul className="rows">
           {batches.data.map((batch) => (
-            <li key={batch.id}>
-              <BatchRow batch={batch} />
-            </li>
+            <BatchRow key={batch.id} batch={batch} />
           ))}
         </ul>
       )}
@@ -65,11 +64,17 @@ function Batches({ campaignId }: { campaignId: string }) {
   );
 }
 
-/** A batch is in the kiln until it is unloaded; its cost waits on the rates it needs. */
+/**
+ * A batch is in the kiln until it is unloaded; its cost waits on the rates it needs. Editing
+ * opens the batch's own page; deleting is a soft cancel done right here, behind a second click,
+ * as for a versement.
+ */
 function BatchRow({ batch }: { batch: KilnBatch }) {
+  const cancel = useCancelKilnBatch(batch.campaignId, batch.id);
+  const [confirming, setConfirming] = useState(false);
   const { t } = useTranslation();
   return (
-    <>
+    <li>
       <Link to={`/lots/${batch.id}`} className="row-name">
         {formatBricks(batch.quantity)}
       </Link>
@@ -87,6 +92,37 @@ function BatchRow({ batch }: { batch: KilnBatch }) {
           formatAmount(batch.cost.total)
         )}
       </span>
-    </>
+      <span className="sub">
+        {confirming ? (
+          <>
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => cancel.mutate(undefined, { onSuccess: () => setConfirming(false) })}
+              disabled={cancel.isPending}
+            >
+              {t('kilnBatches.row.confirmDelete')}
+            </button>{' '}
+            ·{' '}
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => setConfirming(false)}
+              disabled={cancel.isPending}
+            >
+              {t('common.keep')}
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to={`/lots/${batch.id}`}>{t('common.edit')}</Link> ·{' '}
+            <button type="button" className="link-button" onClick={() => setConfirming(true)}>
+              {t('common.delete')}
+            </button>
+          </>
+        )}
+      </span>
+      {cancel.isError && <p role="alert">{apiErrorMessage(cancel.error)}</p>}
+    </li>
   );
 }

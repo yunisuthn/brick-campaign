@@ -14,6 +14,7 @@ export const fr = {
   'kilnBatches.unloadedOnMessage': 'défourné le {date}',
   'kilnBatches.costLabel': 'Coût :',
   'kilnBatches.rateToFix': 'tarif de prestation à fixer',
+  'kilnBatches.row.confirmDelete': 'Confirmer la suppression',
 
   'kilnBatches.newTitle': 'Enfourner un lot',
   'kilnBatches.rawStock': 'Stock crue : {quantity}.',
@@ -51,6 +52,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'kilnBatches.unloadedOnMessage': 'navoaka ny {date}',
   'kilnBatches.costLabel': 'Vidiny :',
   'kilnBatches.rateToFix': 'mbola hofaritana ny tarifin’ny asa',
+  'kilnBatches.row.confirmDelete': 'Hamarino ny famafana',
 
   'kilnBatches.newTitle': 'Ampidiro biriky ao am-patana',
   'kilnBatches.rawStock': 'Biriky manta ao am-bahoaka : {quantity}.',

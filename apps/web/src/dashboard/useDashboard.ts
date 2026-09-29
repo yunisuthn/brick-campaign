@@ -30,9 +30,11 @@ export interface Dashboard {
   result: number | null;
 }
 
+export const dashboardKey = (campaignId: string) => ['dashboard', campaignId] as const;
+
 export function useDashboard(campaignId: string) {
   return useQuery({
-    queryKey: ['dashboard', campaignId] as const,
+    queryKey: dashboardKey(campaignId),
     queryFn: () => api.get<Dashboard>(`/campaigns/${campaignId}/dashboard`),
   });
 }

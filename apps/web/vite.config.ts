@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 import { loadEnv } from 'vite';
@@ -51,7 +52,9 @@ const pwa = VitePWA({
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, rootDir, '');
   return {
-    plugins: [react(), pwa],
+    plugins: [react(), tailwindcss(), pwa],
+    // `@/` is the shadcn/ui import root (components.json): `@/components/ui/button`.
+    resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
     server: {
       proxy: {
         '/api': {

@@ -35,7 +35,7 @@ function groupDigits(digits: string): string {
  * (what validation and `Number(...)` downstream expect); only the input's own display gets the
  * grouping spaces, with the caret kept at the same digit rather than jumping to the end.
  */
-function handleNumericChange(
+export function handleNumericChange(
   event: ChangeEvent<HTMLInputElement>,
   onChange: UseFormRegisterReturn['onChange'],
 ) {

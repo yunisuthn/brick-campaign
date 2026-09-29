@@ -1,9 +1,11 @@
-import type { ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { type ReactNode, useState } from 'react';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
-import { formatAmount, formatBricks } from '../format.js';
+import { formatAmount, formatBricks, today } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useCreatePayment } from '../payments/usePayments.js';
 import {
   type ContractorBalance,
   type MoulderBalance,
@@ -66,6 +68,7 @@ function Balances({ campaignId }: { campaignId: string }) {
                     work={formatBricks(line.bricks)}
                     balance={line}
                     missingRate={t('balances.mouldingRateToFix')}
+                    action={<SettleButton campaignId={campaignId} balance={line} />}
                   />
                 </li>
               ))}
@@ -144,18 +147,25 @@ interface BalanceCardProps {
   balance: Pick<MoulderBalance, 'earned' | 'paid' | 'due'>;
   /** Said instead of an amount when the rate the line needs is not fixed yet. */
   missingRate: string;
+  /** Shown at the far end of the name's line. */
+  action?: ReactNode;
 }
 
 /**
  * What is earned, and so what is due, is unknown while the campaign rate is not fixed
  * (reference document, section 4). The screen says so; it never shows a zero in its place.
  */
-function BalanceCard({ name, work, balance, missingRate }: BalanceCardProps) {
+function BalanceCard({ name, work, balance, missingRate, action }: BalanceCardProps) {
   const { t } = useTranslation();
   return (
     <>
-      <strong>{name}</strong>
-      <span className="sub">{work}</span>
+      <div className="row-split">
+        <div>
+          <strong>{name}</strong>
+          <span className="sub">{work}</span>
+        </div>
+        {action}
+      </div>
       <dl className="facts">
         <Line label={t('balances.earned')}>
           {balance.earned === null ? <em>{missingRate}</em> : formatAmount(balance.earned)}
@@ -174,6 +184,63 @@ function BalanceCard({ name, work, balance, missingRate }: BalanceCardProps) {
         </Line>
       </dl>
     </>
+  );
+}
+
+/**
+ * Pays what is left to a moulder in one go: a settlement payment, dated today, of exactly the
+ * amount due. Asks for a second click naming the amount first, the way cancelling an entry does.
+ * Offered only when something is owed: nothing to settle while the rate is unknown or once the
+ * moulder is paid up or overpaid.
+ */
+function SettleButton({
+  campaignId,
+  balance,
+}: {
+  campaignId: string;
+  balance: Pick<MoulderBalance, 'moulderId' | 'due'>;
+}) {
+  const create = useCreatePayment(campaignId);
+  const queryClient = useQueryClient();
+  const [confirming, setConfirming] = useState(false);
+  const { t } = useTranslation();
+
+  if (balance.due === null || balance.due <= 0) return null;
+  const due = balance.due;
+
+  const settle = () =>
+    create.mutate(
+      { moulderId: balance.moulderId, type: 'settlement', date: today(), amount: due },
+      {
+        onSuccess: () => {
+          setConfirming(false);
+          return queryClient.invalidateQueries({ queryKey: ['balances', campaignId] });
+        },
+      },
+    );
+
+  return (
+    <div className={confirming ? 'settle is-confirming' : 'settle'}>
+      {confirming ? (
+        <>
+          <button type="button" onClick={settle} disabled={create.isPending}>
+            {t('balances.confirmSettle', { amount: formatAmount(due) })}
+          </button>
+          <button type="button" onClick={() => setConfirming(false)} disabled={create.isPending}>
+            {t('common.cancel')}
+          </button>
+        </>
+      ) : (
+        <button type="button" onClick={() => setConfirming(true)}>
+          {t('balances.settle')}
+        </button>
+      )}
+      {create.isError && (
+        <p role="alert">
+          {t('common.saveFailedPrefix')} {apiErrorMessage(create.error)}
+        </p>
+      )}
+    </div>
   );
 }
 

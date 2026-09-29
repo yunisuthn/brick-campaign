@@ -23,6 +23,9 @@ export const fr = {
 
   'balances.totalDue': 'Total reste dû',
   'balances.totalOverpaid': 'Total trop versé',
+
+  'balances.settle': 'Payer le solde',
+  'balances.confirmSettle': 'Confirmer {amount}',
 } as const;
 
 export const mg: Record<keyof typeof fr, string> = {
@@ -49,4 +52,7 @@ export const mg: Record<keyof typeof fr, string> = {
 
   'balances.totalDue': 'Fitambaran’ny sisa tavela',
   'balances.totalOverpaid': 'Fitambaran’ny nihoa-pandoa',
+
+  'balances.settle': 'Aloa ny sisa',
+  'balances.confirmSettle': 'Hamarino {amount}',
 };

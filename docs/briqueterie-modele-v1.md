@@ -307,3 +307,20 @@ campagne, peu importe la date, et aucun n'est requis.
 17. **API** : la valeur d'enum, la règle de doublon limitée à la campagne plutôt qu'au jour pour
     ce seul type.
 18. **Front** : le type ajouté au formulaire de versement et à ses traductions.
+
+### 10.10 Payer le solde depuis l'écran Soldes
+
+Décidé le 28 septembre 2026. En fin de campagne, régler un mouleur voulait dire relire son reste
+dû dans Soldes puis le recopier dans un nouveau versement. Chaque carte de mouleur porte
+désormais, à droite de son nom, un bouton **Payer le solde**.
+
+**Le bouton crée un versement de type solde, daté du jour, du montant exact du reste dû.** Rien de
+nouveau côté API : c'est le même versement que le formulaire, qui reste le chemin pour un
+paiement partiel ou à une autre date. Un second clic est demandé, qui affiche le montant, comme
+pour l'annulation d'une saisie.
+
+**Il n'apparaît que si quelque chose est dû** : ni tant que le tarif n'est pas fixé (le dû est
+inconnu, section 4), ni pour un mouleur à jour ou trop payé.
+
+19. **Front** : le bouton et sa confirmation sur la carte du mouleur, les soldes relus après le
+    versement.

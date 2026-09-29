@@ -21,10 +21,12 @@ export function AppShell() {
   return (
     <CurrentCampaignProvider>
       <header className="shell-header">
-        <strong>{t('shell.appName')}</strong>
         <span className="shell-who">
+          <strong>{t('shell.appName')}</strong>
+          <span className="shell-email">{session.data?.email}</span>
+        </span>
+        <span className="shell-actions">
           <LangSwitcher />
-          <span>{session.data?.email}</span>
           <button type="button" onClick={signOut} disabled={logout.isPending}>
             {t('shell.logout')}
           </button>

@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
-import { DateBox } from '../form/DateField.js';
 import { Select } from '../form/Select.js';
 import { formatAmount, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
@@ -229,16 +228,6 @@ function FilterBar({ moulders, contractorNames, filters, onChange }: FilterBarPr
           { value: '', label: t('common.all') },
           ...contractorNames.map((name) => ({ value: name, label: name })),
         ]}
-      />
-      <DateBox
-        label={t('common.from')}
-        value={filters.from ?? ''}
-        onChange={(iso) => set({ from: iso || undefined })}
-      />
-      <DateBox
-        label={t('common.to')}
-        value={filters.to ?? ''}
-        onChange={(iso) => set({ to: iso || undefined })}
       />
     </form>
   );

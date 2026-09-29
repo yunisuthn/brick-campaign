@@ -9,6 +9,21 @@ import { server } from './server.js';
  */
 configure({ asyncUtilTimeout: 5000 });
 
+/*
+ * What Radix (under the shadcn/ui components) calls and jsdom does not implement: pointer
+ * capture when a select or a menu opens, scrolling the chosen option into view, and watching an
+ * element's size to position a popup. None of them matters without a real layout.
+ */
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.setPointerCapture ??= () => undefined;
+Element.prototype.releasePointerCapture ??= () => undefined;
+Element.prototype.scrollIntoView ??= () => undefined;
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 // A request no test declared is a bug in the test, not something to let through to the network.
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {

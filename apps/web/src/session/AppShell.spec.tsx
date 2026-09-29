@@ -42,7 +42,8 @@ describe('AppShell', () => {
     expect(await screen.findByText('a@b.c')).toBeInTheDocument();
     expect(screen.getByText('Contenu de la page d’accueil')).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Déconnexion' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Menu du compte' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Déconnexion' }));
     expect(await screen.findByText('Écran de connexion')).toBeInTheDocument();
     expect(loggedOut).toBe(true);
     expect(router.state.location.pathname).toBe('/connexion');
@@ -57,7 +58,7 @@ describe('AppShell', () => {
 
     const nav = await screen.findByRole('navigation', { name: 'Campagne courante' });
     await within(nav).findByText('2026 · Tranche 1');
-    const picker = within(nav).getByRole('button');
+    const picker = within(nav).getByRole('combobox', { name: 'Campagne courante' });
 
     await userEvent.click(picker);
     expect(screen.getByRole('option', { name: '2025 · Tranche 1 (clôturée)' })).toBeInTheDocument();
@@ -93,6 +94,20 @@ describe('AppShell', () => {
     expect(router.state.location.pathname).toBe('/ventes');
   });
 
+  it('switches the language from the header, the button naming what it does', async () => {
+    server.use(
+      http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
+      http.get('/api/campaigns', () => HttpResponse.json([])),
+    );
+    renderRoutes(routes, '/');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Passer en malagasy' }));
+    expect(
+      await screen.findByRole('button', { name: 'Hiova amin’ny teny frantsay' }),
+    ).toBeInTheDocument();
+    expect(localStorage.getItem('lang')).toBe('mg');
+  });
+
   it('disables the picker while there is no campaign', async () => {
     server.use(
       http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
@@ -101,7 +116,7 @@ describe('AppShell', () => {
     renderRoutes(routes, '/');
 
     const nav = await screen.findByRole('navigation', { name: 'Campagne courante' });
-    const picker = within(nav).getByRole('button');
+    const picker = within(nav).getByRole('combobox', { name: 'Campagne courante' });
     expect(picker).toBeDisabled();
     expect(picker).toHaveTextContent('Aucune');
   });

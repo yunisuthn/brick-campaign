@@ -29,6 +29,16 @@ export const fr = {
   'sales.totalLabel': 'Total :',
   'sales.saveNewSale': 'Enregistrer la vente',
 
+  'sales.sheet.quantityLabel': 'Quantité (briques)',
+  'sales.sheet.unitPriceLabel': 'Prix unitaire (Ar)',
+  'sales.sheet.receivedLabel': 'Montant encaissé (Ar)',
+  'sales.sheet.receivedHint': 'Laissez 0 si le client paiera plus tard.',
+  'sales.sheet.receivedInvalid': 'Un montant entier en ariary est attendu.',
+  'sales.sheet.receivedTooHigh': 'L’encaissement ne peut pas dépasser le total de la vente.',
+  'sales.sheet.total': 'Total de la vente',
+  'sales.sheet.paymentFailed': 'Vente enregistrée, mais l’encaissement a échoué :',
+  'sales.sheet.openSale': 'Ouvrir la vente',
+
   'sales.keepSale': 'Garder la vente',
   'sales.cancelSale': 'Annuler la vente',
 } as const;
@@ -62,6 +72,16 @@ export const mg: Record<keyof typeof fr, string> = {
   'sales.unitPriceRequired': 'Ilaina ny vidiny isa manontolo an’ariary.',
   'sales.totalLabel': 'Fitambarana :',
   'sales.saveNewSale': 'Tehirizo ny varotra',
+
+  'sales.sheet.quantityLabel': 'Isa (biriky)',
+  'sales.sheet.unitPriceLabel': 'Vidiny isaky ny iray (Ar)',
+  'sales.sheet.receivedLabel': 'Vola voaray (Ar)',
+  'sales.sheet.receivedHint': 'Avelao ho 0 raha handoa any aoriana ny mpanjifa.',
+  'sales.sheet.receivedInvalid': 'Vola ariary feno no andrasana.',
+  'sales.sheet.receivedTooHigh': 'Tsy afaka mihoatra ny totalin’ny varotra ny vola voaray.',
+  'sales.sheet.total': 'Totalin’ny varotra',
+  'sales.sheet.paymentFailed': 'Voarakitra ny varotra, fa tsy nety ny fandraisam-bola :',
+  'sales.sheet.openSale': 'Sokafy ny varotra',
 
   'sales.keepSale': 'Tazomy ny varotra',
   'sales.cancelSale': 'Foano ny varotra',

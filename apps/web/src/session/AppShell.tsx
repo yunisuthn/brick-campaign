@@ -1,6 +1,24 @@
+import { useId } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
+import { BottomNav } from '@/components/BottomNav';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { CurrentCampaignProvider, useCurrentCampaign } from '../campaigns/currentCampaign.js';
-import { Select } from '../form/Select.js';
 import { type Lang, useTranslation } from '../i18n/I18nProvider.js';
 import type { TranslationKey } from '../i18n/translations.js';
 import { useLogout, useSession } from './useSession.js';
@@ -20,16 +38,26 @@ export function AppShell() {
 
   return (
     <CurrentCampaignProvider>
-      <header className="shell-header">
-        <span className="shell-who">
-          <strong>{t('shell.appName')}</strong>
-          <span className="shell-email">{session.data?.email}</span>
+      <header className="ui flex items-center justify-between gap-3 border-b bg-card px-4 py-2.5">
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span
+            aria-hidden="true"
+            className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground"
+          >
+            B
+          </span>
+          <span className="flex min-w-0 flex-col leading-tight">
+            <strong className="font-semibold">{t('shell.appName')}</strong>
+            <span className="truncate text-xs text-muted-foreground">{session.data?.email}</span>
+          </span>
         </span>
-        <span className="shell-actions">
+        <span className="flex shrink-0 items-center gap-2">
           <LangSwitcher />
-          <button type="button" onClick={signOut} disabled={logout.isPending}>
-            {t('shell.logout')}
-          </button>
+          <AccountMenu
+            email={session.data?.email ?? ''}
+            onSignOut={signOut}
+            signingOut={logout.isPending}
+          />
         </span>
       </header>
       <CampaignPicker />
@@ -40,15 +68,66 @@ export function AppShell() {
   );
 }
 
-/** French and Malagasy, kept as two plain buttons rather than a select: only two choices, and
- * a button's own label stays readable in whichever language is not currently picked. */
+/**
+ * French and Malagasy: two choices, so one button that flips between them, both codes shown
+ * and the current one stressed. Its accessible name says what a press does.
+ */
 function LangSwitcher() {
   const { lang, setLang, t } = useTranslation();
   const other: Lang = lang === 'fr' ? 'mg' : 'fr';
   return (
-    <button type="button" onClick={() => setLang(other)}>
-      {t(`shell.lang.${other}` as TranslationKey)}
-    </button>
+    <Button
+      type="button"
+      variant="outline"
+      className="px-3 text-xs"
+      onClick={() => setLang(other)}
+      aria-label={t(other === 'mg' ? 'shell.switchToMg' : 'shell.switchToFr')}
+    >
+      <span className={lang === 'mg' ? 'font-bold' : 'text-muted-foreground'}>MG</span>
+      <span aria-hidden="true" className="text-muted-foreground">
+        /
+      </span>
+      <span className={lang === 'fr' ? 'font-bold' : 'text-muted-foreground'}>FR</span>
+    </Button>
+  );
+}
+
+/** The signed-in person's initial; the way out sits behind it. */
+function AccountMenu({
+  email,
+  onSignOut,
+  signingOut,
+}: {
+  email: string;
+  onSignOut: () => void;
+  signingOut: boolean;
+}) {
+  const { t } = useTranslation();
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="rounded-full"
+          aria-label={t('shell.accountMenu')}
+        >
+          <span className="flex size-9 items-center justify-center rounded-full bg-secondary text-sm font-semibold uppercase">
+            {email.charAt(0) || '?'}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-48">
+        <DropdownMenuLabel className="truncate font-normal text-muted-foreground">
+          {email}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="min-h-11" disabled={signingOut} onSelect={onSignOut}>
+          {t('shell.logout')}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -85,52 +164,35 @@ function MainNav() {
   );
 }
 
-const bottomSections: ReadonlyArray<{ to: string; key: TranslationKey }> = [
-  { to: '/', key: 'nav.home' },
-  { to: '/productions', key: 'nav.productions' },
-  { to: '/ventes', key: 'nav.sales' },
-  { to: '/plus', key: 'nav.more' },
-];
-
 /**
- * Four destinations under the thumb (reference document, section 10.7): the evening's two main
- * entries, the dashboard they open on, and everything else behind "Plus". Shown only under 640
- * pixels; same routes as the top bar, so nothing needs keeping in sync between the two.
+ * A closed campaign can still be chosen, to read past figures; it says so in the option. The
+ * list is Radix's, positioned by its own code rather than the browser's native popup, which is
+ * what the old hand-made dropdown was for (form/Select.tsx).
  */
-function BottomNav() {
-  const { t } = useTranslation();
-  return (
-    <nav aria-label={t('nav.bottom')} className="shell-bottom-nav">
-      {bottomSections.map((section) => (
-        <NavLink key={section.to} to={section.to} end={section.to === '/'}>
-          {t(section.key)}
-        </NavLink>
-      ))}
-    </nav>
-  );
-}
-
-/** A closed campaign can still be chosen, to read past figures; it says so in the option. */
 function CampaignPicker() {
   const { campaign, campaigns, choose } = useCurrentCampaign();
   const { t } = useTranslation();
+  const id = useId();
 
   return (
-    <nav aria-label={t('shell.currentCampaign')} className="shell-campaign">
-      <Select
-        label={t('shell.currentCampaign')}
-        value={campaign?.id ?? ''}
-        onChange={choose}
-        disabled={campaigns.length === 0}
-        options={
-          campaigns.length === 0
-            ? [{ value: '', label: t('shell.noCampaign') }]
-            : campaigns.map((c) => ({
-                value: c.id,
-                label: `${c.year}${t('campaigns.trancheSuffix', { tranche: c.tranche })}${c.closedOn !== null ? t('shell.closedSuffix') : ''}`,
-              }))
-        }
-      />
+    <nav aria-label={t('shell.currentCampaign')} className="ui border-b bg-card px-4 pt-2 pb-3">
+      <div className="mx-auto flex max-w-md flex-col gap-1.5">
+        <Label htmlFor={id} className="text-xs text-muted-foreground">
+          {t('shell.currentCampaign')}
+        </Label>
+        <Select value={campaign?.id ?? ''} onValueChange={choose} disabled={campaigns.length === 0}>
+          <SelectTrigger id={id} className="w-full bg-card">
+            <SelectValue placeholder={t('shell.noCampaign')} />
+          </SelectTrigger>
+          <SelectContent>
+            {campaigns.map((c) => (
+              <SelectItem key={c.id} value={c.id} className="min-h-11">
+                {`${c.year}${t('campaigns.trancheSuffix', { tranche: c.tranche })}${c.closedOn !== null ? t('shell.closedSuffix') : ''}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </nav>
   );
 }

@@ -2,6 +2,10 @@
  * The whole style of the application (reference document, section 10.6). Elements are described
  * once, by tag name, so most components carry no class; the handful of shared shapes below get
  * one each. Sizes are a thumb's, not a mouse's: entry happens in the evening, on a phone.
+ *
+ * Loaded by index.css in Tailwind's `base` layer (section 10.11). Every rule on a bare element
+ * stops at the redesigned areas — a `.ui` container, a shadcn component's `data-slot` — through
+ * a `:where()` guard, which adds no specificity, so the old screens are unchanged.
  */
 
 :root {
@@ -40,22 +44,22 @@ body {
 
 /* --- Text ------------------------------------------------------------- */
 
-h1 {
+h1:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   font-size: 1.375rem;
   line-height: 1.25;
   margin: 0 0 1rem;
 }
 
-h2 {
+h2:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   font-size: 1.125rem;
   margin: 0 0 0.5rem;
 }
 
-p {
+p:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   margin: 0 0 var(--gap);
 }
 
-a {
+a:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   color: var(--brick-dark);
 }
 
@@ -90,14 +94,14 @@ a {
 
 /* --- Controls --------------------------------------------------------- */
 
-label {
+label:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   display: block;
   margin-bottom: var(--gap);
 }
 
-input,
-select,
-textarea {
+input:where(:not(.ui, .ui *, [data-slot], [data-slot] *)),
+select:where(:not(.ui, .ui *, [data-slot], [data-slot] *)),
+textarea:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   display: block;
   width: 100%;
   min-height: var(--tap);
@@ -111,25 +115,25 @@ textarea {
   transition: border-color 0.15s ease;
 }
 
-input:hover,
-select:hover {
+input:where(:not(.ui, .ui *, [data-slot], [data-slot] *)):hover,
+select:where(:not(.ui, .ui *, [data-slot], [data-slot] *)):hover {
   border-color: var(--ink-soft);
 }
 
-input:focus-visible,
-select:focus-visible,
-button:focus-visible,
-a:focus-visible {
+input:where(:not(.ui, .ui *, [data-slot], [data-slot] *)):focus-visible,
+select:where(:not(.ui, .ui *, [data-slot], [data-slot] *)):focus-visible,
+button:where(:not(.ui, .ui *, [data-slot], [data-slot] *)):focus-visible,
+a:where(:not(.ui, .ui *, [data-slot], [data-slot] *)):focus-visible {
   outline: 2px solid var(--brick);
   outline-offset: 2px;
 }
 
-input[aria-invalid='true'],
-select[aria-invalid='true'] {
+input[aria-invalid='true']:where(:not(.ui, .ui *, [data-slot], [data-slot] *)),
+select[aria-invalid='true']:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   border-color: var(--error);
 }
 
-button {
+button:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   min-height: var(--tap);
   padding: 0 1rem;
   font: inherit;
@@ -141,23 +145,23 @@ button {
   transition: background-color 0.15s ease;
 }
 
-button:hover:not(:disabled) {
+button:where(:not(.ui, .ui *, [data-slot], [data-slot] *)):hover:not(:disabled) {
   background: var(--brick-dark);
   border-color: var(--brick-dark);
 }
 
 /* Anything that is not the one thing the screen is for. */
-button[type='button'] {
+button[type='button']:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   color: var(--brick-dark);
   background: var(--surface);
 }
 
-button[type='button']:hover:not(:disabled) {
+button[type='button']:where(:not(.ui, .ui *, [data-slot], [data-slot] *)):hover:not(:disabled) {
   background: var(--ground);
   border-color: var(--ink-soft);
 }
 
-button:disabled {
+button:where(:not(.ui, .ui *, [data-slot], [data-slot] *)):disabled {
   opacity: 0.55;
   cursor: default;
 }
@@ -389,44 +393,44 @@ button:disabled {
   margin: 0;
 }
 
-dt {
+dt:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   color: var(--ink-soft);
 }
 
-dd {
+dd:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   margin: 0;
 }
 
 /* Each block of a screen that is not the first one. */
-section {
+section:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   margin-top: 1.5rem;
 }
 
-table {
+table:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   width: 100%;
   border-collapse: collapse;
 }
 
-th,
-td {
+th:where(:not(.ui, .ui *, [data-slot], [data-slot] *)),
+td:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   padding: 0.5rem 0.5rem 0.5rem 0;
   text-align: left;
   border-bottom: 1px solid var(--line);
 }
 
-th.figure,
-td.figure {
+th:where(:not(.ui, .ui *, [data-slot], [data-slot] *)).figure,
+td:where(:not(.ui, .ui *, [data-slot], [data-slot] *)).figure {
   text-align: right;
 }
 
 /* --- What the screen says back ---------------------------------------- */
 
-[role='alert'] {
+[role='alert']:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   color: var(--error);
 }
 
 /* Under a field, the reason it was refused takes its own line. */
-span[role='alert'] {
+span[role='alert']:where(:not(.ui, .ui *, [data-slot], [data-slot] *)) {
   display: block;
 }
 
@@ -452,84 +456,8 @@ span[role='alert'] {
 
 /* --- Shell ------------------------------------------------------------- */
 
-.shell-header {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--gap);
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.625rem 1rem;
-  color: var(--surface);
-  background: var(--brick);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
-}
-
-.shell-header button {
-  color: var(--surface);
-  background: transparent;
-  border-color: currentColor;
-}
-
-.shell-header button:hover:not(:disabled) {
-  background: rgb(255 255 255 / 0.15);
-  border-color: currentColor;
-}
-
-/* The app's name with who is signed in beside it; the email gives way first on a narrow phone. */
-.shell-who {
-  display: flex;
-  gap: var(--gap);
-  align-items: baseline;
-  min-width: 0;
-}
-
-.shell-email {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  opacity: 0.85;
-}
-
-/* Language and sign-out stay side by side, never stacked. */
-.shell-actions {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.shell-campaign {
-  padding: 0.5rem 1rem;
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-}
-
-/* The picker sits on one line: the label beside its select, not above it. */
-.shell-campaign label {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin: 0;
-}
-
-.shell-campaign .select {
-  width: auto;
-  margin: 0;
-}
-
-/* "2026 · Tranche 3" stays on one line inside the field, in a slightly smaller type. */
-.shell-campaign .select-trigger,
-.shell-campaign .select-list li {
-  font-size: 0.875rem;
-  white-space: nowrap;
-}
-
-/* Wider than the field when a label says "clôturée": opened leftwards, so it stays on screen. */
-.shell-campaign .select-list {
-  left: auto;
-  min-width: max-content;
-}
-
+/* The header, the campaign picker and the bottom bar are Tailwind now (section 10.11); the top
+   bar of section links above 640 pixels keeps its rules here. */
 .shell-nav {
   display: flex;
   gap: 0.25rem 1rem;
@@ -566,43 +494,8 @@ span[role='alert'] {
   }
 
   body {
-    padding-bottom: calc(var(--tap) + env(safe-area-inset-bottom));
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
   }
-}
-
-.shell-bottom-nav {
-  display: none;
-}
-
-@media (max-width: 640px) {
-  .shell-bottom-nav {
-    position: fixed;
-    z-index: 1;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    padding-bottom: env(safe-area-inset-bottom);
-    background: var(--surface);
-    border-top: 1px solid var(--line);
-    box-shadow: 0 -2px 8px rgb(0 0 0 / 0.06);
-  }
-}
-
-.shell-bottom-nav a {
-  display: flex;
-  flex: 1 1 0;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--tap);
-  color: var(--ink-soft);
-  text-align: center;
-  text-decoration: none;
-}
-
-.shell-bottom-nav a[aria-current='page'] {
-  color: var(--brick-dark);
-  font-weight: 700;
 }
 
 /* A form that opens inside a page rather than filling one: the rates, the closing date. */

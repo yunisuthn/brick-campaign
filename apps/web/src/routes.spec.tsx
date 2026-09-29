@@ -13,7 +13,7 @@ describe('routes', () => {
     );
     const { router } = renderRoutes(routes, '/');
     expect(await screen.findByRole('heading', { name: 'Tableau de bord' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Déconnexion' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Menu du compte' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/');
   });
 

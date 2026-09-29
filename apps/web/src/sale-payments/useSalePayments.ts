@@ -71,6 +71,19 @@ export function useCreateSalePayment(campaignId: string, saleId: string) {
   );
 }
 
+/**
+ * The same instalment, for a sale that did not exist yet when the form opened: the sale is
+ * named in the call rather than in the hook (the dashboard's Nouvelle vente sheet).
+ */
+export function useCreateSalePaymentOnSale(campaignId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ saleId, ...input }: NewSalePayment & { saleId: string }) =>
+      api.post<SalePayment>(path(campaignId, saleId), input),
+    onSuccess: (payment) => refresh(queryClient, campaignId, payment.saleId),
+  });
+}
+
 export function useUpdateSalePayment(campaignId: string, saleId: string, id: string) {
   return useChange(campaignId, saleId, (patch: SalePaymentPatch) =>
     api.patch<SalePayment>(`${path(campaignId, saleId)}/${id}`, patch),

@@ -40,7 +40,7 @@ export function PageHeader({ title, subtitle, back, action }: PageHeaderProps) {
         <h1 className="text-2xl leading-tight font-semibold tracking-tight">{title}</h1>
         {action}
       </div>
-      {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+      {subtitle && <div className="text-sm text-muted-foreground">{subtitle}</div>}
     </div>
   );
 }

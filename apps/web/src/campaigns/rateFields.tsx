@@ -5,7 +5,11 @@ import {
   type UseFormReturn,
   useFieldArray,
 } from 'react-hook-form';
-import { Field } from '../form/Field.js';
+import { Plus, X } from 'lucide-react';
+import { NumberField } from '@/components/fields';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { digitsOnly } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import type { TranslationKey } from '../i18n/translations.js';
@@ -56,23 +60,37 @@ function PriceListField<T extends CampaignRates>({ form, name }: PriceListFieldP
   };
 
   return (
-    <fieldset>
-      <legend>
+    <fieldset className="flex min-w-0 flex-col gap-2">
+      <legend className="mb-2 text-sm font-medium">
         {label} {t('campaigns.rates.priceListUnit')}
       </legend>
-      {fields.length === 0 && <p className="sub">{t('campaigns.rates.noneYet')}</p>}
-      <ul className="price-list">
-        {fields.map((field, index) => (
-          <li key={field.id}>
-            {form.watch(`${name}.${index}` as never) as unknown as number}
-            <button type="button" onClick={() => remove(index)}>
-              {t('campaigns.rates.remove')}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <p className="inline-form">
-        <input
+      {fields.length === 0 && (
+        <p className="text-sm text-muted-foreground italic">{t('campaigns.rates.noneYet')}</p>
+      )}
+      {fields.length > 0 && (
+        <ul className="flex flex-wrap gap-2">
+          {fields.map((field, index) => (
+            <li
+              key={field.id}
+              className="flex h-9 items-center gap-0.5 rounded-full bg-tile pl-3 font-semibold tabular-nums"
+            >
+              {form.watch(`${name}.${index}` as never) as unknown as number}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="rounded-full text-muted-foreground"
+                onClick={() => remove(index)}
+              >
+                <X aria-hidden="true" />
+                <span className="sr-only">{t('campaigns.rates.remove')}</span>
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex gap-2">
+        <Input
           type="number"
           inputMode="numeric"
           min={0}
@@ -80,11 +98,14 @@ function PriceListField<T extends CampaignRates>({ form, name }: PriceListFieldP
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           aria-label={t('campaigns.rates.newPriceLabel', { list: label.toLowerCase() })}
+          placeholder={t('campaigns.rates.newPriceLabel', { list: label.toLowerCase() })}
+          className="grow"
         />
-        <button type="button" onClick={add} disabled={draft === ''}>
+        <Button type="button" variant="outline" onClick={add} disabled={draft === ''}>
+          <Plus aria-hidden="true" />
           {t('campaigns.rates.add')}
-        </button>
-      </p>
+        </Button>
+      </div>
     </fieldset>
   );
 }
@@ -101,12 +122,13 @@ export function RateFields<T extends CampaignRates>({ form, errors }: RateFields
   return (
     <>
       <PriceListField form={form} name="mouldingRates" />
+      <Separator />
       <PriceListField form={form} name="transportRates" />
-      <Field
+      <Separator />
+      <NumberField
         label={t('campaigns.rates.kilnLoadingFieldLabel')}
         error={errors.kilnLoadingRate}
-        input={register('kilnLoadingRate', rateOptions(t))}
-        inputMode="numeric"
+        registration={register('kilnLoadingRate', rateOptions(t))}
       />
     </>
   );

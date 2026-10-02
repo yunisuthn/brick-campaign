@@ -84,7 +84,7 @@ describe('ProductionPage', () => {
     await user.type(quantity, '1300');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    expect(await screen.findByText('1 300 briques')).toBeInTheDocument();
+    expect(await screen.findByText('Ambany · 1 300 briques')).toBeInTheDocument();
     expect(body).toEqual({
       startedOn: '2026-06-02',
       endedOn: null,

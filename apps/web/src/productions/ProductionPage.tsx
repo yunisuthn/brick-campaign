@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import { ConfirmStrip } from '@/components/ConfirmStrip';
+import { RouteSheet } from '@/components/RouteSheet';
+import { ErrorNote } from '@/components/states';
+import { Button } from '@/components/ui/button';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { formatBricks, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useFormat } from '../i18n/useFormat.js';
 import { useMoulders } from '../moulders/useMoulders.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type ProductionForm, ProductionFields, toNewProduction } from './productionFields.js';
@@ -18,23 +22,20 @@ import {
   useUpdateProduction,
 } from './useProductions.js';
 
+/** A correction, in a sheet over the list it was opened from (reference document, 10.12). */
 export function ProductionPage() {
   const { id = '' } = useParams();
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
-  return (
-    <main className="page">
-      <p>
-        <Link to="/productions">{t('productions.allProductions')}</Link>
-      </p>
-      {campaign ? (
-        <LoadedProduction campaign={campaign} id={id} />
-      ) : (
-        <p>{t('common.noCampaignShort')}</p>
-      )}
-    </main>
-  );
+  if (!campaign) {
+    return (
+      <RouteSheet title={t('productions.title')} closeTo="/productions">
+        <p className="text-muted-foreground">{t('common.noCampaignShort')}</p>
+      </RouteSheet>
+    );
+  }
+  return <LoadedProduction campaign={campaign} id={id} />;
 }
 
 /** The entry, the moulders it may name (its own even if retired) and the rice fields, all before the form. */
@@ -44,18 +45,28 @@ function LoadedProduction({ campaign, id }: { campaign: Campaign; id: string }) 
   const riceFields = useRiceFields();
   const { t } = useTranslation();
 
-  if (production.isError) {
-    return <p role="alert">{loadErrorMessage(production.error, t('productions.notFound'))}</p>;
-  }
-  const failed = [moulders, riceFields].find((query) => query.isError);
-  if (failed)
+  const failure = production.isError
+    ? loadErrorMessage(production.error, t('productions.notFound'))
+    : [moulders, riceFields].find((query) => query.isError)?.error;
+  if (failure) {
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
-      </p>
+      <RouteSheet title={t('productions.title')} closeTo="/productions">
+        {typeof failure === 'string' ? (
+          <ErrorNote message={failure} />
+        ) : (
+          <ErrorNote prefix={t('common.loadFailedPrefix')} message={apiErrorMessage(failure)} />
+        )}
+      </RouteSheet>
     );
+  }
   if (!production.isSuccess || !moulders.isSuccess || !riceFields.isSuccess) {
-    return <p role="status">{t('common.loading')}</p>;
+    return (
+      <RouteSheet title={t('productions.title')} closeTo="/productions">
+        <p role="status" className="text-muted-foreground">
+          {t('common.loading')}
+        </p>
+      </RouteSheet>
+    );
   }
 
   const choosable = moulders.data.filter((m) => m.active || m.id === production.data.moulderId);
@@ -78,7 +89,7 @@ interface CorrectionFormProps {
 }
 
 /**
- * A correction sends the whole entry back; cancelling asks for a second click, then goes back
+ * A correction sends the whole entry back; cancelling asks for a second step, then goes back
  * to the list. A cancelled entry is gone from the API, its row stays in the database
  * (reference document, section 5).
  */
@@ -87,6 +98,8 @@ function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionF
   const cancel = useCancelProduction(production.campaignId, production.id);
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
+  const { t } = useTranslation();
+  const format = useFormat();
   const form = useForm<ProductionForm>({
     defaultValues: {
       startedOn: production.startedOn,
@@ -105,22 +118,24 @@ function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionF
       onSuccess: (saved) => form.reset({ ...values, quantity: String(saved.quantity) }),
     }),
   );
-  const cancelEntry = () => cancel.mutate(undefined, { onSuccess: () => navigate('/productions') });
+  const cancelEntry = () =>
+    cancel.mutate(undefined, { onSuccess: () => void navigate('/productions') });
 
   const moulderName = moulders.find((m) => m.id === production.moulderId)?.name ?? '';
+  const fieldName = riceFields.find((f) => f.id === production.riceFieldId)?.name;
+  const period =
+    production.endedOn !== null && production.endedOn !== production.startedOn
+      ? `${format.date(production.startedOn)} – ${format.date(production.endedOn)}`
+      : format.date(production.startedOn);
   const busy = update.isPending || cancel.isPending;
-  const { t } = useTranslation();
 
   return (
-    <>
-      <h1>
-        {moulderName}, {formatDate(production.startedOn)}
-        {production.endedOn !== null && production.endedOn !== production.startedOn && (
-          <> – {formatDate(production.endedOn)}</>
-        )}
-        <span className="title-sub">{formatBricks(production.quantity)}</span>
-      </h1>
-      <form onSubmit={save} noValidate>
+    <RouteSheet
+      title={`${moulderName}, ${period}`}
+      description={[fieldName, format.bricks(production.quantity)].filter(Boolean).join(' · ')}
+      closeTo="/productions"
+    >
+      <form onSubmit={save} noValidate className="flex flex-col gap-4">
         <ProductionFields
           register={form.register}
           control={form.control}
@@ -131,35 +146,38 @@ function CorrectionForm({ production, moulders, riceFields, rates }: CorrectionF
           showEndedOn
         />
         {updateRefusal.message && (
-          <p role="alert">
+          <p role="alert" className="text-sm text-destructive">
             {t('common.saveFailedPrefix')} {updateRefusal.message}
           </p>
         )}
         {cancel.isError && (
-          <p role="alert">
+          <p role="alert" className="text-sm text-destructive">
             {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
           </p>
         )}
-        <p className="actions">
-          <button type="submit" disabled={busy || !form.formState.isDirty}>
-            {t('common.save')}
-          </button>
-          {confirming ? (
-            <>
-              <button type="button" onClick={cancelEntry} disabled={busy}>
-                {t('common.confirmCancellation')}
-              </button>
-              <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-                {t('productions.keepEntry')}
-              </button>
-            </>
-          ) : (
-            <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-              {t('productions.cancelEntry')}
-            </button>
-          )}
-        </p>
+        <Button type="submit" disabled={busy || !form.formState.isDirty}>
+          {t('common.save')}
+        </Button>
+        {confirming ? (
+          <ConfirmStrip
+            confirmLabel={t('common.confirmCancellation')}
+            keepLabel={t('productions.keepEntry')}
+            onConfirm={cancelEntry}
+            onKeep={() => setConfirming(false)}
+            busy={busy}
+          />
+        ) : (
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            onClick={() => setConfirming(true)}
+            disabled={busy}
+          >
+            {t('productions.cancelEntry')}
+          </Button>
+        )}
       </form>
-    </>
+    </RouteSheet>
   );
 }

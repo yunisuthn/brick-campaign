@@ -1,36 +1,38 @@
 import { ChevronRight } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { cn } from '@/lib/utils';
 
 interface ListCardProps {
-  /** A band above the rows: a day and its total, say (see GroupHeader). */
-  header?: ReactNode;
-  /** Names the list for a screen reader when no visible heading does. */
+  /** A band above the rows that names them: a day, say. The card is then a region. */
+  title?: ReactNode;
+  /** At the far end of that band: what the rows add up to. */
+  aside?: ReactNode;
+  /** Names the list for a screen reader when no visible title does. */
   label?: string;
   children: ReactNode;
   className?: string;
 }
 
 /** Rows in one card, a line between each (reference document, section 10.12). */
-export function ListCard({ header, label, children, className }: ListCardProps) {
+export function ListCard({ title, aside, label, children, className }: ListCardProps) {
+  const titleId = useId();
   return (
     <section
-      aria-label={label}
+      aria-label={title === undefined ? label : undefined}
+      aria-labelledby={title === undefined ? undefined : titleId}
       className={cn('rounded-xl border bg-card text-card-foreground shadow-sm', className)}
     >
-      {header}
+      {title !== undefined && (
+        <div className="flex items-baseline justify-between gap-3 rounded-t-xl border-b bg-tile px-4 py-2.5">
+          <h2 id={titleId} className="text-[13px] font-semibold">
+            {title}
+          </h2>
+          {aside && <span className="text-[13px] text-muted-foreground tabular-nums">{aside}</span>}
+        </div>
+      )}
       <ul className="divide-y">{children}</ul>
     </section>
-  );
-}
-
-export function GroupHeader({ title, aside }: { title: ReactNode; aside?: ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 rounded-t-xl border-b bg-tile px-4 py-2.5">
-      <h2 className="text-[13px] font-semibold">{title}</h2>
-      {aside && <span className="text-[13px] text-muted-foreground tabular-nums">{aside}</span>}
-    </div>
   );
 }
 

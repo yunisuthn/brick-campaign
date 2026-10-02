@@ -41,6 +41,40 @@ describe('routes', () => {
     expect(router.state.location.pathname).toBe('/plus');
   });
 
+  it('opens a new production in a sheet over the list, and closes back to it', async () => {
+    server.use(
+      http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
+      http.get('/api/campaigns', () =>
+        HttpResponse.json([
+          {
+            id: 'c1',
+            year: 2026,
+            tranche: 1,
+            startedOn: '2026-05-10',
+            closedOn: null,
+            mouldingRates: [40],
+            transportRates: [10],
+            kilnLoadingRate: 5,
+          },
+        ]),
+      ),
+      http.get('/api/campaigns/c1/productions', () => HttpResponse.json([])),
+      http.get('/api/moulders', () => HttpResponse.json([])),
+      http.get('/api/rice-fields', () => HttpResponse.json([])),
+    );
+    const user = userEvent.setup();
+    const { router } = renderRoutes(routes, '/productions/nouvelle');
+    expect(await screen.findByRole('dialog', { name: 'Nouvelle production' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Productions', hidden: true })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Fermer' }));
+    expect(router.state.location.pathname).toBe('/productions');
+    expect(await screen.findByRole('link', { name: 'Saisir une production' })).toHaveAttribute(
+      'href',
+      '/productions/nouvelle',
+    );
+  });
+
   it('sends a signed-out visitor from / to the login screen', async () => {
     server.use(
       http.get('/api/auth/me', () =>

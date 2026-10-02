@@ -1,37 +1,38 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router';
+import { RouteSheet, SheetActions } from '@/components/RouteSheet';
+import { ErrorNote, NoCampaign } from '@/components/states';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { formatBricks, today } from '../format.js';
+import { today } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useFormat } from '../i18n/useFormat.js';
 import { useMoulders } from '../moulders/useMoulders.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type ProductionForm, ProductionFields, toNewProduction } from './productionFields.js';
 import { useCreateProduction } from './useProductions.js';
 
+/** A new entry, in a sheet over the list (reference document, section 10.12). */
 export function NewProductionPage() {
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page">
-      <p>
-        <Link to="/productions">{t('productions.allProductions')}</Link>
-      </p>
-      <h1>{t('productions.newTitle')}</h1>
+    <RouteSheet
+      title={t('productions.newTitle')}
+      description={
+        campaign && t('common.campaignName', { year: campaign.year, tranche: campaign.tranche })
+      }
+      closeTo="/productions"
+    >
       {campaign ? (
         <EntryForm campaign={campaign} />
       ) : (
-        <p>
-          {t('common.noCampaignPrefix')}{' '}
-          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
-          {t('productions.noCampaignSuffix')}
-        </p>
+        <NoCampaign suffix="productions.noCampaignSuffix" />
       )}
-    </main>
+    </RouteSheet>
   );
 }
 
@@ -46,6 +47,7 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
   const create = useCreateProduction(campaign.id);
   const [saved, setSaved] = useState<string | null>(null);
   const { t } = useTranslation();
+  const format = useFormat();
   const form = useForm<ProductionForm>({
     defaultValues: {
       startedOn: today(),
@@ -60,13 +62,15 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
   if (moulders.isError || riceFields.isError) {
     const error = moulders.error ?? riceFields.error;
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {error && apiErrorMessage(error)}
-      </p>
+      <ErrorNote prefix={t('common.loadFailedPrefix')} message={error && apiErrorMessage(error)} />
     );
   }
   if (!moulders.isSuccess || !riceFields.isSuccess) {
-    return <p role="status">{t('common.loading')}</p>;
+    return (
+      <p role="status" className="text-muted-foreground">
+        {t('common.loading')}
+      </p>
+    );
   }
 
   const createRefusal = apiFormErrors(create, form);
@@ -76,7 +80,7 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
       onSuccess: (production) => {
         const name = moulders.data.find((m) => m.id === production.moulderId)?.name ?? '';
         setSaved(
-          t('productions.savedMessage', { name, quantity: formatBricks(production.quantity) }),
+          t('productions.savedMessage', { name, quantity: format.bricks(production.quantity) }),
         );
         form.reset({ ...values, moulderId: '', quantity: '' });
         form.setFocus('moulderId');
@@ -85,7 +89,7 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
   );
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <ProductionFields
         register={form.register}
         control={form.control}
@@ -95,20 +99,19 @@ function EntryForm({ campaign }: { campaign: Campaign }) {
         rates={campaign.mouldingRates}
       />
       {createRefusal.message && (
-        <p role="alert">
+        <p role="alert" className="text-sm text-destructive">
           {t('common.saveFailedPrefix')} {createRefusal.message}
         </p>
       )}
       {saved && !create.isError && (
-        <p role="status" className="done">
+        <p
+          role="status"
+          className="rounded-[10px] bg-success/10 px-4 py-3 text-sm font-medium text-success"
+        >
           {saved}
         </p>
       )}
-      <p>
-        <button type="submit" disabled={create.isPending}>
-          {t('common.save')}
-        </button>
-      </p>
+      <SheetActions submitLabel={t('common.save')} busy={create.isPending} />
     </form>
   );
 }

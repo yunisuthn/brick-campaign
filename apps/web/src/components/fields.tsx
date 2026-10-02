@@ -292,40 +292,70 @@ export function SelectField<T extends FieldValues>({
           name={name}
           control={control}
           rules={rules}
-          render={({ field }) => {
-            const value = (field.value as string | undefined) ?? '';
-            return (
-              <Select
-                value={value === '' && placeholder !== undefined ? '' : toItem(value)}
-                onValueChange={(next) => field.onChange(fromItem(next))}
-              >
-                <SelectTrigger
-                  id={id}
-                  ref={field.ref}
-                  onBlur={field.onBlur}
-                  aria-invalid={!!error}
-                  aria-describedby={describedBy}
-                  className="w-full"
-                >
-                  <SelectValue placeholder={placeholder} />
-                </SelectTrigger>
-                <SelectContent>
-                  {options.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={toItem(option.value)}
-                      className="min-h-11"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            );
-          }}
+          render={({ field }) => (
+            <SelectInput
+              id={id}
+              describedBy={describedBy}
+              invalid={!!error}
+              value={(field.value as string | undefined) ?? ''}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              triggerRef={field.ref}
+              options={options}
+              placeholder={placeholder}
+            />
+          )}
         />
       )}
     </FormField>
+  );
+}
+
+/** The list itself, for a filter outside any form as much as for SelectField. */
+export function SelectInput({
+  id,
+  describedBy,
+  invalid = false,
+  value,
+  onChange,
+  onBlur,
+  triggerRef,
+  options,
+  placeholder,
+}: {
+  id: string;
+  describedBy?: string | undefined;
+  invalid?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
+  triggerRef?: (el: HTMLButtonElement | null) => void;
+  options: ReadonlyArray<Option>;
+  placeholder?: string;
+}) {
+  return (
+    <Select
+      value={value === '' && placeholder !== undefined ? '' : toItem(value)}
+      onValueChange={(next) => onChange(fromItem(next))}
+    >
+      <SelectTrigger
+        id={id}
+        ref={triggerRef}
+        onBlur={onBlur}
+        aria-invalid={invalid}
+        aria-describedby={describedBy}
+        className="w-full"
+      >
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option.value} value={toItem(option.value)} className="min-h-11">
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 

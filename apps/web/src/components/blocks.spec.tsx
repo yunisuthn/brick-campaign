@@ -2,18 +2,18 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../test/render.js';
 import { ConfirmStrip } from './ConfirmStrip.js';
-import { GroupHeader, ListCard, ListRow } from './ListCard.js';
+import { ListCard, ListRow } from './ListCard.js';
 import { initials } from './marks.js';
 import { LoadingList, NoCampaign } from './states.js';
 
 describe('ListCard and ListRow', () => {
   it('lists rows that each lead to their record, under a group heading', () => {
     renderWithProviders(
-      <ListCard header={<GroupHeader title="Hier" aside="1 800 briques" />}>
+      <ListCard title="Hier" aside="1 800 briques">
         <ListRow to="/productions/p1" title="Rakoto" subtitle="Ambany" figure="1 800 briques" />
       </ListCard>,
     );
-    expect(screen.getByRole('heading', { name: 'Hier' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Hier' })).toBeInTheDocument();
     expect(screen.getByRole('listitem')).toHaveTextContent('RakotoAmbany1 800 briques');
     expect(screen.getByRole('link', { name: /Rakoto/ })).toHaveAttribute('href', '/productions/p1');
   });

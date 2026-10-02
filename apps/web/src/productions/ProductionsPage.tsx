@@ -1,40 +1,51 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { BrickWall, Plus, SlidersHorizontal } from 'lucide-react';
+import { useId, useState } from 'react';
+import { Link, Outlet } from 'react-router';
+import { DateInput, SelectInput } from '@/components/fields';
+import { ListCard, ListRow } from '@/components/ListCard';
+import { PageHeader, Screen } from '@/components/Screen';
+import { EmptyState, ErrorNote, LoadingList, NoCampaign } from '@/components/states';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
-import { DateBox } from '../form/DateField.js';
-import { Select } from '../form/Select.js';
-import { formatBricks, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useFormat } from '../i18n/useFormat.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
 import { useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type Production, type ProductionFilters, useProductions } from './useProductions.js';
 
+/**
+ * The entries of the current campaign, a card per day. A new entry and a correction open in a
+ * sheet over this list, through the child routes rendered in the outlet (section 10.12).
+ */
 export function ProductionsPage() {
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page-wide">
-      <h1>
-        {t('productions.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
-      </h1>
-      {campaign && (
-        <p>
-          <Link to="/productions/nouvelle">{t('productions.newLink')}</Link>
-        </p>
-      )}
+    <Screen>
+      <PageHeader
+        title={t('productions.title')}
+        subtitle={
+          campaign && t('common.campaignName', { year: campaign.year, tranche: campaign.tranche })
+        }
+      />
       {campaign ? (
-        <ProductionList campaignId={campaign.id} />
+        <>
+          <Button asChild>
+            <Link to="/productions/nouvelle">
+              <Plus aria-hidden="true" />
+              {t('productions.newLink')}
+            </Link>
+          </Button>
+          <ProductionList campaignId={campaign.id} />
+        </>
       ) : (
-        <p>
-          {t('common.noCampaignPrefix')}{' '}
-          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
-          {t('productions.noCampaignSuffix')}
-        </p>
+        <NoCampaign suffix="productions.noCampaignSuffix" />
       )}
-    </main>
+      <Outlet />
+    </Screen>
   );
 }
 
@@ -48,106 +59,163 @@ function ProductionList({ campaignId }: { campaignId: string }) {
   const moulders = useMoulders(true);
   const riceFields = useRiceFields();
   const { t } = useTranslation();
+  const format = useFormat();
 
   const failed = [productions, moulders, riceFields].find((query) => query.isError);
   const loaded = productions.isSuccess && moulders.isSuccess && riceFields.isSuccess;
   const filtered = Object.values(filters).some(Boolean);
+  const total = loaded ? productions.data.reduce((sum, p) => sum + p.quantity, 0) : 0;
 
   return (
     <>
-      <FilterBar moulders={moulders.data ?? []} filters={filters} onChange={setFilters} />
+      <Filters
+        moulders={moulders.data ?? []}
+        filters={filters}
+        onChange={setFilters}
+        total={loaded && productions.data.length > 0 ? format.bricks(total) : null}
+      />
       {failed && (
-        <p role="alert">
-          {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
-        </p>
+        <ErrorNote
+          prefix={t('common.loadFailedPrefix')}
+          message={failed.error && apiErrorMessage(failed.error)}
+        />
       )}
-      {!failed && !loaded && <p role="status">{t('common.loading')}</p>}
+      {!failed && !loaded && <LoadingList />}
       {loaded && productions.data.length === 0 && (
-        <p>{t(filtered ? 'productions.noneForFilters' : 'productions.noneAtAll')}</p>
+        <EmptyState
+          icon={BrickWall}
+          title={t(filtered ? 'productions.noneForFilters' : 'productions.noneAtAll')}
+        />
       )}
-      {loaded && productions.data.length > 0 && (
-        <>
-          <p className="sub">
-            {t('common.totalShown')}{' '}
-            {formatBricks(productions.data.reduce((sum, p) => sum + p.quantity, 0))}
-          </p>
-          <Rows
-            productions={productions.data}
-            moulderName={new Map(moulders.data.map((m) => [m.id, m.name]))}
-            fieldName={new Map(riceFields.data.map((f) => [f.id, f.name]))}
-          />
-        </>
-      )}
+      {loaded &&
+        byDay(productions.data).map(([day, entries]) => (
+          <ListCard
+            key={day}
+            title={format.day(day)}
+            aside={format.bricks(entries.reduce((sum, p) => sum + p.quantity, 0))}
+          >
+            {entries.map((production) => (
+              <ListRow
+                key={production.id}
+                to={`/productions/${production.id}`}
+                title={
+                  moulders.data.find((m) => m.id === production.moulderId)?.name ??
+                  t('common.unknownMoulder')
+                }
+                subtitle={
+                  riceFields.data.find((f) => f.id === production.riceFieldId)?.name ??
+                  t('productions.unknownRiceField')
+                }
+                figure={format.bricks(production.quantity)}
+              />
+            ))}
+          </ListCard>
+        ))}
     </>
   );
 }
 
-interface FilterBarProps {
+/** Consecutive entries of the same start day, in the order the API sent them (newest first). */
+function byDay(productions: ReadonlyArray<Production>): Array<[string, Production[]]> {
+  const days: Array<[string, Production[]]> = [];
+  for (const production of productions) {
+    const last = days.at(-1);
+    if (last && last[0] === production.startedOn) last[1].push(production);
+    else days.push([production.startedOn, [production]]);
+  }
+  return days;
+}
+
+interface FiltersProps {
   moulders: ReadonlyArray<Moulder>;
   filters: ProductionFilters;
   onChange: (filters: ProductionFilters) => void;
+  /** What the list below adds up to; null while there is nothing to add. */
+  total: string | null;
 }
 
-/** A moulder, a period, or both; an empty control means no filter on that side. */
-function FilterBar({ moulders, filters, onChange }: FilterBarProps) {
+/**
+ * A moulder, a period, or both, behind a button so the list starts high on the screen; shown
+ * by default while a filter is set. An empty control means no filter on that side.
+ */
+function Filters({ moulders, filters, onChange, total }: FiltersProps) {
+  const [open, setOpen] = useState<boolean | null>(null);
+  const panelId = useId();
+  const moulderId = useId();
+  const fromId = useId();
+  const toId = useId();
+  const { t } = useTranslation();
   const set = (patch: ProductionFilters) => onChange({ ...filters, ...patch });
-  const { t } = useTranslation();
-  return (
-    <form
-      aria-label={t('common.filters')}
-      onSubmit={(event) => event.preventDefault()}
-      className="filters"
-    >
-      <Select
-        label={t('common.moulderLabel')}
-        value={filters.moulderId ?? ''}
-        onChange={(moulderId) => set({ moulderId: moulderId || undefined })}
-        options={[
-          { value: '', label: t('common.all') },
-          ...moulders.map((m) => ({
-            value: m.id,
-            label: `${m.name}${!m.active ? t('common.retiredSuffix') : ''}`,
-          })),
-        ]}
-      />
-      <DateBox
-        label={t('common.from')}
-        value={filters.from ?? ''}
-        onChange={(iso) => set({ from: iso || undefined })}
-      />
-      <DateBox
-        label={t('common.to')}
-        value={filters.to ?? ''}
-        onChange={(iso) => set({ to: iso || undefined })}
-      />
-    </form>
-  );
-}
+  const shown = open ?? Object.values(filters).some(Boolean);
 
-interface RowsProps {
-  productions: ReadonlyArray<Production>;
-  moulderName: ReadonlyMap<string, string>;
-  fieldName: ReadonlyMap<string, string>;
-}
-
-function Rows({ productions, moulderName, fieldName }: RowsProps) {
-  const { t } = useTranslation();
   return (
-    <ul className="rows">
-      {productions.map((production) => (
-        <li key={production.id} className="row-split">
-          <span>
-            <Link to={`/productions/${production.id}`} className="row-name">
-              {moulderName.get(production.moulderId) ?? t('common.unknownMoulder')}
-            </Link>
-            <span className="sub">
-              {formatDate(production.startedOn)} ·{' '}
-              {fieldName.get(production.riceFieldId) ?? t('productions.unknownRiceField')}
-            </span>
-          </span>
-          <span className="figure">{formatBricks(production.quantity)}</span>
-        </li>
-      ))}
-    </ul>
+    <>
+      <div className="flex items-center justify-between gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          aria-expanded={shown}
+          aria-controls={panelId}
+          onClick={() => setOpen(!shown)}
+        >
+          <SlidersHorizontal aria-hidden="true" />
+          {t('common.filters')}
+        </Button>
+        {total && (
+          <p className="text-right text-sm text-muted-foreground">
+            {t('common.totalShown')}{' '}
+            <strong className="font-semibold text-foreground tabular-nums">{total}</strong>
+          </p>
+        )}
+      </div>
+      {shown && (
+        <form
+          id={panelId}
+          aria-label={t('common.filters')}
+          onSubmit={(event) => event.preventDefault()}
+          className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm"
+        >
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={moulderId}>{t('common.moulderLabel')}</Label>
+            <SelectInput
+              id={moulderId}
+              value={filters.moulderId ?? ''}
+              onChange={(value) => set({ moulderId: value || undefined })}
+              options={[
+                { value: '', label: t('common.all') },
+                ...moulders.map((m) => ({
+                  value: m.id,
+                  label: `${m.name}${!m.active ? t('common.retiredSuffix') : ''}`,
+                })),
+              ]}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={fromId}>{t('common.from')}</Label>
+              <DateInput
+                id={fromId}
+                describedBy={undefined}
+                invalid={false}
+                value={filters.from ?? ''}
+                onChange={(iso) => set({ from: iso || undefined })}
+                onBlur={() => undefined}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={toId}>{t('common.to')}</Label>
+              <DateInput
+                id={toId}
+                describedBy={undefined}
+                invalid={false}
+                value={filters.to ?? ''}
+                onChange={(iso) => set({ to: iso || undefined })}
+                onBlur={() => undefined}
+              />
+            </div>
+          </div>
+        </form>
+      )}
+    </>
   );
 }

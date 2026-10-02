@@ -6,9 +6,7 @@ import { cn } from '@/lib/utils';
 /** The column every redesigned screen sits in: phone width, centred above it. */
 export function Screen({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <main
-      className={cn('ui mx-auto flex w-full max-w-md flex-col gap-4 px-4 pt-5 pb-8', className)}
-    >
+    <main className={cn('mx-auto flex w-full max-w-md flex-col gap-4 px-4 pt-5 pb-8', className)}>
       {children}
     </main>
   );

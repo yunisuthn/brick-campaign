@@ -407,3 +407,8 @@ deux langues. Le format de saisie d'une date ne change pas (jj/mm/aaaa).
 29. **Front** : Mouleurs, Clients et Rizières.
 30. **Front** : Connexion, et les états vide, chargement et erreur de chaque écran.
 31. **Front** : la feuille globale retirée, le reset de Tailwind chargé.
+
+Les onze chantiers 21 à 31 sont livrés le 2 octobre 2026. Les champs de l'ancienne feuille
+(`form/Field.tsx`, `form/Select.tsx`, `form/DateField.tsx`) sont retirés avec elle ; restent dans
+`form/` le masque des dates, le regroupement des chiffres à la saisie et la lecture des refus de
+l'API, que les champs de `components/fields.tsx` emploient.

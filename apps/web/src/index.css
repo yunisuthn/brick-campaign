@@ -1,14 +1,12 @@
 /*
- * Tailwind CSS and the shadcn/ui theme (reference document, section 10.11). The global stylesheet
- * of section 10.6 is loaded in the `base` layer, so utility classes win over it wherever a
- * redesigned screen uses them, and the screens not redesigned yet look exactly as before.
- * Tailwind's own reset (preflight) is left out for the same reason; the few resets the shadcn
- * components need are below, scoped to them.
+ * Tailwind CSS and the shadcn/ui theme (reference document, sections 10.11 and 10.12). Every
+ * screen is drawn with utility classes and the shadcn components; the global stylesheet of
+ * section 10.6 is gone, and Tailwind's own reset (preflight) is loaded in its place.
  */
 @layer theme, base, components, utilities;
 
 @import 'tailwindcss/theme.css' layer(theme);
-@import './styles.css' layer(base);
+@import 'tailwindcss/preflight.css' layer(base);
 @import 'tailwindcss/utilities.css' layer(utilities);
 @import 'tw-animate-css';
 @import '@fontsource-variable/geist';
@@ -82,55 +80,31 @@
 }
 
 @layer base {
-  /* Geist everywhere, the old screens included: one type across the application. */
+  /* Geist everywhere: one type across the application. */
   :root {
+    color-scheme: light;
     font-family: var(--font-sans);
   }
 
   body {
+    color: var(--foreground);
     background: var(--background);
   }
 
   /*
-   * The part of Tailwind's reset the new components rely on, limited to them: a redesigned area
-   * carries the `ui` class, and every shadcn component (portals included: a sheet, a menu, a
-   * select list) carries a `data-slot` attribute.
+   * Below 640 pixels the bottom bar takes over from the top one (section 10.7): the page keeps
+   * clear of it, safe area of the phone included.
    */
-  :where(.ui, [data-slot]),
-  :where(.ui, [data-slot]) *,
-  :where(.ui, [data-slot]) ::before,
-  :where(.ui, [data-slot]) ::after {
-    border: 0 solid var(--border);
+  @media (width < 40rem) {
+    body {
+      padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+    }
   }
 
-  :where(.ui, [data-slot]) :where(h1, h2, h3, p, dl, dd, ul, ol, figure) {
-    margin: 0;
-  }
-
-  :where(.ui, [data-slot]) :where(h1, h2, h3) {
-    font-size: inherit;
-    font-weight: inherit;
-  }
-
-  :where(.ui, [data-slot]) :where(ul, ol) {
-    padding: 0;
-    list-style: none;
-  }
-
-  :where(.ui, [data-slot]) :where(button, input, select, textarea),
-  :where(button, input)[data-slot] {
-    font: inherit;
-    color: inherit;
-    background-color: transparent;
-  }
-
-  :where(.ui, [data-slot]) :where(a) {
-    color: inherit;
-    text-decoration: inherit;
-  }
-
-  :where(.ui, [data-slot]) :where(svg) {
-    display: block;
-    vertical-align: middle;
+  /* Preflight leaves borders without a colour of their own: the theme's, everywhere. */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
   }
 }

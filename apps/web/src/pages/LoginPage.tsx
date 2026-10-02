@@ -32,7 +32,7 @@ export function LoginPage() {
   );
 
   return (
-    <div className="ui flex min-h-dvh flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <div className="flex justify-end px-4 py-3">
         <LangSwitcher />
       </div>

@@ -39,7 +39,7 @@ export function AppShell() {
 
   return (
     <CurrentCampaignProvider>
-      <header className="ui flex items-center justify-between gap-3 border-b bg-card px-4 py-2.5">
+      <header className="flex items-center justify-between gap-3 border-b bg-card px-4 py-2.5">
         <span className="flex min-w-0 items-center gap-2.5">
           <span
             aria-hidden="true"
@@ -123,17 +123,25 @@ const sections: ReadonlyArray<{ to: string; key: TranslationKey }> = [
 ];
 
 /**
- * One link per section; the stylesheet marks the current one, which react-router flags with
- * `aria-current`. The dashboard needs `end`: every path descends from the root, so without it
- * that link would always look like the current one. Hidden under 640 pixels (section 10.7),
+ * One link per section; the current one, which react-router flags with `aria-current`, gets
+ * the brick colour and a pale pill. The dashboard needs `end`: every path descends from the
+ * root, so without it that link would always look like the current one. Hidden under 640 pixels (section 10.7),
  * where eleven links wrapped to three lines above every screen; the bottom bar takes over.
  */
 function MainNav() {
   const { t } = useTranslation();
   return (
-    <nav aria-label={t('nav.sections')} className="shell-nav">
+    <nav
+      aria-label={t('nav.sections')}
+      className="hidden flex-wrap gap-x-1 gap-y-1 border-b bg-card px-3 py-1.5 sm:flex"
+    >
       {sections.map((section) => (
-        <NavLink key={section.to} to={section.to} end={section.to === '/'}>
+        <NavLink
+          key={section.to}
+          to={section.to}
+          end={section.to === '/'}
+          className="flex min-h-9 items-center rounded-md px-2.5 text-sm text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[current=page]:bg-primary/10 aria-[current=page]:font-semibold aria-[current=page]:text-primary"
+        >
           {t(section.key)}
         </NavLink>
       ))}
@@ -143,8 +151,8 @@ function MainNav() {
 
 /**
  * A closed campaign can still be chosen, to read past figures; it says so in the option. The
- * list is Radix's, positioned by its own code rather than the browser's native popup, which is
- * what the old hand-made dropdown was for (form/Select.tsx).
+ * list is Radix's, positioned by its own code rather than the browser's native popup, which
+ * opens off in a corner under device emulation and in some in-app webviews.
  */
 function CampaignPicker() {
   const { campaign, campaigns, choose } = useCurrentCampaign();
@@ -152,7 +160,7 @@ function CampaignPicker() {
   const id = useId();
 
   return (
-    <nav aria-label={t('shell.currentCampaign')} className="ui border-b bg-card px-4 pt-2 pb-3">
+    <nav aria-label={t('shell.currentCampaign')} className="border-b bg-card px-4 pt-2 pb-3">
       <div className="mx-auto flex max-w-md flex-col gap-1.5">
         <Label htmlFor={id} className="text-xs text-muted-foreground">
           {t('shell.currentCampaign')}

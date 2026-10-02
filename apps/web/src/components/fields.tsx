@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { frenchToIso, isoToFrench, maskFrenchDateDigits } from '../form/dateMask.js';
-import { handleNumericChange } from '../form/Field.js';
+import { handleNumericChange } from '../form/numeric.js';
 
 /*
  * The fields of the redesigned screens (reference document, section 10.12): a label above its
@@ -120,7 +120,7 @@ interface NumberFieldProps {
   className?: string;
 }
 
-/** Digits only, grouped by three as they are typed (form/Field.tsx does the same). */
+/** Digits only, grouped by three as they are typed (form/numeric.ts). */
 export function NumberField({ label, hint, error, registration, className }: NumberFieldProps) {
   return (
     <FormField label={label} hint={hint} error={error} className={className}>
@@ -211,8 +211,10 @@ export function DateField<T extends FieldValues>({
 }
 
 /**
- * The masking of form/DateField.tsx on the new input: while the box has focus a local draft is
- * shown, so a half-typed date does not collapse to empty on every keystroke.
+ * A date typed and shown as jj/mm/aaaa, whatever the browser's own locale (a native date input
+ * follows it, which reads mm/dd/yyyy for plenty of people); the masking lives in dateMask.ts.
+ * While the box has focus a local draft is shown, so a half-typed date does not collapse to
+ * empty on every keystroke.
  */
 export function DateInput({
   id,

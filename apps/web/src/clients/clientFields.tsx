@@ -1,5 +1,5 @@
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
-import { Field } from '../form/Field.js';
+import { TextField } from '@/components/fields';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import type { NewClient } from './useClients.js';
 
@@ -15,27 +15,29 @@ export function ClientFields({ register, errors }: ClientFieldsProps) {
   const { t } = useTranslation();
   return (
     <>
-      <Field
+      <TextField
         label={t('clients.nameLabel')}
         error={errors.name}
-        input={register('name', { setValueAs: trimmed, required: t('clients.nameRequired') })}
+        registration={register('name', {
+          setValueAs: trimmed,
+          required: t('clients.nameRequired'),
+        })}
       />
-      <Field
+      <TextField
         label={t('clients.phoneLabel')}
+        type="tel"
         error={errors.phone}
-        input={register('phone', {
+        registration={register('phone', {
           setValueAs: (value: string | null) => {
             const text = value?.trim() ?? '';
             return text === '' ? null : text;
           },
         })}
-        type="tel"
-        inputMode="tel"
       />
-      <Field
+      <TextField
         label={t('clients.localityLabel')}
         error={errors.locality}
-        input={register('locality', {
+        registration={register('locality', {
           setValueAs: trimmed,
           required: t('clients.localityRequired'),
         })}

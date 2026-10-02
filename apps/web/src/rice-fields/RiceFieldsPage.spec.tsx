@@ -16,7 +16,7 @@ describe('RiceFieldsPage', () => {
     );
     renderWithProviders(<RiceFieldsPage />);
 
-    expect(await screen.findByRole('link', { name: 'Ambany' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: /^Ambany/ })).toHaveAttribute(
       'href',
       '/rizieres/r1',
     );

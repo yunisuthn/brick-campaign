@@ -61,7 +61,7 @@ describe('RiceFieldExpenses', () => {
       await screen.findByRole('heading', { name: 'Coût sur la campagne 2026 · Tranche 1' }),
     ).toBeInTheDocument();
     expect(await screen.findByText('520 000 Ar')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Contrat' })).toHaveAttribute('href', '/depenses/e1');
+    expect(screen.getByRole('link', { name: /^Contrat/ })).toHaveAttribute('href', '/depenses/e1');
     expect(search).toBe('?riceFieldId=r1');
   });
 

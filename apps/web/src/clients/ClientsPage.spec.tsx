@@ -16,7 +16,7 @@ describe('ClientsPage', () => {
     );
     renderWithProviders(<ClientsPage />);
 
-    expect(await screen.findByRole('link', { name: 'Rabe' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: /^Rabe/ })).toHaveAttribute(
       'href',
       '/clients/c1',
     );

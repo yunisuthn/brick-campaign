@@ -1,7 +1,10 @@
+import { AmountRow } from '@/components/AmountRow';
+import { SectionCard } from '@/components/SectionCard';
+import { ErrorNote } from '@/components/states';
+import { Separator } from '@/components/ui/separator';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useMoulderBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
-import { formatAmount } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 
 /**
@@ -15,18 +18,19 @@ export function MoulderBalance({ moulderId }: { moulderId: string }) {
   const { t } = useTranslation();
 
   return (
-    <section aria-labelledby="moulder-balance">
-      <h2 id="moulder-balance">
-        {t('moulders.balanceOnCampaign')}
-        {campaign &&
-          ` ${campaign.year}${t('campaigns.trancheSuffix', { tranche: campaign.tranche })}`}
-      </h2>
+    <SectionCard
+      title={`${t('moulders.balanceOnCampaign')}${
+        campaign
+          ? ` ${campaign.year}${t('campaigns.trancheSuffix', { tranche: campaign.tranche })}`
+          : ''
+      }`}
+    >
       {campaign ? (
         <Linked campaignId={campaign.id} moulderId={moulderId} />
       ) : (
-        <p>{t('common.noCampaignShort')}</p>
+        <p className="text-muted-foreground">{t('common.noCampaignShort')}</p>
       )}
-    </section>
+    </SectionCard>
   );
 }
 
@@ -34,37 +38,42 @@ function Linked({ campaignId, moulderId }: { campaignId: string; moulderId: stri
   const balances = useMoulderBalances(campaignId);
   const { t } = useTranslation();
 
-  if (balances.isError)
+  if (balances.isError) {
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {apiErrorMessage(balances.error)}
+      <ErrorNote prefix={t('common.loadFailedPrefix')} message={apiErrorMessage(balances.error)} />
+    );
+  }
+  if (!balances.isSuccess) {
+    return (
+      <p role="status" className="text-muted-foreground">
+        {t('common.loading')}
       </p>
     );
-  if (!balances.isSuccess) return <p role="status">{t('common.loading')}</p>;
+  }
 
   const line = balances.data.find((balance) => balance.moulderId === moulderId);
-  if (!line) return <p>{t('moulders.noEntriesOnCampaign')}</p>;
+  if (!line) return <p className="text-muted-foreground">{t('moulders.noEntriesOnCampaign')}</p>;
 
+  const overpaid = line.due !== null && line.due < 0;
   return (
-    <dl className="facts">
-      <dt>{t('balances.earned')}</dt>
-      <dd>
-        {line.earned === null ? (
-          <em>{t('balances.mouldingRateToFix')}</em>
-        ) : (
-          formatAmount(line.earned)
-        )}
-      </dd>
-      <dt>{t('balances.paid')}</dt>
-      <dd>{formatAmount(line.paid)}</dd>
-      <dt>{line.due !== null && line.due < 0 ? t('balances.overpaid') : t('balances.due')}</dt>
-      <dd>
-        {line.due === null ? (
-          <em>{t('balances.unknownUntilRate')}</em>
-        ) : (
-          formatAmount(Math.abs(line.due))
-        )}
-      </dd>
-    </dl>
+    <>
+      <dl>
+        <AmountRow
+          label={t('balances.earned')}
+          value={line.earned}
+          unknownLabel={t('balances.mouldingRateToFix')}
+        />
+        <AmountRow label={t('balances.paid')} value={line.paid} />
+      </dl>
+      <Separator className="my-2" />
+      <dl>
+        <AmountRow
+          label={overpaid ? t('balances.overpaid') : t('balances.due')}
+          value={line.due === null ? null : Math.abs(line.due)}
+          unknownLabel={t('balances.unknownUntilRate')}
+          strong
+        />
+      </dl>
+    </>
   );
 }

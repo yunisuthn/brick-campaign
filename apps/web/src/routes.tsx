@@ -57,15 +57,26 @@ export const routes: RouteObject[] = [
           { path: 'campagnes', element: <CampaignsPage /> },
           { path: 'campagnes/nouvelle', element: <NewCampaignPage /> },
           { path: 'campagnes/:id', element: <CampaignPage /> },
-          { path: 'mouleurs', element: <MouldersPage /> },
-          { path: 'mouleurs/nouveau', element: <NewMoulderPage /> },
+          {
+            path: 'mouleurs',
+            element: <MouldersPage />,
+            children: [{ path: 'nouveau', element: <NewMoulderPage /> }],
+          },
           { path: 'mouleurs/:id', element: <MoulderPage /> },
-          { path: 'rizieres', element: <RiceFieldsPage /> },
-          { path: 'rizieres/nouvelle', element: <NewRiceFieldPage /> },
+          {
+            path: 'rizieres',
+            element: <RiceFieldsPage />,
+            children: [{ path: 'nouvelle', element: <NewRiceFieldPage /> }],
+          },
           { path: 'rizieres/:id', element: <RiceFieldPage /> },
-          { path: 'clients', element: <ClientsPage /> },
-          { path: 'clients/nouveau', element: <NewClientPage /> },
-          { path: 'clients/:id', element: <ClientPage /> },
+          {
+            path: 'clients',
+            element: <ClientsPage />,
+            children: [
+              { path: 'nouveau', element: <NewClientPage /> },
+              { path: ':id', element: <ClientPage /> },
+            ],
+          },
           {
             path: 'productions',
             element: <ProductionsPage />,

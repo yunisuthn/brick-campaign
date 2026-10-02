@@ -1,9 +1,14 @@
 import { useForm } from 'react-hook-form';
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
+import { PageHeader, Screen } from '@/components/Screen';
+import { SectionCard } from '@/components/SectionCard';
+import { ErrorNote } from '@/components/states';
+import { Button } from '@/components/ui/button';
 import { loadErrorMessage } from '../api/loadError.js';
 import { RiceFieldExpenses } from '../expenses/RiceFieldExpenses.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { riceFieldLine } from './RiceFieldsPage.js';
 import { RiceFieldFields } from './riceFieldFields.js';
 import {
   type NewRiceField,
@@ -16,18 +21,28 @@ export function RiceFieldPage() {
   const { id = '' } = useParams();
   const field = useRiceField(id);
   const { t } = useTranslation();
+  const back = { to: '/rizieres', label: t('riceFields.allRiceFields') };
 
+  if (!field.isSuccess) {
+    return (
+      <Screen>
+        <PageHeader title={t('riceFields.title')} back={back} />
+        {field.isError ? (
+          <ErrorNote message={loadErrorMessage(field.error, t('riceFields.notFound'))} />
+        ) : (
+          <p role="status" className="text-muted-foreground">
+            {t('common.loading')}
+          </p>
+        )}
+      </Screen>
+    );
+  }
   return (
-    <main className="page">
-      <p>
-        <Link to="/rizieres">{t('riceFields.allRiceFields')}</Link>
-      </p>
-      {field.isPending && <p role="status">{t('common.loading')}</p>}
-      {field.isError && (
-        <p role="alert">{loadErrorMessage(field.error, t('riceFields.notFound'))}</p>
-      )}
-      {field.isSuccess && <RiceFieldForm key={field.data.id} field={field.data} />}
-    </main>
+    <Screen>
+      <PageHeader title={field.data.name} subtitle={riceFieldLine(field.data, t)} back={back} />
+      <RiceFieldExpenses riceFieldId={field.data.id} />
+      <RiceFieldForm key={field.data.id} field={field.data} />
+    </Screen>
   );
 }
 
@@ -51,26 +66,22 @@ function RiceFieldForm({ field }: { field: RiceField }) {
   );
 
   return (
-    <>
-      <h1>{field.name}</h1>
-      <form onSubmit={save} noValidate>
+    <SectionCard title={t('common.edit')}>
+      <form onSubmit={save} noValidate className="flex flex-col gap-4">
         <RiceFieldFields
           register={form.register}
           control={form.control}
           errors={{ ...form.formState.errors, ...updateRefusal.fields }}
         />
         {updateRefusal.message && (
-          <p role="alert">
+          <p role="alert" className="text-sm text-destructive">
             {t('common.saveFailedPrefix')} {updateRefusal.message}
           </p>
         )}
-        <p>
-          <button type="submit" disabled={update.isPending || !form.formState.isDirty}>
-            {t('common.save')}
-          </button>
-        </p>
+        <Button type="submit" disabled={update.isPending || !form.formState.isDirty}>
+          {t('common.save')}
+        </Button>
       </form>
-      <RiceFieldExpenses riceFieldId={field.id} />
-    </>
+    </SectionCard>
   );
 }

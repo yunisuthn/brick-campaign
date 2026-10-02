@@ -1,40 +1,49 @@
-import { Link } from 'react-router';
+import { Plus, UserRound } from 'lucide-react';
+import { Link, Outlet } from 'react-router';
+import { ListCard, ListRow } from '@/components/ListCard';
+import { Initials } from '@/components/marks';
+import { PageHeader, Screen } from '@/components/Screen';
+import { EmptyState, ErrorNote, LoadingList } from '@/components/states';
+import { Button } from '@/components/ui/button';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useClients } from './useClients.js';
 
+/** The clients; a new one and a correction open in a sheet over the list (section 10.12). */
 export function ClientsPage() {
   const clients = useClients();
   const { t } = useTranslation();
 
   return (
-    <main className="page-wide">
-      <h1>{t('clients.title')}</h1>
-      <p>
-        <Link to="/clients/nouveau">{t('clients.newLink')}</Link>
-      </p>
-      {clients.isPending && <p role="status">{t('common.loading')}</p>}
+    <Screen>
+      <PageHeader title={t('clients.title')} />
+      <Button asChild>
+        <Link to="/clients/nouveau">
+          <Plus aria-hidden="true" />
+          {t('clients.newLink')}
+        </Link>
+      </Button>
+      {clients.isPending && <LoadingList />}
       {clients.isError && (
-        <p role="alert">
-          {t('common.loadFailedPrefix')} {apiErrorMessage(clients.error)}
-        </p>
+        <ErrorNote prefix={t('common.loadFailedPrefix')} message={apiErrorMessage(clients.error)} />
       )}
       {clients.isSuccess &&
         (clients.data.length === 0 ? (
-          <p>{t('clients.none')}</p>
+          <EmptyState icon={UserRound} title={t('clients.none')} />
         ) : (
-          <ul className="rows">
+          <ListCard label={t('clients.title')}>
             {clients.data.map((client) => (
-              <li key={client.id}>
-                <Link to={`/clients/${client.id}`}>{client.name}</Link>
-                <span className="sub">
-                  {client.locality}
-                  {client.phone !== null && ` · ${client.phone}`}
-                </span>
-              </li>
+              <ListRow
+                key={client.id}
+                to={`/clients/${client.id}`}
+                title={client.name}
+                subtitle={`${client.locality}${client.phone !== null ? ` · ${client.phone}` : ''}`}
+                leading={<Initials name={client.name} />}
+              />
             ))}
-          </ul>
+          </ListCard>
         ))}
-    </main>
+      <Outlet />
+    </Screen>
   );
 }

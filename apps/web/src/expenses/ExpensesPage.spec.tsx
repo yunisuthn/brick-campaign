@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderWithProviders } from '../test/render.js';
-import { chooseOption } from '../test/select.js';
 import { plain } from '../test/text.js';
 import { server } from '../test/server.js';
 import { ExpensesPage } from './ExpensesPage.js';
@@ -60,7 +59,7 @@ describe('ExpensesPage', () => {
       'Akofa2 mai 2026 · Akofa320 000 Ar',
     ]);
     expect(screen.getByText('820 000 Ar')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Contrat Riz-1' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /^Contrat Riz-1/ })).toHaveAttribute(
       'href',
       '/depenses/e1',
     );
@@ -79,7 +78,7 @@ describe('ExpensesPage', () => {
     mount();
 
     expect(await screen.findByText('Aucune dépense saisie.')).toBeInTheDocument();
-    await chooseOption(user, 'Catégorie', 'Rizière');
+    await user.click(screen.getByRole('radio', { name: 'Rizière' }));
 
     expect(await screen.findByText('Aucune dépense dans cette catégorie.')).toBeInTheDocument();
     expect(searches.at(-1)).toBe('?category=rice_field');

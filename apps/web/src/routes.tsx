@@ -111,9 +111,14 @@ export const routes: RouteObject[] = [
               { path: 'livraisons/:deliveryId', element: <DeliveryPage /> },
             ],
           },
-          { path: 'depenses', element: <ExpensesPage /> },
-          { path: 'depenses/nouvelle', element: <NewExpensePage /> },
-          { path: 'depenses/:id', element: <ExpensePage /> },
+          {
+            path: 'depenses',
+            element: <ExpensesPage />,
+            children: [
+              { path: 'nouvelle', element: <NewExpensePage /> },
+              { path: ':id', element: <ExpensePage /> },
+            ],
+          },
           { path: 'soldes', element: <BalancesPage /> },
           { path: 'plus', element: <MorePage /> },
         ],

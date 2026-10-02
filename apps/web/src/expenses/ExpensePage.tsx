@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import { ConfirmStrip } from '@/components/ConfirmStrip';
+import { RouteSheet } from '@/components/RouteSheet';
+import { ErrorNote } from '@/components/states';
+import { Button } from '@/components/ui/button';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { digitsOnly, formatAmount, formatDate } from '../format.js';
+import { digitsOnly } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useFormat } from '../i18n/useFormat.js';
 import { type KilnBatch, useKilnBatches } from '../kiln-batches/useKilnBatches.js';
 import { type RiceField, useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type ExpenseForm, ExpenseFields } from './expenseFields.js';
@@ -19,23 +24,20 @@ import {
   useUpdateExpense,
 } from './useExpenses.js';
 
+/** An expense's correction, in a sheet over the list (reference document, section 10.12). */
 export function ExpensePage() {
   const { id = '' } = useParams();
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
-  return (
-    <main className="page">
-      <p>
-        <Link to="/depenses">{t('expenses.allExpenses')}</Link>
-      </p>
-      {campaign ? (
-        <LoadedExpense campaignId={campaign.id} id={id} />
-      ) : (
-        <p>{t('common.noCampaignShort')}</p>
-      )}
-    </main>
-  );
+  if (!campaign) {
+    return (
+      <RouteSheet title={t('expenses.title')} closeTo="/depenses">
+        <p className="text-muted-foreground">{t('common.noCampaignShort')}</p>
+      </RouteSheet>
+    );
+  }
+  return <LoadedExpense campaignId={campaign.id} id={id} />;
 }
 
 function LoadedExpense({ campaignId, id }: { campaignId: string; id: string }) {
@@ -44,18 +46,24 @@ function LoadedExpense({ campaignId, id }: { campaignId: string; id: string }) {
   const batches = useKilnBatches(campaignId);
   const { t } = useTranslation();
 
-  if (expense.isError) {
-    return <p role="alert">{loadErrorMessage(expense.error, t('expenses.notFound'))}</p>;
-  }
   const failed = [riceFields, batches].find((query) => query.isError);
-  if (failed)
-    return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
-      </p>
-    );
   if (!expense.isSuccess || !riceFields.isSuccess || !batches.isSuccess) {
-    return <p role="status">{t('common.loading')}</p>;
+    return (
+      <RouteSheet title={t('expenses.title')} closeTo="/depenses">
+        {expense.isError ? (
+          <ErrorNote message={loadErrorMessage(expense.error, t('expenses.notFound'))} />
+        ) : failed ? (
+          <ErrorNote
+            prefix={t('common.loadFailedPrefix')}
+            message={failed.error && apiErrorMessage(failed.error)}
+          />
+        ) : (
+          <p role="status" className="text-muted-foreground">
+            {t('common.loading')}
+          </p>
+        )}
+      </RouteSheet>
+    );
   }
 
   return (
@@ -74,13 +82,14 @@ interface CorrectionFormProps {
   batches: ReadonlyArray<KilnBatch>;
 }
 
-/** Cancelling asks for a second click; the row stays in the database (section 5). */
+/** Cancelling asks for a second step; the row stays in the database (section 5). */
 function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
   const update = useUpdateExpense(expense.campaignId, expense.id);
   const cancel = useCancelExpense(expense.campaignId, expense.id);
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const { t } = useTranslation();
+  const format = useFormat();
   const form = useForm<ExpenseForm>({
     defaultValues: {
       date: expense.date,
@@ -107,19 +116,17 @@ function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
       { onSuccess: (saved) => form.reset({ ...values, amount: String(saved.amount) }) },
     ),
   );
-  const cancelExpense = () => cancel.mutate(undefined, { onSuccess: () => navigate('/depenses') });
+  const cancelExpense = () =>
+    cancel.mutate(undefined, { onSuccess: () => void navigate('/depenses') });
   const busy = update.isPending || cancel.isPending;
 
   return (
-    <>
-      <h1>
-        {expense.label}
-        <span className="title-sub">
-          {t(EXPENSE_CATEGORY_KEY[expense.category])} · {formatDate(expense.date)} ·{' '}
-          {formatAmount(expense.amount)}
-        </span>
-      </h1>
-      <form onSubmit={save} noValidate>
+    <RouteSheet
+      title={expense.label}
+      description={`${t(EXPENSE_CATEGORY_KEY[expense.category])} · ${format.date(expense.date)} · ${format.amount(expense.amount)}`}
+      closeTo="/depenses"
+    >
+      <form onSubmit={save} noValidate className="flex flex-col gap-4">
         <ExpenseFields
           register={form.register}
           control={form.control}
@@ -128,35 +135,38 @@ function CorrectionForm({ expense, riceFields, batches }: CorrectionFormProps) {
           riceFields={riceFields}
         />
         {updateRefusal.message && (
-          <p role="alert">
+          <p role="alert" className="text-sm text-destructive">
             {t('common.saveFailedPrefix')} {updateRefusal.message}
           </p>
         )}
         {cancel.isError && (
-          <p role="alert">
+          <p role="alert" className="text-sm text-destructive">
             {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
           </p>
         )}
-        <p className="actions">
-          <button type="submit" disabled={busy || !form.formState.isDirty}>
-            {t('common.save')}
-          </button>
-          {confirming ? (
-            <>
-              <button type="button" onClick={cancelExpense} disabled={busy}>
-                {t('common.confirmCancellation')}
-              </button>
-              <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-                {t('expenses.keepExpense')}
-              </button>
-            </>
-          ) : (
-            <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-              {t('expenses.cancelExpense')}
-            </button>
-          )}
-        </p>
+        <Button type="submit" disabled={busy || !form.formState.isDirty}>
+          {t('common.save')}
+        </Button>
+        {confirming ? (
+          <ConfirmStrip
+            confirmLabel={t('common.confirmCancellation')}
+            keepLabel={t('expenses.keepExpense')}
+            onConfirm={cancelExpense}
+            onKeep={() => setConfirming(false)}
+            busy={busy}
+          />
+        ) : (
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            onClick={() => setConfirming(true)}
+            disabled={busy}
+          >
+            {t('expenses.cancelExpense')}
+          </Button>
+        )}
       </form>
-    </>
+    </RouteSheet>
   );
 }

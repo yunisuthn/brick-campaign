@@ -1,8 +1,8 @@
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
-import { DateField } from '../form/DateField.js';
-import { Field, SelectField } from '../form/Field.js';
+import { DateField, NumberField, SelectField, TextField } from '@/components/fields';
 import { digitsOnly } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useFormat } from '../i18n/useFormat.js';
 import type { KilnBatch } from '../kiln-batches/useKilnBatches.js';
 import type { RiceField } from '../rice-fields/useRiceFields.js';
 import { EXPENSE_CATEGORY_KEY, expenseCategories } from './useExpenses.js';
@@ -37,6 +37,7 @@ export function ExpenseFields({
   riceFields,
 }: ExpenseFieldsProps) {
   const { t } = useTranslation();
+  const format = useFormat();
   const categoryOptions = expenseCategories.map((value) => ({
     value,
     label: t(EXPENSE_CATEGORY_KEY[value]),
@@ -45,57 +46,58 @@ export function ExpenseFields({
 
   return (
     <>
-      <DateField
-        label={t('common.date')}
-        name="date"
-        control={control}
-        error={errors.date}
-        required={t('common.dateRequired')}
-      />
-      <SelectField
-        label={t('expenses.categoryLabel')}
-        error={errors.category}
-        name="category"
-        control={control}
-        options={categoryOptions}
-      />
-      <Field
+      <div className="grid grid-cols-2 gap-3">
+        <DateField
+          label={t('common.date')}
+          name="date"
+          control={control}
+          error={errors.date}
+          required={t('common.dateRequired')}
+        />
+        <SelectField
+          label={t('expenses.categoryLabel')}
+          name="category"
+          control={control}
+          error={errors.category}
+          options={categoryOptions}
+        />
+      </div>
+      <NumberField
         label={t('expenses.amountLabel')}
         error={errors.amount}
-        input={register('amount', {
+        registration={register('amount', {
           validate: (value) =>
             (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
             t('common.amountRequiredInteger'),
         })}
-        inputMode="numeric"
       />
-      <Field
+      <TextField
         label={t('expenses.labelLabel')}
         error={errors.label}
-        input={register('label', {
+        registration={register('label', {
           setValueAs: (value: string) => value.trim(),
           required: t('expenses.labelRequired'),
         })}
       />
       <SelectField
         label={t('expenses.riceFieldLabel')}
-        error={errors.riceFieldId}
         name="riceFieldId"
         control={control}
+        error={errors.riceFieldId}
         options={[noLink, ...riceFields.map((f) => ({ value: f.id, label: f.name }))]}
       />
       <SelectField
         label={t('expenses.kilnBatchLabel')}
-        error={errors.kilnBatchId}
         name="kilnBatchId"
         control={control}
+        error={errors.kilnBatchId}
         options={[
           noLink,
           ...batches.map((b) => ({
             value: b.id,
             label: t('expenses.kilnBatchOption', {
-              date: b.loadedOn,
-              quantity: b.quantity.toLocaleString('fr-FR'),
+              date: format.date(b.loadedOn),
+              quantity: format.count(b.quantity),
             }),
           })),
         ]}

@@ -1,5 +1,7 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
+import { RouteSheet, SheetActions } from '@/components/RouteSheet';
+import { ErrorNote, NoCampaign } from '@/components/states';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
@@ -10,26 +12,25 @@ import { useRiceFields } from '../rice-fields/useRiceFields.js';
 import { type ExpenseForm, ExpenseFields } from './expenseFields.js';
 import { type ExpenseCategory, useCreateExpense } from './useExpenses.js';
 
+/** A new expense, in a sheet over the list (reference document, section 10.12). */
 export function NewExpensePage() {
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page">
-      <p>
-        <Link to="/depenses">{t('expenses.allExpenses')}</Link>
-      </p>
-      <h1>{t('expenses.newTitle')}</h1>
+    <RouteSheet
+      title={t('expenses.newTitle')}
+      description={
+        campaign && t('common.campaignName', { year: campaign.year, tranche: campaign.tranche })
+      }
+      closeTo="/depenses"
+    >
       {campaign ? (
         <EntryForm campaignId={campaign.id} />
       ) : (
-        <p>
-          {t('common.noCampaignPrefix')}{' '}
-          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
-          {t('expenses.noCampaignSuffix')}
-        </p>
+        <NoCampaign suffix="expenses.noCampaignSuffix" />
       )}
-    </main>
+    </RouteSheet>
   );
 }
 
@@ -58,13 +59,16 @@ function EntryForm({ campaignId }: { campaignId: string }) {
   if (riceFields.isError || batches.isError) {
     const error = riceFields.error ?? batches.error;
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {error && apiErrorMessage(error)}
+      <ErrorNote prefix={t('common.loadFailedPrefix')} message={error && apiErrorMessage(error)} />
+    );
+  }
+  if (!riceFields.isSuccess || !batches.isSuccess) {
+    return (
+      <p role="status" className="text-muted-foreground">
+        {t('common.loading')}
       </p>
     );
   }
-  if (!riceFields.isSuccess || !batches.isSuccess)
-    return <p role="status">{t('common.loading')}</p>;
 
   const createRefusal = apiFormErrors(create, form);
 
@@ -78,12 +82,12 @@ function EntryForm({ campaignId }: { campaignId: string }) {
         riceFieldId: values.riceFieldId === '' ? null : values.riceFieldId,
         kilnBatchId: values.kilnBatchId === '' ? null : values.kilnBatchId,
       },
-      { onSuccess: () => navigate('/depenses') },
+      { onSuccess: () => void navigate('/depenses') },
     ),
   );
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <ExpenseFields
         register={form.register}
         control={form.control}
@@ -92,15 +96,11 @@ function EntryForm({ campaignId }: { campaignId: string }) {
         riceFields={riceFields.data}
       />
       {createRefusal.message && (
-        <p role="alert">
+        <p role="alert" className="text-sm text-destructive">
           {t('common.saveFailedPrefix')} {createRefusal.message}
         </p>
       )}
-      <p>
-        <button type="submit" disabled={create.isPending}>
-          {t('common.save')}
-        </button>
-      </p>
+      <SheetActions submitLabel={t('common.save')} busy={create.isPending} />
     </form>
   );
 }

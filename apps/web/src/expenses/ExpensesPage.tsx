@@ -1,10 +1,17 @@
+import { Plus, Receipt } from 'lucide-react';
+import { RadioGroup as RadioGroupPrimitive } from 'radix-ui';
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, Outlet } from 'react-router';
+import { ListCard, ListRow } from '@/components/ListCard';
+import { FigureTile } from '@/components/marks';
+import { PageHeader, Screen } from '@/components/Screen';
+import { EmptyState, ErrorNote, LoadingList, NoCampaign } from '@/components/states';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
-import { Select } from '../form/Select.js';
-import { formatAmount, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useFormat } from '../i18n/useFormat.js';
 import {
   type Expense,
   EXPENSE_CATEGORY_KEY,
@@ -13,31 +20,37 @@ import {
   useExpenses,
 } from './useExpenses.js';
 
+/**
+ * The expenses of the current campaign, one category at a time or all of them. A new one and a
+ * correction open in a sheet over the list (reference document, section 10.12).
+ */
 export function ExpensesPage() {
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page-wide">
-      <h1>
-        {t('expenses.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
-      </h1>
-      {campaign && (
-        <p>
-          <Link to="/depenses/nouvelle">{t('expenses.newLink')}</Link>
-        </p>
-      )}
+    <Screen>
+      <PageHeader
+        title={t('expenses.title')}
+        subtitle={
+          campaign && t('common.campaignName', { year: campaign.year, tranche: campaign.tranche })
+        }
+      />
       {campaign ? (
-        <ExpenseList campaignId={campaign.id} />
+        <>
+          <Button asChild>
+            <Link to="/depenses/nouvelle">
+              <Plus aria-hidden="true" />
+              {t('expenses.newLink')}
+            </Link>
+          </Button>
+          <ExpenseList campaignId={campaign.id} />
+        </>
       ) : (
-        <p>
-          {t('common.noCampaignPrefix')}{' '}
-          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
-          {t('expenses.noCampaignSuffix')}
-        </p>
+        <NoCampaign suffix="expenses.noCampaignSuffix" />
       )}
-    </main>
+      <Outlet />
+    </Screen>
   );
 }
 
@@ -45,52 +58,84 @@ function ExpenseList({ campaignId }: { campaignId: string }) {
   const [category, setCategory] = useState<ExpenseCategory | ''>('');
   const expenses = useExpenses(campaignId, category === '' ? {} : { category });
   const { t } = useTranslation();
+  const format = useFormat();
 
   return (
     <>
-      <p>
-        <Select
-          label={t('expenses.categoryLabel')}
-          value={category}
-          onChange={(value) => setCategory(value as ExpenseCategory | '')}
-          options={[
-            { value: '', label: t('expenses.allCategories') },
-            ...expenseCategories.map((value) => ({ value, label: t(EXPENSE_CATEGORY_KEY[value]) })),
-          ]}
-        />
-      </p>
+      <CategoryChips value={category} onChange={setCategory} />
       {expenses.isError && (
-        <p role="alert">
-          {t('common.loadFailedPrefix')} {apiErrorMessage(expenses.error)}
-        </p>
+        <ErrorNote
+          prefix={t('common.loadFailedPrefix')}
+          message={apiErrorMessage(expenses.error)}
+        />
       )}
-      {expenses.isPending && <p role="status">{t('common.loading')}</p>}
+      {expenses.isPending && <LoadingList />}
       {expenses.isSuccess &&
         (expenses.data.length === 0 ? (
-          <p>{t(category === '' ? 'expenses.noneAtAll' : 'expenses.noneForCategory')}</p>
+          <EmptyState
+            icon={Receipt}
+            title={t(category === '' ? 'expenses.noneAtAll' : 'expenses.noneForCategory')}
+          />
         ) : (
           <>
-            <p>
-              {t('expenses.totalLabel')} <strong>{formatAmount(total(expenses.data))}</strong>
-            </p>
-            <ul className="rows">
+            <FigureTile label={t('dashboard.total')}>
+              {format.amount(total(expenses.data))}
+            </FigureTile>
+            <ListCard label={t('expenses.title')}>
               {expenses.data.map((expense) => (
-                <li key={expense.id} className="row-split">
-                  <span>
-                    <Link to={`/depenses/${expense.id}`} className="row-name">
-                      {expense.label}
-                    </Link>
-                    <span className="sub">
-                      {formatDate(expense.date)} · {t(EXPENSE_CATEGORY_KEY[expense.category])}
-                    </span>
-                  </span>
-                  <span className="figure">{formatAmount(expense.amount)}</span>
-                </li>
+                <ListRow
+                  key={expense.id}
+                  to={`/depenses/${expense.id}`}
+                  title={expense.label}
+                  subtitle={`${format.date(expense.date)} · ${t(EXPENSE_CATEGORY_KEY[expense.category])}`}
+                  figure={format.amount(expense.amount)}
+                />
               ))}
-            </ul>
+            </ListCard>
           </>
         ))}
     </>
+  );
+}
+
+/** One category or all, a tap each, in a row that scrolls sideways on a narrow screen. */
+function CategoryChips({
+  value,
+  onChange,
+}: {
+  value: ExpenseCategory | '';
+  onChange: (category: ExpenseCategory | '') => void;
+}) {
+  const { t } = useTranslation();
+  const chips: Array<{ value: ExpenseCategory | ''; label: string }> = [
+    { value: '', label: t('expenses.allCategories') },
+    ...expenseCategories.map((category) => ({
+      value: category,
+      label: t(EXPENSE_CATEGORY_KEY[category]),
+    })),
+  ];
+  return (
+    <RadioGroupPrimitive.Root
+      value={value === '' ? 'all' : value}
+      onValueChange={(next) => onChange(next === 'all' ? '' : (next as ExpenseCategory))}
+      aria-label={t('expenses.categoryLabel')}
+      orientation="horizontal"
+      className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
+    >
+      {chips.map((chip) => (
+        <RadioGroupPrimitive.Item
+          key={chip.value || 'all'}
+          value={chip.value || 'all'}
+          className={cn(
+            'min-h-10 shrink-0 rounded-full border bg-card px-3.5 text-sm font-medium transition-colors outline-none',
+            'focus-visible:ring-[3px] focus-visible:ring-ring/50',
+            'data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background',
+          )}
+        >
+          {chip.label}
+        </RadioGroupPrimitive.Item>
+      ))}
+    </RadioGroupPrimitive.Root>
   );
 }
 

@@ -58,10 +58,10 @@ describe('PaymentsPage', () => {
 
     const rows = await screen.findAllByRole('listitem');
     expect(rows.map((row) => plain(row.textContent))).toEqual([
-      'Rakoto5 juin 2026 · Vatsy · Éditer · Supprimer50 000 Ar',
-      'Solo4 juin 2026 · Avance · Éditer · Supprimer120 000 Ar',
+      'RRakoto5 juin 2026Vatsy50 000 Ar',
+      'SSolo4 juin 2026Avance120 000 Ar',
     ]);
-    expect(screen.getByRole('link', { name: 'Rakoto' })).toHaveAttribute('href', '/versements/v1');
+    expect(screen.getByRole('link', { name: /^Rakoto/ })).toHaveAttribute('href', '/versements/v1');
   });
 
   it('deletes a payment only after a second click confirms it', async () => {
@@ -80,7 +80,8 @@ describe('PaymentsPage', () => {
     const user = userEvent.setup();
     mount();
 
-    await user.click(await screen.findByRole('button', { name: 'Supprimer' }));
+    await user.click(await screen.findByRole('button', { name: 'Actions · Rakoto' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Supprimer' }));
     expect(screen.queryByText('Aucun versement saisi.')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Confirmer la suppression' }));
@@ -107,6 +108,7 @@ describe('PaymentsPage', () => {
 
     expect(await screen.findByText('Aucun versement saisi.')).toBeInTheDocument();
 
+    await user.click(screen.getByRole('button', { name: 'Filtres' }));
     await user.click(screen.getByLabelText('Mouleur'));
     await user.click(screen.getByRole('option', { name: 'Rakoto' }));
     expect(await screen.findByText('Aucun versement pour ces critères.')).toBeInTheDocument();

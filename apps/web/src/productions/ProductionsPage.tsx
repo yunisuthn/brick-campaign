@@ -1,12 +1,12 @@
-import { BrickWall, Plus, SlidersHorizontal } from 'lucide-react';
-import { useId, useState } from 'react';
+import { BrickWall, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { Link, Outlet } from 'react-router';
 import { DateInput, SelectInput } from '@/components/fields';
+import { FilterControl, FilterPanel } from '@/components/FilterPanel';
 import { ListCard, ListRow } from '@/components/ListCard';
 import { PageHeader, Screen } from '@/components/Screen';
 import { EmptyState, ErrorNote, LoadingList, NoCampaign } from '@/components/states';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
@@ -134,88 +134,55 @@ interface FiltersProps {
   total: string | null;
 }
 
-/**
- * A moulder, a period, or both, behind a button so the list starts high on the screen; shown
- * by default while a filter is set. An empty control means no filter on that side.
- */
+/** A moulder, a period, or both; an empty control means no filter on that side. */
 function Filters({ moulders, filters, onChange, total }: FiltersProps) {
-  const [open, setOpen] = useState<boolean | null>(null);
-  const panelId = useId();
-  const moulderId = useId();
-  const fromId = useId();
-  const toId = useId();
   const { t } = useTranslation();
   const set = (patch: ProductionFilters) => onChange({ ...filters, ...patch });
-  const shown = open ?? Object.values(filters).some(Boolean);
 
   return (
-    <>
-      <div className="flex items-center justify-between gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          aria-expanded={shown}
-          aria-controls={panelId}
-          onClick={() => setOpen(!shown)}
-        >
-          <SlidersHorizontal aria-hidden="true" />
-          {t('common.filters')}
-        </Button>
-        {total && (
-          <p className="text-right text-sm text-muted-foreground">
-            {t('common.totalShown')}{' '}
-            <strong className="font-semibold text-foreground tabular-nums">{total}</strong>
-          </p>
+    <FilterPanel active={Object.values(filters).some(Boolean)} total={total}>
+      <FilterControl label={t('common.moulderLabel')}>
+        {(id) => (
+          <SelectInput
+            id={id}
+            value={filters.moulderId ?? ''}
+            onChange={(value) => set({ moulderId: value || undefined })}
+            options={[
+              { value: '', label: t('common.all') },
+              ...moulders.map((m) => ({
+                value: m.id,
+                label: `${m.name}${!m.active ? t('common.retiredSuffix') : ''}`,
+              })),
+            ]}
+          />
         )}
-      </div>
-      {shown && (
-        <form
-          id={panelId}
-          aria-label={t('common.filters')}
-          onSubmit={(event) => event.preventDefault()}
-          className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm"
-        >
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={moulderId}>{t('common.moulderLabel')}</Label>
-            <SelectInput
-              id={moulderId}
-              value={filters.moulderId ?? ''}
-              onChange={(value) => set({ moulderId: value || undefined })}
-              options={[
-                { value: '', label: t('common.all') },
-                ...moulders.map((m) => ({
-                  value: m.id,
-                  label: `${m.name}${!m.active ? t('common.retiredSuffix') : ''}`,
-                })),
-              ]}
+      </FilterControl>
+      <div className="grid grid-cols-2 gap-3">
+        <FilterControl label={t('common.from')}>
+          {(id) => (
+            <DateInput
+              id={id}
+              describedBy={undefined}
+              invalid={false}
+              value={filters.from ?? ''}
+              onChange={(iso) => set({ from: iso || undefined })}
+              onBlur={() => undefined}
             />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor={fromId}>{t('common.from')}</Label>
-              <DateInput
-                id={fromId}
-                describedBy={undefined}
-                invalid={false}
-                value={filters.from ?? ''}
-                onChange={(iso) => set({ from: iso || undefined })}
-                onBlur={() => undefined}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor={toId}>{t('common.to')}</Label>
-              <DateInput
-                id={toId}
-                describedBy={undefined}
-                invalid={false}
-                value={filters.to ?? ''}
-                onChange={(iso) => set({ to: iso || undefined })}
-                onBlur={() => undefined}
-              />
-            </div>
-          </div>
-        </form>
-      )}
-    </>
+          )}
+        </FilterControl>
+        <FilterControl label={t('common.to')}>
+          {(id) => (
+            <DateInput
+              id={id}
+              describedBy={undefined}
+              invalid={false}
+              value={filters.to ?? ''}
+              onChange={(iso) => set({ to: iso || undefined })}
+              onBlur={() => undefined}
+            />
+          )}
+        </FilterControl>
+      </div>
+    </FilterPanel>
   );
 }

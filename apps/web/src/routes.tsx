@@ -74,9 +74,14 @@ export const routes: RouteObject[] = [
               { path: ':id', element: <ProductionPage /> },
             ],
           },
-          { path: 'versements', element: <PaymentsPage /> },
-          { path: 'versements/nouveau', element: <NewPaymentPage /> },
-          { path: 'versements/:id', element: <PaymentPage /> },
+          {
+            path: 'versements',
+            element: <PaymentsPage />,
+            children: [
+              { path: 'nouveau', element: <NewPaymentPage /> },
+              { path: ':id', element: <PaymentPage /> },
+            ],
+          },
           {
             path: 'lots',
             element: <KilnBatchesPage />,

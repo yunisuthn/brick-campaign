@@ -1,11 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
-import { useId, useState, type ReactNode } from 'react';
-import { Controller, useForm, type FieldError } from 'react-hook-form';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { Link } from 'react-router';
+import { DateInput, FormField, NumberInput } from '@/components/fields';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -28,8 +27,6 @@ import type { Campaign } from '../campaigns/useCampaigns.js';
 import { useClients } from '../clients/useClients.js';
 import { dashboardKey } from '../dashboard/useDashboard.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { frenchToIso, isoToFrench, maskFrenchDateDigits } from '../form/dateMask.js';
-import { handleNumericChange } from '../form/Field.js';
 import { digitsOnly, formatAmount, today } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useCreateSalePaymentOnSale } from '../sale-payments/useSalePayments.js';
@@ -157,7 +154,7 @@ function SaleForm({ campaignId, onDone }: { campaignId: string; onDone: () => vo
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-4 px-4">
-      <SheetField
+      <FormField
         label={t('sales.clientLabel')}
         error={errors.clientId ?? saleRefusal.fields.clientId}
       >
@@ -189,9 +186,9 @@ function SaleForm({ campaignId, onDone }: { campaignId: string; onDone: () => vo
             )}
           />
         )}
-      </SheetField>
+      </FormField>
 
-      <SheetField label={t('common.date')} error={errors.date ?? saleRefusal.fields.date}>
+      <FormField label={t('common.date')} error={errors.date ?? saleRefusal.fields.date}>
         {(id, describedBy) => (
           <Controller
             name="date"
@@ -210,10 +207,10 @@ function SaleForm({ campaignId, onDone }: { campaignId: string; onDone: () => vo
             )}
           />
         )}
-      </SheetField>
+      </FormField>
 
       <div className="grid grid-cols-2 gap-3">
-        <SheetField
+        <FormField
           label={t('sales.sheet.quantityLabel')}
           error={errors.orderedQuantity ?? saleRefusal.fields.orderedQuantity}
         >
@@ -229,8 +226,8 @@ function SaleForm({ campaignId, onDone }: { campaignId: string; onDone: () => vo
               })}
             />
           )}
-        </SheetField>
-        <SheetField
+        </FormField>
+        <FormField
           label={t('sales.sheet.unitPriceLabel')}
           error={errors.unitPrice ?? saleRefusal.fields.unitPrice}
         >
@@ -246,10 +243,10 @@ function SaleForm({ campaignId, onDone }: { campaignId: string; onDone: () => vo
               })}
             />
           )}
-        </SheetField>
+        </FormField>
       </div>
 
-      <SheetField
+      <FormField
         label={t('sales.sheet.receivedLabel')}
         hint={t('sales.sheet.receivedHint')}
         error={errors.received}
@@ -268,7 +265,7 @@ function SaleForm({ campaignId, onDone }: { campaignId: string; onDone: () => vo
             })}
           />
         )}
-      </SheetField>
+      </FormField>
 
       <div
         role="status"
@@ -306,111 +303,5 @@ function SaleForm({ campaignId, onDone }: { campaignId: string; onDone: () => vo
         </Button>
       </SheetFooter>
     </form>
-  );
-}
-
-/** A label above its control, then a hint or the error in its place, tied to the control. */
-function SheetField({
-  label,
-  hint,
-  error,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  error: FieldError | undefined;
-  children: (id: string, describedBy: string | undefined) => ReactNode;
-}) {
-  const id = useId();
-  const noteId = `${id}-note`;
-  const note = error?.message ?? hint;
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      {children(id, note ? noteId : undefined)}
-      {error ? (
-        <p id={noteId} role="alert" className="text-sm text-destructive">
-          {error.message}
-        </p>
-      ) : (
-        hint && (
-          <p id={noteId} className="text-sm text-muted-foreground">
-            {hint}
-          </p>
-        )
-      )}
-    </div>
-  );
-}
-
-/** Digits only, grouped by three as they are typed (form/Field.tsx does the same). */
-function NumberInput({
-  id,
-  describedBy,
-  invalid,
-  registration,
-}: {
-  id: string;
-  describedBy: string | undefined;
-  invalid: boolean;
-  registration: ReturnType<ReturnType<typeof useForm<SaleSheetForm>>['register']>;
-}) {
-  return (
-    <Input
-      id={id}
-      type="text"
-      inputMode="numeric"
-      aria-invalid={invalid}
-      aria-describedby={describedBy}
-      className="text-right tabular-nums"
-      {...registration}
-      onChange={(event) => handleNumericChange(event, registration.onChange)}
-    />
-  );
-}
-
-/**
- * The date typed as jj/mm/aaaa whatever the browser's locale, the form holding the API's ISO
- * string underneath: the masking of form/DateField.tsx, on the new input.
- */
-function DateInput({
-  id,
-  describedBy,
-  invalid,
-  value,
-  onChange,
-  onBlur,
-  inputRef,
-}: {
-  id: string;
-  describedBy: string | undefined;
-  invalid: boolean;
-  value: string;
-  onChange: (iso: string) => void;
-  onBlur: () => void;
-  inputRef: (el: HTMLInputElement | null) => void;
-}) {
-  const [draft, setDraft] = useState<string | null>(null);
-  return (
-    <Input
-      id={id}
-      ref={inputRef}
-      type="text"
-      inputMode="numeric"
-      placeholder="jj/mm/aaaa"
-      aria-invalid={invalid}
-      aria-describedby={describedBy}
-      value={draft ?? isoToFrench(value)}
-      onFocus={() => setDraft(isoToFrench(value))}
-      onChange={(event) => {
-        const masked = maskFrenchDateDigits(event.target.value.replace(/\D/g, '').slice(0, 8));
-        setDraft(masked);
-        onChange(frenchToIso(masked));
-      }}
-      onBlur={() => {
-        setDraft(null);
-        onBlur();
-      }}
-    />
   );
 }

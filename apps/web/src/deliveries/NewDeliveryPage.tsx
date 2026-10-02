@@ -58,7 +58,9 @@ function TripForm({ campaignId, saleId }: { campaignId: string; saleId: string }
 
   return (
     <form onSubmit={submit} noValidate>
-      <p role="status">{t('deliveries.firedStockLine', { stock: formatBricks(stock.data.fired) })}</p>
+      <p role="status">
+        {t('deliveries.firedStockLine', { stock: formatBricks(stock.data.fired) })}
+      </p>
       <DeliveryFields
         register={form.register}
         control={form.control}

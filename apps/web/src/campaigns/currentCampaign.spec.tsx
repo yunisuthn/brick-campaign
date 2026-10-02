@@ -8,7 +8,12 @@ import {
   useCurrentCampaign,
 } from './currentCampaign.js';
 
-const base = { startedOn: '2026-05-10', mouldingRates: [40], transportRates: [10], kilnLoadingRate: 5 };
+const base = {
+  startedOn: '2026-05-10',
+  mouldingRates: [40],
+  transportRates: [10],
+  kilnLoadingRate: 5,
+};
 const closed2026 = { ...base, id: 'c3', year: 2026, closedOn: '2026-11-30' };
 const open2025 = { ...base, id: 'c2', year: 2025, closedOn: null };
 const closed2024 = { ...base, id: 'c1', year: 2024, closedOn: '2024-11-30' };

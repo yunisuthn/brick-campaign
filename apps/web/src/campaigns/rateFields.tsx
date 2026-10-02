@@ -20,9 +20,7 @@ function rateOptions(t: ReturnType<typeof useTranslation>['t']) {
     setValueAs: (value: unknown) =>
       value === '' || value === null ? null : Number(digitsOnly(value as string)),
     validate: (value: number | null) =>
-      value === null ||
-      (Number.isInteger(value) && value >= 0) ||
-      t('campaigns.rates.invalidRate'),
+      value === null || (Number.isInteger(value) && value >= 0) || t('campaigns.rates.invalidRate'),
   };
 }
 

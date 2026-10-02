@@ -123,7 +123,9 @@ function BatchForm({ batch }: { batch: KilnBatch }) {
             validate: (value) =>
               (/^\d+$/.test(digitsOnly(value)) &&
                 Number(digitsOnly(value)) >= MIN_KILN_BATCH_QUANTITY) ||
-              t('kilnBatches.quantityRequired', { min: MIN_KILN_BATCH_QUANTITY.toLocaleString('fr-FR') }),
+              t('kilnBatches.quantityRequired', {
+                min: MIN_KILN_BATCH_QUANTITY.toLocaleString('fr-FR'),
+              }),
           })}
           inputMode="numeric"
         />
@@ -170,10 +172,20 @@ function Cost({ cost }: { cost: KilnBatch['cost'] }) {
         <dt>{t('kilnBatches.expensesLabel')}</dt>
         <dd>{formatAmount(cost.expenses)}</dd>
         <dt>{t('kilnBatches.labourLabel')}</dt>
-        <dd>{cost.labour === null ? <em>{t('kilnBatches.rateToFixShort')}</em> : formatAmount(cost.labour)}</dd>
+        <dd>
+          {cost.labour === null ? (
+            <em>{t('kilnBatches.rateToFixShort')}</em>
+          ) : (
+            formatAmount(cost.labour)
+          )}
+        </dd>
         <dt>{t('kilnBatches.totalLabel')}</dt>
         <dd className="strong">
-          {cost.total === null ? <em>{t('kilnBatches.rateToFixShort')}</em> : formatAmount(cost.total)}
+          {cost.total === null ? (
+            <em>{t('kilnBatches.rateToFixShort')}</em>
+          ) : (
+            formatAmount(cost.total)
+          )}
         </dd>
       </dl>
     </section>

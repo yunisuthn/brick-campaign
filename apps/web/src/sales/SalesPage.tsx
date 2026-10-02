@@ -1,36 +1,46 @@
-import { Link } from 'react-router';
+import { Plus, ShoppingCart } from 'lucide-react';
+import { Link, Outlet } from 'react-router';
+import { ListCard } from '@/components/ListCard';
+import { Meter, ToneBadge } from '@/components/marks';
+import { PageHeader, Screen } from '@/components/Screen';
+import { EmptyState, ErrorNote, LoadingList, NoCampaign } from '@/components/states';
+import { Button } from '@/components/ui/button';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useClients } from '../clients/useClients.js';
-import { formatAmount, formatBricks, formatDate } from '../format.js';
+import { formatCount } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
-import { type Sale, SALE_STATUS_KEY, useSales } from './useSales.js';
+import { useFormat } from '../i18n/useFormat.js';
+import { type Sale, SALE_STATUS_KEY, SALE_STATUS_TONE, useSales } from './useSales.js';
 
+/** The sales of the current campaign; a new one opens in a sheet over the list (section 10.12). */
 export function SalesPage() {
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page-wide">
-      <h1>
-        {t('sales.title')}
-        {campaign && t('common.campaignSuffix', { year: campaign.year, tranche: campaign.tranche })}
-      </h1>
-      {campaign && (
-        <p>
-          <Link to="/ventes/nouvelle">{t('sales.newLink')}</Link>
-        </p>
-      )}
+    <Screen>
+      <PageHeader
+        title={t('sales.title')}
+        subtitle={
+          campaign && t('common.campaignName', { year: campaign.year, tranche: campaign.tranche })
+        }
+      />
       {campaign ? (
-        <SaleList campaignId={campaign.id} />
+        <>
+          <Button asChild>
+            <Link to="/ventes/nouvelle">
+              <Plus aria-hidden="true" />
+              {t('sales.newLink')}
+            </Link>
+          </Button>
+          <SaleList campaignId={campaign.id} />
+        </>
       ) : (
-        <p>
-          {t('common.noCampaignPrefix')}{' '}
-          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
-          {t('sales.noCampaignSuffix')}
-        </p>
+        <NoCampaign suffix="sales.noCampaignSuffix" />
       )}
-    </main>
+      <Outlet />
+    </Screen>
   );
 }
 
@@ -42,41 +52,66 @@ function SaleList({ campaignId }: { campaignId: string }) {
   const failed = [sales, clients].find((query) => query.isError);
   if (failed)
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
-      </p>
+      <ErrorNote
+        prefix={t('common.loadFailedPrefix')}
+        message={failed.error && apiErrorMessage(failed.error)}
+      />
     );
-  if (!sales.isSuccess || !clients.isSuccess) return <p role="status">{t('common.loading')}</p>;
-  if (sales.data.length === 0) return <p>{t('sales.noneAtAll')}</p>;
+  if (!sales.isSuccess || !clients.isSuccess) return <LoadingList />;
+  if (sales.data.length === 0) {
+    return <EmptyState icon={ShoppingCart} title={t('sales.noneAtAll')} />;
+  }
 
   const clientName = new Map(clients.data.map((client) => [client.id, client.name]));
-
   return (
-    <ul className="rows">
+    <ListCard label={t('sales.title')}>
       {sales.data.map((sale) => (
-        <li key={sale.id} className="row-split">
-          <span>
-            <Link to={`/ventes/${sale.id}`} className="row-name">
-              {clientName.get(sale.clientId) ?? t('sales.unknownClient')}
-            </Link>
-            <span className="sub">
-              {formatDate(sale.date)} · {t(SALE_STATUS_KEY[sale.status])} · {progress(sale, t)}
-            </span>
-          </span>
-          <span className="figure">{formatAmount(sale.total)}</span>
-        </li>
+        <SaleRow
+          key={sale.id}
+          sale={sale}
+          client={clientName.get(sale.clientId) ?? t('sales.unknownClient')}
+        />
       ))}
-    </ul>
+    </ListCard>
   );
 }
 
-/** How much of the order has left the yard; a small surplus happens and is shown as it is. */
-function progress(sale: Sale, t: ReturnType<typeof useTranslation>['t']): string {
-  if (sale.deliveredQuantity >= sale.orderedQuantity) {
-    return t('sales.progressComplete', { quantity: formatBricks(sale.orderedQuantity) });
-  }
-  return t('sales.progressPartial', {
-    delivered: sale.deliveredQuantity.toLocaleString('fr-FR'),
-    ordered: formatBricks(sale.orderedQuantity),
-  });
+/** The client and the total, then the date and the status, then how much has left the yard. */
+function SaleRow({ sale, client }: { sale: Sale; client: string }) {
+  const { t } = useTranslation();
+  const format = useFormat();
+  const complete = sale.deliveredQuantity >= sale.orderedQuantity;
+  return (
+    <li>
+      <Link
+        to={`/ventes/${sale.id}`}
+        className="flex flex-col gap-2 rounded-xl px-4 py-3.5 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      >
+        <span className="flex items-baseline justify-between gap-3">
+          <span className="font-semibold">{client}</span>
+          <span className="font-semibold whitespace-nowrap tabular-nums">
+            {format.amount(sale.total)}
+          </span>
+        </span>
+        <span className="flex items-center justify-between gap-3">
+          <span className="text-[13px] text-muted-foreground">{format.date(sale.date)}</span>
+          <ToneBadge tone={SALE_STATUS_TONE[sale.status]}>
+            {t(SALE_STATUS_KEY[sale.status])}
+          </ToneBadge>
+        </span>
+        <Meter
+          ratio={sale.orderedQuantity === 0 ? 0 : sale.deliveredQuantity / sale.orderedQuantity}
+          className={complete ? undefined : 'bg-stock-kiln'}
+        />
+        <span className="text-[13px] text-muted-foreground tabular-nums">
+          {complete
+            ? t('sales.progressComplete', { quantity: format.bricks(sale.orderedQuantity) })
+            : t('sales.progressPartial', {
+                delivered: formatCount(sale.deliveredQuantity),
+                ordered: format.bricks(sale.orderedQuantity),
+              })}
+        </span>
+      </Link>
+    </li>
+  );
 }

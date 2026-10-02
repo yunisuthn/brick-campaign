@@ -1,4 +1,5 @@
 import { campaignEntryHooks } from '../api/campaignEntryHooks.js';
+import type { Tone } from '../components/marks.js';
 import type { TranslationKey } from '../i18n/translations.js';
 
 export type SaleStatus = 'ordered' | 'delivered' | 'partially_paid' | 'paid';
@@ -9,6 +10,14 @@ export const SALE_STATUS_KEY: Record<SaleStatus, TranslationKey> = {
   delivered: 'sales.status.delivered',
   partially_paid: 'sales.status.partiallyPaid',
   paid: 'sales.status.paid',
+};
+
+/** How each status shows as a badge: the further along, the warmer, paid in green. */
+export const SALE_STATUS_TONE: Record<SaleStatus, Tone> = {
+  ordered: 'neutral',
+  delivered: 'brick',
+  partially_paid: 'warning',
+  paid: 'success',
 };
 
 /** Mirror of the API's SaleDto; everything below `unitPrice` is derived at read time. */

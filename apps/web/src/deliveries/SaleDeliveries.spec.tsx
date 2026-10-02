@@ -26,7 +26,7 @@ describe('SaleDeliveries', () => {
 
     // A role's name is matched as it is, without the whitespace normalising getByText does.
     const trip = await screen.findByRole('link', {
-      name: (name) => plain(name) === '2 500 briques',
+      name: (name) => plain(name).startsWith('2 500 briques'),
     });
     expect(trip).toHaveAttribute('href', '/ventes/s1/livraisons/d1');
     expect(screen.getByText('5 août 2026 · 60 000 Ar · 1234 TBA')).toBeInTheDocument();

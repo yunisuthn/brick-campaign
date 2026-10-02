@@ -1,36 +1,36 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import { RouteSheet, SheetActions } from '@/components/RouteSheet';
+import { ErrorNote } from '@/components/states';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { formatBricks, today } from '../format.js';
+import { today } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useFormat } from '../i18n/useFormat.js';
 import { useStock } from '../stock/useStock.js';
 import { type DeliveryForm, DeliveryFields, toNewDelivery } from './deliveryFields.js';
 import { useCreateDelivery } from './useDeliveries.js';
 
+/** A new trip, in a sheet over the page of its sale (reference document, section 10.12). */
 export function NewDeliveryPage() {
   const { id: saleId = '' } = useParams();
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page">
-      <p>
-        <Link to={`/ventes/${saleId}`}>{t('deliveries.backToSale')}</Link>
-      </p>
-      <h1>{t('deliveries.newTitle')}</h1>
+    <RouteSheet title={t('deliveries.newTitle')} closeTo={`/ventes/${saleId}`}>
       {campaign ? (
         <TripForm campaignId={campaign.id} saleId={saleId} />
       ) : (
-        <p>{t('common.noCampaignShort')}</p>
+        <p className="text-muted-foreground">{t('common.noCampaignShort')}</p>
       )}
-    </main>
+    </RouteSheet>
   );
 }
 
 /**
- * The fired stock is shown beside the quantity: the API refuses to deliver more bricks than
+ * The fired stock is shown above the quantity: the API refuses to deliver more bricks than
  * came out of the kiln, and knowing the figure beforehand saves a round trip.
  */
 function TripForm({ campaignId, saleId }: { campaignId: string; saleId: string }) {
@@ -38,28 +38,36 @@ function TripForm({ campaignId, saleId }: { campaignId: string; saleId: string }
   const create = useCreateDelivery(campaignId, saleId);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const format = useFormat();
   const form = useForm<DeliveryForm>({
     defaultValues: { date: today(), quantity: '', cost: '', plate: '' },
   });
 
-  if (stock.isError)
+  if (stock.isError) {
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {apiErrorMessage(stock.error)}
+      <ErrorNote prefix={t('common.loadFailedPrefix')} message={apiErrorMessage(stock.error)} />
+    );
+  }
+  if (!stock.isSuccess) {
+    return (
+      <p role="status" className="text-muted-foreground">
+        {t('common.loading')}
       </p>
     );
-  if (!stock.isSuccess) return <p role="status">{t('common.loading')}</p>;
+  }
 
   const createRefusal = apiFormErrors(create, form);
 
   const submit = form.handleSubmit((values) =>
-    create.mutate(toNewDelivery(values), { onSuccess: () => navigate(`/ventes/${saleId}`) }),
+    create.mutate(toNewDelivery(values), {
+      onSuccess: () => void navigate(`/ventes/${saleId}`),
+    }),
   );
 
   return (
-    <form onSubmit={submit} noValidate>
-      <p role="status">
-        {t('deliveries.firedStockLine', { stock: formatBricks(stock.data.fired) })}
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      <p role="status" className="rounded-[10px] bg-tile px-4 py-3 text-sm tabular-nums">
+        {t('deliveries.firedStockLine', { stock: format.bricks(stock.data.fired) })}
       </p>
       <DeliveryFields
         register={form.register}
@@ -67,15 +75,11 @@ function TripForm({ campaignId, saleId }: { campaignId: string; saleId: string }
         errors={{ ...form.formState.errors, ...createRefusal.fields }}
       />
       {createRefusal.message && (
-        <p role="alert">
+        <p role="alert" className="text-sm text-destructive">
           {t('common.saveFailedPrefix')} {createRefusal.message}
         </p>
       )}
-      <p>
-        <button type="submit" disabled={create.isPending}>
-          {t('deliveries.saveTrip')}
-        </button>
-      </p>
+      <SheetActions submitLabel={t('deliveries.saveTrip')} busy={create.isPending} />
     </form>
   );
 }

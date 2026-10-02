@@ -1,4 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
+import { Screen } from '@/components/Screen';
+import { ErrorNote } from '@/components/states';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useSession } from './useSession.js';
@@ -15,19 +17,20 @@ export function RequireSession() {
 
   if (session.isPending) {
     return (
-      <main className="page-wide">
-        <h1>{t('shell.appName')}</h1>
-      </main>
+      <Screen className="items-center pt-16">
+        <h1 className="text-2xl font-semibold tracking-tight">{t('shell.appName')}</h1>
+      </Screen>
     );
   }
   if (session.isError) {
     return (
-      <main className="page-wide">
-        <h1>{t('shell.appName')}</h1>
-        <p role="alert">
-          {t('session.apiUnavailablePrefix')} {apiErrorMessage(session.error)}
-        </p>
-      </main>
+      <Screen className="pt-16">
+        <h1 className="text-center text-2xl font-semibold tracking-tight">{t('shell.appName')}</h1>
+        <ErrorNote
+          prefix={t('session.apiUnavailablePrefix')}
+          message={apiErrorMessage(session.error)}
+        />
+      </Screen>
     );
   }
   if (session.data === null) {

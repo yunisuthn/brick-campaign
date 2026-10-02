@@ -72,7 +72,7 @@ function LoadedSale({ campaignId, id }: { campaignId: string; id: string }) {
     return (
       <>
         <PageHeader title={t('sales.title')} back={back} />
-        <ErrorNote message={loadErrorMessage(sale.error, t('sales.notFound'))} />
+        <ErrorNote message={loadErrorMessage(sale.error, t('sales.notFound'), t)} />
       </>
     );
   }

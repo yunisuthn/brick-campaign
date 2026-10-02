@@ -51,7 +51,7 @@ function LoadedExpense({ campaignId, id }: { campaignId: string; id: string }) {
     return (
       <RouteSheet title={t('expenses.title')} closeTo="/depenses">
         {expense.isError ? (
-          <ErrorNote message={loadErrorMessage(expense.error, t('expenses.notFound'))} />
+          <ErrorNote message={loadErrorMessage(expense.error, t('expenses.notFound'), t)} />
         ) : failed ? (
           <ErrorNote
             prefix={t('common.loadFailedPrefix')}

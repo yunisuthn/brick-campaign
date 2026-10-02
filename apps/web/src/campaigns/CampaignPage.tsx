@@ -40,7 +40,7 @@ export function CampaignPage() {
       <Screen>
         <PageHeader title={t('campaigns.title')} back={back} />
         {campaign.isError ? (
-          <ErrorNote message={loadErrorMessage(campaign.error, t('campaigns.notFound'))} />
+          <ErrorNote message={loadErrorMessage(campaign.error, t('campaigns.notFound'), t)} />
         ) : (
           <p role="status" className="text-muted-foreground">
             {t('common.loading')}

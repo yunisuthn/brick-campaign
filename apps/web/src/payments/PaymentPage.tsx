@@ -49,7 +49,7 @@ function LoadedPayment({ campaignId, id }: { campaignId: string; id: string }) {
     return (
       <RouteSheet title={t('payments.title')} closeTo="/versements">
         {payment.isError ? (
-          <ErrorNote message={loadErrorMessage(payment.error, t('payments.notFound'))} />
+          <ErrorNote message={loadErrorMessage(payment.error, t('payments.notFound'), t)} />
         ) : failed ? (
           <ErrorNote
             prefix={t('common.loadFailedPrefix')}

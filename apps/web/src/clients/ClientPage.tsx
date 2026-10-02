@@ -21,7 +21,7 @@ export function ClientPage() {
     return (
       <RouteSheet title={t('clients.title')} closeTo="/clients">
         {client.isError ? (
-          <ErrorNote message={loadErrorMessage(client.error, t('clients.notFound'))} />
+          <ErrorNote message={loadErrorMessage(client.error, t('clients.notFound'), t)} />
         ) : (
           <p role="status" className="text-muted-foreground">
             {t('common.loading')}

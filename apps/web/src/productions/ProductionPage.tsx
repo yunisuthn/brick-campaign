@@ -46,7 +46,7 @@ function LoadedProduction({ campaign, id }: { campaign: Campaign; id: string }) 
   const { t } = useTranslation();
 
   const failure = production.isError
-    ? loadErrorMessage(production.error, t('productions.notFound'))
+    ? loadErrorMessage(production.error, t('productions.notFound'), t)
     : [moulders, riceFields].find((query) => query.isError)?.error;
   if (failure) {
     return (

@@ -51,7 +51,7 @@ function LoadedDelivery({
     return (
       <RouteSheet title={t('deliveries.sectionTitle')} closeTo={`/ventes/${saleId}`}>
         {delivery.isError ? (
-          <ErrorNote message={loadErrorMessage(delivery.error, t('deliveries.notFound'))} />
+          <ErrorNote message={loadErrorMessage(delivery.error, t('deliveries.notFound'), t)} />
         ) : (
           <p role="status" className="text-muted-foreground">
             {t('common.loading')}

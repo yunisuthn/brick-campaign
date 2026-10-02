@@ -42,7 +42,7 @@ function PaymentForm({ campaignId, saleId }: { campaignId: string; saleId: strin
   const form = useForm<SalePaymentForm>({ defaultValues: { date: today(), amount: '' } });
 
   if (sale.isError) {
-    return <ErrorNote message={loadErrorMessage(sale.error, t('salePayments.saleNotFound'))} />;
+    return <ErrorNote message={loadErrorMessage(sale.error, t('salePayments.saleNotFound'), t)} />;
   }
   if (!sale.isSuccess) {
     return (

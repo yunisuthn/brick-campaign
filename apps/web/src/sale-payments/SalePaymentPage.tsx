@@ -44,10 +44,10 @@ function Loaded({ campaignId, saleId, id }: { campaignId: string; saleId: string
   const { t } = useTranslation();
 
   if (payment.isError) {
-    return <ErrorNote message={loadErrorMessage(payment.error, t('salePayments.notFound'))} />;
+    return <ErrorNote message={loadErrorMessage(payment.error, t('salePayments.notFound'), t)} />;
   }
   if (sale.isError) {
-    return <ErrorNote message={loadErrorMessage(sale.error, t('salePayments.saleNotFound'))} />;
+    return <ErrorNote message={loadErrorMessage(sale.error, t('salePayments.saleNotFound'), t)} />;
   }
   if (!payment.isSuccess || !sale.isSuccess) {
     return (

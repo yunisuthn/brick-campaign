@@ -28,7 +28,7 @@ export function RiceFieldPage() {
       <Screen>
         <PageHeader title={t('riceFields.title')} back={back} />
         {field.isError ? (
-          <ErrorNote message={loadErrorMessage(field.error, t('riceFields.notFound'))} />
+          <ErrorNote message={loadErrorMessage(field.error, t('riceFields.notFound'), t)} />
         ) : (
           <p role="status" className="text-muted-foreground">
             {t('common.loading')}

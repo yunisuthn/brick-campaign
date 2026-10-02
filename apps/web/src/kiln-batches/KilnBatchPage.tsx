@@ -65,7 +65,7 @@ function LoadedBatch({ campaignId, id }: { campaignId: string; id: string }) {
       <>
         <PageHeader title={t('kilnBatches.title')} back={backToList(t)} />
         {batch.isError ? (
-          <ErrorNote message={loadErrorMessage(batch.error, t('kilnBatches.notFound'))} />
+          <ErrorNote message={loadErrorMessage(batch.error, t('kilnBatches.notFound'), t)} />
         ) : (
           <p role="status" className="text-muted-foreground">
             {t('common.loading')}

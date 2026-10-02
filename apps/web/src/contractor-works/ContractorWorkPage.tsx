@@ -65,7 +65,7 @@ function LoadedWork({
     return (
       <RouteSheet title={t('contractorWorks.sectionTitle')} closeTo={closeTo}>
         {work.isError ? (
-          <ErrorNote message={loadErrorMessage(work.error, t('contractorWorks.notFound'))} />
+          <ErrorNote message={loadErrorMessage(work.error, t('contractorWorks.notFound'), t)} />
         ) : contractors.isError ? (
           <ErrorNote
             prefix={t('common.loadFailedPrefix')}

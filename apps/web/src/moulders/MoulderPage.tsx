@@ -22,7 +22,7 @@ export function MoulderPage() {
       <Screen>
         <PageHeader title={t('moulders.title')} back={back} />
         {moulder.isError ? (
-          <ErrorNote message={loadErrorMessage(moulder.error, t('moulders.notFound'))} />
+          <ErrorNote message={loadErrorMessage(moulder.error, t('moulders.notFound'), t)} />
         ) : (
           <p role="status" className="text-muted-foreground">
             {t('common.loading')}

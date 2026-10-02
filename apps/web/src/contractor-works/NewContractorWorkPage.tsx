@@ -1,5 +1,7 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import { RouteSheet, SheetActions } from '@/components/RouteSheet';
+import { ErrorNote } from '@/components/states';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
@@ -10,23 +12,20 @@ import { useTranslation } from '../i18n/I18nProvider.js';
 import { type ContractorWorkForm, ContractorWorkFields } from './contractorWorkFields.js';
 import { type ContractorWorkType, useCreateContractorWork } from './useContractorWorks.js';
 
+/** A new work, in a sheet over the page of its batch (reference document, section 10.12). */
 export function NewContractorWorkPage() {
   const { id: batchId = '' } = useParams();
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page">
-      <p>
-        <Link to={`/lots/${batchId}`}>{t('contractorWorks.backToBatch')}</Link>
-      </p>
-      <h1>{t('contractorWorks.newTitle')}</h1>
+    <RouteSheet title={t('contractorWorks.newTitle')} closeTo={`/lots/${batchId}`}>
       {campaign ? (
         <WorkForm campaign={campaign} batchId={batchId} />
       ) : (
-        <p>{t('contractorWorks.noCampaignShort')}</p>
+        <p className="text-muted-foreground">{t('contractorWorks.noCampaignShort')}</p>
       )}
-    </main>
+    </RouteSheet>
   );
 }
 
@@ -43,12 +42,19 @@ function WorkForm({ campaign, batchId }: { campaign: Campaign; batchId: string }
 
   if (contractors.isError) {
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {apiErrorMessage(contractors.error)}
+      <ErrorNote
+        prefix={t('common.loadFailedPrefix')}
+        message={apiErrorMessage(contractors.error)}
+      />
+    );
+  }
+  if (!contractors.isSuccess) {
+    return (
+      <p role="status" className="text-muted-foreground">
+        {t('common.loading')}
       </p>
     );
   }
-  if (!contractors.isSuccess) return <p role="status">{t('common.loading')}</p>;
 
   const createRefusal = apiFormErrors(create, form);
 
@@ -62,12 +68,12 @@ function WorkForm({ campaign, batchId }: { campaign: Campaign; batchId: string }
         quantity: Number(digitsOnly(values.quantity)),
         rate: values.type === 'transport' && values.rate !== '' ? Number(values.rate) : null,
       },
-      { onSuccess: () => navigate(`/lots/${batchId}`) },
+      { onSuccess: () => void navigate(`/lots/${batchId}`) },
     ),
   );
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <ContractorWorkFields
         register={form.register}
         control={form.control}
@@ -77,15 +83,11 @@ function WorkForm({ campaign, batchId }: { campaign: Campaign; batchId: string }
         rates={campaign.transportRates}
       />
       {createRefusal.message && (
-        <p role="alert">
+        <p role="alert" className="text-sm text-destructive">
           {t('common.saveFailedPrefix')} {createRefusal.message}
         </p>
       )}
-      <p>
-        <button type="submit" disabled={create.isPending}>
-          {t('common.save')}
-        </button>
-      </p>
+      <SheetActions submitLabel={t('common.save')} busy={create.isPending} />
     </form>
   );
 }

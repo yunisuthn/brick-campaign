@@ -1,12 +1,14 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
+import { DateField, NumberField } from '@/components/fields';
+import { RouteSheet, SheetActions } from '@/components/RouteSheet';
+import { ErrorNote, NoCampaign } from '@/components/states';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
-import { DateField } from '../form/DateField.js';
-import { Field } from '../form/Field.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { digitsOnly, formatBricks, today } from '../format.js';
+import { digitsOnly, formatCount, today } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useFormat } from '../i18n/useFormat.js';
 import { useStock } from '../stock/useStock.js';
 import { MIN_KILN_BATCH_QUANTITY, useCreateKilnBatch } from './useKilnBatches.js';
 
@@ -15,31 +17,24 @@ interface KilnBatchForm {
   quantity: string;
 }
 
+/** Loading a batch, in a sheet over the list (reference document, section 10.12). */
 export function NewKilnBatchPage() {
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page">
-      <p>
-        <Link to="/lots">{t('kilnBatches.allBatches')}</Link>
-      </p>
-      <h1>{t('kilnBatches.newTitle')}</h1>
+    <RouteSheet title={t('kilnBatches.newTitle')} closeTo="/lots">
       {campaign ? (
         <LoadForm campaignId={campaign.id} />
       ) : (
-        <p>
-          {t('common.noCampaignPrefix')}{' '}
-          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
-          {t('kilnBatches.noCampaignSuffix')}
-        </p>
+        <NoCampaign suffix="kilnBatches.noCampaignSuffix" />
       )}
-    </main>
+    </RouteSheet>
   );
 }
 
 /**
- * The raw stock is shown beside the quantity: the API refuses to load more than what was
+ * The raw stock is shown above the quantity: the API refuses to load more than what was
  * moulded, and knowing the figure beforehand saves a round trip. The minimum of 40 000 bricks
  * is the rule of section 1; the API keeps it too.
  */
@@ -48,28 +43,40 @@ function LoadForm({ campaignId }: { campaignId: string }) {
   const create = useCreateKilnBatch(campaignId);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const format = useFormat();
   const form = useForm<KilnBatchForm>({ defaultValues: { loadedOn: today(), quantity: '' } });
 
-  if (stock.isError)
+  if (stock.isError) {
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {apiErrorMessage(stock.error)}
+      <ErrorNote prefix={t('common.loadFailedPrefix')} message={apiErrorMessage(stock.error)} />
+    );
+  }
+  if (!stock.isSuccess) {
+    return (
+      <p role="status" className="text-muted-foreground">
+        {t('common.loading')}
       </p>
     );
-  if (!stock.isSuccess) return <p role="status">{t('common.loading')}</p>;
+  }
 
   const createRefusal = apiFormErrors(create, form);
 
   const submit = form.handleSubmit((values) =>
     create.mutate(
-      { loadedOn: values.loadedOn, unloadedOn: null, quantity: Number(digitsOnly(values.quantity)) },
-      { onSuccess: (batch) => navigate(`/lots/${batch.id}`) },
+      {
+        loadedOn: values.loadedOn,
+        unloadedOn: null,
+        quantity: Number(digitsOnly(values.quantity)),
+      },
+      { onSuccess: (batch) => void navigate(`/lots/${batch.id}`) },
     ),
   );
 
   return (
-    <form onSubmit={submit} noValidate>
-      <p role="status">{t('kilnBatches.rawStock', { quantity: formatBricks(stock.data.raw) })}</p>
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      <p role="status" className="rounded-[10px] bg-tile px-4 py-3 text-sm tabular-nums">
+        {t('kilnBatches.rawStock', { quantity: format.bricks(stock.data.raw) })}
+      </p>
       <DateField
         label={t('kilnBatches.loadedOnLabel')}
         name="loadedOn"
@@ -77,27 +84,22 @@ function LoadForm({ campaignId }: { campaignId: string }) {
         error={form.formState.errors.loadedOn ?? createRefusal.fields.loadedOn}
         required={t('common.dateRequired')}
       />
-      <Field
+      <NumberField
         label={t('kilnBatches.quantityLabel')}
         error={form.formState.errors.quantity ?? createRefusal.fields.quantity}
-        input={form.register('quantity', {
+        registration={form.register('quantity', {
           validate: (value) =>
             (/^\d+$/.test(digitsOnly(value)) &&
               Number(digitsOnly(value)) >= MIN_KILN_BATCH_QUANTITY) ||
-            t('kilnBatches.quantityRequired', { min: MIN_KILN_BATCH_QUANTITY.toLocaleString('fr-FR') }),
+            t('kilnBatches.quantityRequired', { min: formatCount(MIN_KILN_BATCH_QUANTITY) }),
         })}
-        inputMode="numeric"
       />
       {createRefusal.message && (
-        <p role="alert">
+        <p role="alert" className="text-sm text-destructive">
           {t('kilnBatches.loadFailedAction')} {createRefusal.message}
         </p>
       )}
-      <p>
-        <button type="submit" disabled={create.isPending}>
-          {t('kilnBatches.loadAction')}
-        </button>
-      </p>
+      <SheetActions submitLabel={t('kilnBatches.loadAction')} busy={create.isPending} />
     </form>
   );
 }

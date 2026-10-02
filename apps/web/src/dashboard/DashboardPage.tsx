@@ -2,17 +2,17 @@ import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router';
 import { AmountRow } from '@/components/AmountRow';
 import { NewSaleSheet } from '@/components/NewSaleSheet';
+import { PageHeader, Screen } from '@/components/Screen';
 import { SectionCard } from '@/components/SectionCard';
-import { StatCard } from '@/components/StatCard';
-import { Badge } from '@/components/ui/badge';
+import { StockCard } from '@/components/StockCard';
+import { ToneBadge } from '@/components/marks';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import type { Campaign } from '../campaigns/useCampaigns.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
-import { formatAmount, formatBricks, formatCount } from '../format.js';
+import { formatAmount } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
-import type { Stock } from '../stock/useStock.js';
 import { type Dashboard, useDashboard } from './useDashboard.js';
 
 export function DashboardPage() {
@@ -20,15 +20,13 @@ export function DashboardPage() {
   const { t } = useTranslation();
 
   return (
-    <main className="ui mx-auto flex w-full max-w-md flex-col gap-4 px-4 pt-5 pb-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t('dashboard.title')}</h1>
-        {campaign && (
-          <p className="text-sm text-muted-foreground">
-            {t('common.campaignName', { year: campaign.year, tranche: campaign.tranche })}
-          </p>
-        )}
-      </div>
+    <Screen>
+      <PageHeader
+        title={t('dashboard.title')}
+        subtitle={
+          campaign && t('common.campaignName', { year: campaign.year, tranche: campaign.tranche })
+        }
+      />
       {campaign ? (
         <Overview campaign={campaign} />
       ) : (
@@ -40,7 +38,7 @@ export function DashboardPage() {
           {t('dashboard.noCampaignSuffix')}
         </p>
       )}
-    </main>
+    </Screen>
   );
 }
 
@@ -107,15 +105,9 @@ function ResultCard({ result, received }: { result: number | null; received: num
             >
               {formatAmount(result)}
             </p>
-            <Badge
-              variant="outline"
-              className={cn(
-                'border-transparent',
-                loss ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success',
-              )}
-            >
+            <ToneBadge tone={loss ? 'destructive' : 'success'}>
               {t(loss ? 'dashboard.deficit' : 'dashboard.profit')}
-            </Badge>
+            </ToneBadge>
           </div>
           <p className="text-sm text-muted-foreground tabular-nums">
             {t('dashboard.resultBreakdown', {
@@ -124,59 +116,6 @@ function ResultCard({ result, received }: { result: number | null; received: num
             })}
           </p>
         </div>
-      )}
-    </SectionCard>
-  );
-}
-
-const levels = [
-  { key: 'raw', label: 'dashboard.stock.raw', swatch: 'bg-stock-raw' },
-  { key: 'inKiln', label: 'dashboard.stock.inKiln', swatch: 'bg-stock-kiln' },
-  { key: 'fired', label: 'dashboard.stock.fired', swatch: 'bg-stock-fired' },
-] as const;
-
-/** The three levels the owner counts, and how the bricks on hand split between them. */
-function StockCard({ stock }: { stock: Stock }) {
-  const { t } = useTranslation();
-  const onHand = stock.raw + stock.inKiln + stock.fired;
-
-  return (
-    <SectionCard title={t('dashboard.stock.title')}>
-      <dl className="grid grid-cols-3 gap-2">
-        {levels.map((level) => (
-          <StatCard
-            key={level.key}
-            label={t(level.label)}
-            value={formatCount(stock[level.key])}
-            swatchClassName={level.swatch}
-          />
-        ))}
-      </dl>
-      {onHand === 0 ? (
-        <p className="mt-3 text-sm text-muted-foreground">{t('dashboard.stock.empty')}</p>
-      ) : (
-        <>
-          <div
-            aria-hidden="true"
-            className="mt-4 flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-muted"
-          >
-            {levels.map((level) =>
-              stock[level.key] > 0 ? (
-                <div
-                  key={level.key}
-                  className={level.swatch}
-                  style={{ width: `${(stock[level.key] / onHand) * 100}%` }}
-                />
-              ) : null,
-            )}
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t('dashboard.stock.summary', {
-              fired: formatBricks(stock.fired),
-              total: formatBricks(onHand),
-            })}
-          </p>
-        </>
       )}
     </SectionCard>
   );

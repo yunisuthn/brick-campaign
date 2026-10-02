@@ -59,10 +59,10 @@ describe('SalesPage', () => {
 
     const rows = await screen.findAllByRole('listitem');
     expect(rows.map((row) => plain(row.textContent))).toEqual([
-      'Rabe10 août 2026 · Commandée · 2 500 / 5 000 briques1 250 000 Ar',
-      'Rabe1 août 2026 · Payée · 5 000 briques livrées1 250 000 Ar',
+      'Rabe1 250 000 Ar10 août 2026Commandée2 500 / 5 000 briques',
+      'Rabe1 250 000 Ar1 août 2026Payée5 000 briques livrées',
     ]);
-    expect(screen.getAllByRole('link', { name: 'Rabe' })[0]).toHaveAttribute('href', '/ventes/s2');
+    expect(screen.getAllByRole('link', { name: /Rabe/ })[0]).toHaveAttribute('href', '/ventes/s2');
   });
 
   it('says so when nothing has been sold yet', async () => {

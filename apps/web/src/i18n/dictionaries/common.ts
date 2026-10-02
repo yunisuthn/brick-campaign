@@ -65,6 +65,9 @@ export const fr = {
   'common.to': 'Au',
   'common.unknownMoulder': 'Mouleur inconnu',
   'common.moulderRequired': 'Le mouleur est requis.',
+  'common.today': 'Aujourd’hui',
+  'common.yesterday': 'Hier',
+  'common.actions': 'Actions',
 } as const;
 
 export const mg: Record<keyof typeof fr, string> = {
@@ -128,4 +131,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'common.to': 'Hatramin’ny',
   'common.unknownMoulder': 'Mpanao biriky tsy fantatra',
   'common.moulderRequired': 'Ilaina ny mpanao biriky.',
+  'common.today': 'Androany',
+  'common.yesterday': 'Omaly',
+  'common.actions': 'Safidy',
 };

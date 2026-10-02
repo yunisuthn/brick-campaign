@@ -66,9 +66,8 @@ describe('SalePage', () => {
     );
     renderRoutes(routes, '/ventes/s1');
 
-    expect(await screen.findByRole('heading', { name: /Rabe/ })).toHaveTextContent(
-      'Partiellement payée',
-    );
+    expect(await screen.findByRole('heading', { name: 'Rabe' })).toBeInTheDocument();
+    expect(screen.getByText('Partiellement payée')).toBeInTheDocument();
     expect(
       screen.getByText(/400 000 Ar reçus sur 1 250 000 Ar, reste 850 000 Ar à encaisser/),
     ).toBeInTheDocument();

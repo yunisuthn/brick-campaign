@@ -1,6 +1,5 @@
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
-import { DateField } from '../form/DateField.js';
-import { Field } from '../form/Field.js';
+import { DateField, NumberField } from '@/components/fields';
 import { digitsOnly } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import type { NewSalePayment } from './useSalePayments.js';
@@ -21,7 +20,7 @@ interface SalePaymentFieldsProps {
   errors: FieldErrors<SalePaymentForm>;
 }
 
-/** Shared by the entry and the correction. What is left to pay is shown by the page around it. */
+/** Shared by the entry and the correction. What is left to pay is shown by the sheet around it. */
 export function SalePaymentFields({ register, control, errors }: SalePaymentFieldsProps) {
   const { t } = useTranslation();
   return (
@@ -33,15 +32,14 @@ export function SalePaymentFields({ register, control, errors }: SalePaymentFiel
         error={errors.date}
         required={t('common.dateRequired')}
       />
-      <Field
+      <NumberField
         label={t('salePayments.amountLabel')}
         error={errors.amount}
-        input={register('amount', {
+        registration={register('amount', {
           validate: (value) =>
             (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
             t('common.amountRequiredInteger'),
         })}
-        inputMode="numeric"
       />
     </>
   );

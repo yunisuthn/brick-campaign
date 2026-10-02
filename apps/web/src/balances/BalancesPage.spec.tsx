@@ -69,7 +69,7 @@ describe('BalancesPage', () => {
 
     const moulders = await screen.findByRole('region', { name: 'Mouleurs' });
     // 75 000 owed to Rakoto, netted against 5 000 overpaid to Rasoa.
-    expect(within(moulders).getByText('Total reste dû : 70 000 Ar')).toBeInTheDocument();
+    expect(within(moulders).getByText('Total reste dû').nextSibling).toHaveTextContent('70 000 Ar');
     const [rakoto, rasoa] = within(moulders).getAllByRole('listitem');
     expect(within(rakoto!).getByText('2 500 briques')).toBeInTheDocument();
     expect(within(rakoto!).getByText('Reste dû')).toBeInTheDocument();

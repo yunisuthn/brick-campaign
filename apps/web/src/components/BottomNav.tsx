@@ -21,7 +21,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label={t('nav.bottom')}
-      className="ui fixed inset-x-0 bottom-0 z-10 border-t bg-card pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_8px_rgb(0_0_0/0.06)] sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-10 border-t bg-card pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_8px_rgb(0_0_0/0.06)] sm:hidden"
     >
       <ul className="mx-auto flex max-w-md">
         {destinations.map(({ to, key, Icon }) => (

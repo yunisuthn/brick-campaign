@@ -1,10 +1,11 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
+import { DateField, NumberField, SelectField } from '@/components/fields';
+import { RouteSheet, SheetActions } from '@/components/RouteSheet';
+import { ErrorNote, NoCampaign } from '@/components/states';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useClients } from '../clients/useClients.js';
-import { DateField } from '../form/DateField.js';
-import { Field, SelectField } from '../form/Field.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { digitsOnly, formatAmount, today } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
@@ -17,26 +18,25 @@ interface SaleForm {
   unitPrice: string;
 }
 
+/** A new sale, in a sheet over the list (reference document, section 10.12). */
 export function NewSalePage() {
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page">
-      <p>
-        <Link to="/ventes">{t('sales.allSales')}</Link>
-      </p>
-      <h1>{t('sales.newTitle')}</h1>
+    <RouteSheet
+      title={t('sales.newTitle')}
+      description={
+        campaign && t('common.campaignName', { year: campaign.year, tranche: campaign.tranche })
+      }
+      closeTo="/ventes"
+    >
       {campaign ? (
         <SaleForm campaignId={campaign.id} />
       ) : (
-        <p>
-          {t('common.noCampaignPrefix')}{' '}
-          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
-          {t('sales.noCampaignSuffix')}
-        </p>
+        <NoCampaign suffix="sales.noCampaignSuffix" />
       )}
-    </main>
+    </RouteSheet>
   );
 }
 
@@ -54,13 +54,18 @@ function SaleForm({ campaignId }: { campaignId: string }) {
     defaultValues: { clientId: '', date: today(), orderedQuantity: '', unitPrice: '' },
   });
 
-  if (clients.isError)
+  if (clients.isError) {
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {apiErrorMessage(clients.error)}
+      <ErrorNote prefix={t('common.loadFailedPrefix')} message={apiErrorMessage(clients.error)} />
+    );
+  }
+  if (!clients.isSuccess) {
+    return (
+      <p role="status" className="text-muted-foreground">
+        {t('common.loading')}
       </p>
     );
-  if (!clients.isSuccess) return <p role="status">{t('common.loading')}</p>;
+  }
 
   const quantity = Number(digitsOnly(form.watch('orderedQuantity')));
   const price = Number(digitsOnly(form.watch('unitPrice')));
@@ -76,22 +81,20 @@ function SaleForm({ campaignId }: { campaignId: string }) {
         orderedQuantity: Number(digitsOnly(values.orderedQuantity)),
         unitPrice: Number(digitsOnly(values.unitPrice)),
       },
-      { onSuccess: (sale) => navigate(`/ventes/${sale.id}`) },
+      { onSuccess: (sale) => void navigate(`/ventes/${sale.id}`) },
     ),
   );
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <SelectField
         label={t('sales.clientLabel')}
-        error={form.formState.errors.clientId ?? createRefusal.fields.clientId}
         name="clientId"
         control={form.control}
+        error={form.formState.errors.clientId ?? createRefusal.fields.clientId}
         rules={{ required: t('sales.clientRequired') }}
-        options={[
-          { value: '', label: t('common.choose') },
-          ...clients.data.map((client) => ({ value: client.id, label: client.name })),
-        ]}
+        placeholder={t('common.choose')}
+        options={clients.data.map((client) => ({ value: client.id, label: client.name }))}
       />
       <DateField
         label={t('common.date')}
@@ -100,39 +103,39 @@ function SaleForm({ campaignId }: { campaignId: string }) {
         error={form.formState.errors.date ?? createRefusal.fields.date}
         required={t('common.dateRequired')}
       />
-      <Field
-        label={t('sales.orderedQuantityLabel')}
-        error={form.formState.errors.orderedQuantity ?? createRefusal.fields.orderedQuantity}
-        input={form.register('orderedQuantity', {
-          validate: (value) =>
-            (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
-            t('sales.quantityRequired'),
-        })}
-        inputMode="numeric"
-      />
-      <Field
-        label={t('sales.unitPriceLabel')}
-        error={form.formState.errors.unitPrice ?? createRefusal.fields.unitPrice}
-        input={form.register('unitPrice', {
-          validate: (value) =>
-            (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
-            t('sales.unitPriceRequired'),
-        })}
-        inputMode="numeric"
-      />
-      <p role="status">
-        {t('sales.totalLabel')} {formatAmount(total)}
+      <div className="grid grid-cols-2 gap-3">
+        <NumberField
+          label={t('sales.orderedQuantityLabel')}
+          error={form.formState.errors.orderedQuantity ?? createRefusal.fields.orderedQuantity}
+          registration={form.register('orderedQuantity', {
+            validate: (value) =>
+              (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
+              t('sales.quantityRequired'),
+          })}
+        />
+        <NumberField
+          label={t('sales.unitPriceLabel')}
+          error={form.formState.errors.unitPrice ?? createRefusal.fields.unitPrice}
+          registration={form.register('unitPrice', {
+            validate: (value) =>
+              (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
+              t('sales.unitPriceRequired'),
+          })}
+        />
+      </div>
+      <p
+        role="status"
+        className="flex items-baseline justify-between gap-4 rounded-[10px] bg-tile px-4 py-3"
+      >
+        <span className="text-sm text-muted-foreground">{t('sales.totalLabel')}</span>{' '}
+        <span className="text-xl font-bold tabular-nums">{formatAmount(total)}</span>
       </p>
       {createRefusal.message && (
-        <p role="alert">
+        <p role="alert" className="text-sm text-destructive">
           {t('common.saveFailedPrefix')} {createRefusal.message}
         </p>
       )}
-      <p>
-        <button type="submit" disabled={create.isPending}>
-          {t('sales.saveNewSale')}
-        </button>
-      </p>
+      <SheetActions submitLabel={t('sales.saveNewSale')} busy={create.isPending} />
     </form>
   );
 }

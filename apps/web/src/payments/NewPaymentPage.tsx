@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router';
+import { RouteSheet, SheetActions } from '@/components/RouteSheet';
+import { ErrorNote, NoCampaign } from '@/components/states';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
@@ -11,26 +12,25 @@ import { useMoulders } from '../moulders/useMoulders.js';
 import { type PaymentForm, PaymentFields, toNewPayment } from './paymentFields.js';
 import { useCreatePayment } from './usePayments.js';
 
+/** A new payment, in a sheet over the list (reference document, section 10.12). */
 export function NewPaymentPage() {
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
   return (
-    <main className="page">
-      <p>
-        <Link to="/versements">{t('payments.allPayments')}</Link>
-      </p>
-      <h1>{t('payments.newTitle')}</h1>
+    <RouteSheet
+      title={t('payments.newTitle')}
+      description={
+        campaign && t('common.campaignName', { year: campaign.year, tranche: campaign.tranche })
+      }
+      closeTo="/versements"
+    >
       {campaign ? (
         <EntryForm campaignId={campaign.id} />
       ) : (
-        <p>
-          {t('common.noCampaignPrefix')}{' '}
-          <Link to="/campagnes/nouvelle">{t('common.noCampaignLinkText')}</Link>
-          {t('payments.noCampaignSuffix')}
-        </p>
+        <NoCampaign suffix="payments.noCampaignSuffix" />
       )}
-    </main>
+    </RouteSheet>
   );
 }
 
@@ -59,13 +59,15 @@ function EntryForm({ campaignId }: { campaignId: string }) {
   if (moulders.isError || contractors.isError) {
     const error = moulders.error ?? contractors.error;
     return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {error && apiErrorMessage(error)}
-      </p>
+      <ErrorNote prefix={t('common.loadFailedPrefix')} message={error && apiErrorMessage(error)} />
     );
   }
   if (!moulders.isSuccess || !contractors.isSuccess) {
-    return <p role="status">{t('common.loading')}</p>;
+    return (
+      <p role="status" className="text-muted-foreground">
+        {t('common.loading')}
+      </p>
+    );
   }
 
   const createRefusal = apiFormErrors(create, form);
@@ -84,7 +86,7 @@ function EntryForm({ campaignId }: { campaignId: string }) {
   );
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <PaymentFields
         register={form.register}
         watch={form.watch}
@@ -94,20 +96,19 @@ function EntryForm({ campaignId }: { campaignId: string }) {
         contractorNames={contractors.data.map((c) => c.contractorName)}
       />
       {createRefusal.message && (
-        <p role="alert">
+        <p role="alert" className="text-sm text-destructive">
           {t('common.saveFailedPrefix')} {createRefusal.message}
         </p>
       )}
       {saved && !create.isError && (
-        <p role="status" className="done">
+        <p
+          role="status"
+          className="rounded-[10px] bg-success/10 px-4 py-3 text-sm font-medium text-success"
+        >
           {saved}
         </p>
       )}
-      <p>
-        <button type="submit" disabled={create.isPending}>
-          {t('common.save')}
-        </button>
-      </p>
+      <SheetActions submitLabel={t('common.save')} busy={create.isPending} />
     </form>
   );
 }

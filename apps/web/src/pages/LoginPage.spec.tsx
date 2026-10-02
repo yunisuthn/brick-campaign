@@ -65,11 +65,16 @@ describe('LoginPage', () => {
     expect(await screen.findByText('Connexion impossible : database down')).toBeInTheDocument();
   });
 
-  it('asks for the missing field before calling the API', async () => {
+  it('asks for each missing field, under it, before calling the API', async () => {
     signedOut();
     renderRoutes(routes, '/connexion');
     await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('L’email est requis.');
+    const alerts = await screen.findAllByRole('alert');
+    expect(alerts.map((alert) => alert.textContent)).toEqual([
+      'L’email est requis.',
+      'Le mot de passe est requis.',
+    ]);
+    expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('L’email est requis.');
   });
 
   it('sends someone already signed in straight to the home page', async () => {

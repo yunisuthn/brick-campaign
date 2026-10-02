@@ -1,4 +1,5 @@
 import { formatAmount, formatBricks, formatDate, today } from './format.js';
+import { plain } from './test/text.js';
 
 describe('formatAmount', () => {
   it('groups thousands the French way and appends the currency', () => {
@@ -29,5 +30,17 @@ describe('formatBricks', () => {
   it('groups thousands and agrees the noun', () => {
     expect(formatBricks(1200)).toBe('1 200 briques');
     expect(formatBricks(1)).toBe('1 brique');
+  });
+});
+
+describe('in Malagasy', () => {
+  it('names the month in Malagasy, day first', () => {
+    expect(formatDate('2026-10-02', 'mg')).toBe('2 Oktobra 2026');
+    expect(formatDate('2026-08-01', 'mg')).toBe('1 Aogositra 2026');
+  });
+
+  it('counts bricks as biriky, one or many', () => {
+    expect(plain(formatBricks(1800, 'mg'))).toBe('1 800 biriky');
+    expect(formatBricks(1, 'mg')).toBe('1 biriky');
   });
 });

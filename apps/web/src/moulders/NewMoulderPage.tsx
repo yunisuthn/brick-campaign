@@ -1,11 +1,15 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
+import { RouteSheet, SheetActions } from '@/components/RouteSheet';
 import { apiFormErrors } from '../form/apiFormErrors.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { MoulderFields } from './moulderFields.js';
 import { type NewMoulder, useCreateMoulder } from './useMoulders.js';
 
-/** Back to the list, not to the new page: a moulder is created once and then only entered against. */
+/**
+ * A new moulder, in a sheet over the list; back to the list, not to the new page: a moulder is
+ * created once and then only entered against.
+ */
 export function NewMoulderPage() {
   const create = useCreateMoulder();
   const navigate = useNavigate();
@@ -15,29 +19,23 @@ export function NewMoulderPage() {
   const createRefusal = apiFormErrors(create, form);
 
   const submit = form.handleSubmit((input) =>
-    create.mutate(input, { onSuccess: () => navigate('/mouleurs') }),
+    create.mutate(input, { onSuccess: () => void navigate('/mouleurs') }),
   );
 
   return (
-    <main className="page">
-      <h1>{t('moulders.newTitle')}</h1>
-      <form onSubmit={submit} noValidate>
+    <RouteSheet title={t('moulders.newTitle')} closeTo="/mouleurs">
+      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
         <MoulderFields
           register={form.register}
           errors={{ ...form.formState.errors, ...createRefusal.fields }}
         />
         {createRefusal.message && (
-          <p role="alert">
+          <p role="alert" className="text-sm text-destructive">
             {t('moulders.createFailedPrefix')} {createRefusal.message}
           </p>
         )}
-        <p className="actions">
-          <button type="submit" disabled={create.isPending}>
-            {t('moulders.createButton')}
-          </button>
-          <Link to="/mouleurs">{t('common.cancel')}</Link>
-        </p>
+        <SheetActions submitLabel={t('moulders.createButton')} busy={create.isPending} />
       </form>
-    </main>
+    </RouteSheet>
   );
 }

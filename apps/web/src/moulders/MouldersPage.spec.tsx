@@ -18,7 +18,7 @@ describe('MouldersPage', () => {
     );
     renderWithProviders(<MouldersPage />);
 
-    expect(await screen.findByRole('link', { name: 'Rakoto' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: /^Rakoto/ })).toHaveAttribute(
       'href',
       '/mouleurs/m1',
     );
@@ -26,7 +26,7 @@ describe('MouldersPage', () => {
     expect(screen.queryByText('Solo')).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByLabelText('Afficher les mouleurs retirés'));
-    expect(await screen.findByRole('link', { name: 'Solo' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /^Solo/ })).toBeInTheDocument();
     expect(screen.getByText('1 membre · retiré')).toBeInTheDocument();
   });
 

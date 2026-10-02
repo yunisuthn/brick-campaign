@@ -110,7 +110,7 @@ describe('NewPaymentPage', () => {
     mount();
 
     await screen.findByLabelText('Bénéficiaire');
-    await chooseOption(user, 'Bénéficiaire', 'Prestataire');
+    await user.click(screen.getByRole('radio', { name: 'Prestataire' }));
     const name = screen.getByLabelText('Nom du prestataire');
     expect(screen.queryByLabelText('Mouleur')).not.toBeInTheDocument();
     // The known names are offered as a datalist, which has no accessible surface of its own.
@@ -118,7 +118,7 @@ describe('NewPaymentPage', () => {
     expect([...(list?.querySelectorAll('option') ?? [])].map((o) => o.value)).toEqual(['Solo']);
 
     await user.type(name, ' Solo ');
-    await chooseOption(user, 'Type', 'Avance');
+    await user.click(screen.getByRole('radio', { name: 'Avance' }));
     await user.type(screen.getByLabelText('Montant (Ar)'), '120000');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
@@ -145,7 +145,7 @@ describe('NewPaymentPage', () => {
       'Un montant entier en ariary est attendu.',
     ]);
 
-    await chooseOption(user, 'Bénéficiaire', 'Prestataire');
+    await user.click(screen.getByRole('radio', { name: 'Prestataire' }));
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
     alerts = await screen.findAllByRole('alert');
     expect(alerts.map((alert) => alert.textContent)).toEqual([

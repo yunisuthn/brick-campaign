@@ -57,16 +57,16 @@ describe('KilnBatchPage', () => {
     const user = userEvent.setup();
     renderRoutes(routes, '/lots/b1');
 
-    expect(await screen.findByRole('heading', { name: /encore au four/ })).toBeInTheDocument();
+    expect(await screen.findByText(/encore au four/)).toBeInTheDocument();
+    expect(screen.getByText('Au four')).toBeInTheDocument();
     const cost = screen.getByRole('region', { name: 'Coût du lot' });
     expect(within(cost).getAllByText('Tarif à fixer')).toHaveLength(2);
 
     await user.type(screen.getByLabelText('Date de défournement'), '20/06/2026');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    expect(
-      await screen.findByRole('heading', { name: /défourné le 20 juin 2026/ }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/défourné le 20 juin 2026/)).toBeInTheDocument();
+    expect(screen.getByText('Cuite')).toBeInTheDocument();
     expect(body).toEqual({ loadedOn: '2026-06-01', unloadedOn: '2026-06-20', quantity: 40000 });
   });
 

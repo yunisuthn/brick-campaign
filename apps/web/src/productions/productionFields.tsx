@@ -1,6 +1,5 @@
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
-import { DateField } from '../form/DateField.js';
-import { Field, SelectField } from '../form/Field.js';
+import { DateField, NumberField, SelectField } from '@/components/fields';
 import { digitsOnly } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import type { Moulder } from '../moulders/useMoulders.js';
@@ -53,67 +52,79 @@ export function ProductionFields({
   showEndedOn = false,
 }: ProductionFieldsProps) {
   const { t } = useTranslation();
-  const choose = { value: '', label: t('common.choose') };
 
   return (
     <>
-      <DateField
-        label={t('productions.startedOnLabel')}
-        name="startedOn"
-        control={control}
-        error={errors.startedOn}
-        required={t('productions.startedOnRequired')}
-      />
-      {showEndedOn && (
-        <>
+      {showEndedOn ? (
+        <div className="grid grid-cols-2 gap-3">
+          <DateField
+            label={t('productions.startedOnLabel')}
+            name="startedOn"
+            control={control}
+            error={errors.startedOn}
+            required={t('productions.startedOnRequired')}
+          />
           <DateField
             label={t('productions.endedOnLabel')}
             name="endedOn"
             control={control}
             error={errors.endedOn}
           />
-          <p className="sub">{t('productions.endedOnHint')}</p>
-        </>
+          <p className="col-span-2 -mt-1 text-sm text-muted-foreground">
+            {t('productions.endedOnHint')}
+          </p>
+        </div>
+      ) : (
+        <DateField
+          label={t('productions.startedOnLabel')}
+          name="startedOn"
+          control={control}
+          error={errors.startedOn}
+          required={t('productions.startedOnRequired')}
+        />
       )}
       <SelectField
         label={t('common.moulderLabel')}
-        error={errors.moulderId}
         name="moulderId"
         control={control}
+        error={errors.moulderId}
         rules={{ required: t('common.moulderRequired') }}
-        options={[choose, ...moulders.map((m) => ({ value: m.id, label: m.name }))]}
+        placeholder={t('common.choose')}
+        options={moulders.map((m) => ({ value: m.id, label: m.name }))}
       />
       <SelectField
         label={t('productions.riceFieldLabel')}
-        error={errors.riceFieldId}
         name="riceFieldId"
         control={control}
+        error={errors.riceFieldId}
         rules={{ required: t('productions.riceFieldRequired') }}
-        options={[choose, ...riceFields.map((f) => ({ value: f.id, label: f.name }))]}
+        placeholder={t('common.choose')}
+        options={riceFields.map((f) => ({ value: f.id, label: f.name }))}
       />
-      <Field
-        label={t('productions.quantityLabel')}
-        error={errors.quantity}
-        input={register('quantity', {
-          validate: (value) =>
-            (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
-            t('productions.quantityRequired'),
-        })}
-        inputMode="numeric"
-      />
-      <SelectField
-        label={t('productions.rateLabel')}
-        error={errors.rate}
-        name="rate"
-        control={control}
-        options={[
-          { value: '', label: t('productions.rateToFix') },
-          ...rates.map((rate) => ({
-            value: String(rate),
-            label: t('productions.rateOption', { rate }),
-          })),
-        ]}
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <NumberField
+          label={t('productions.quantityLabel')}
+          error={errors.quantity}
+          registration={register('quantity', {
+            validate: (value) =>
+              (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
+              t('productions.quantityRequired'),
+          })}
+        />
+        <SelectField
+          label={t('productions.rateLabel')}
+          name="rate"
+          control={control}
+          error={errors.rate}
+          options={[
+            { value: '', label: t('productions.rateToFix') },
+            ...rates.map((rate) => ({
+              value: String(rate),
+              label: t('productions.rateOption', { rate }),
+            })),
+          ]}
+        />
+      </div>
     </>
   );
 }

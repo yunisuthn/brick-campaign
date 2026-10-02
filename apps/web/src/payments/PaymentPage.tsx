@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import { ConfirmStrip } from '@/components/ConfirmStrip';
+import { RouteSheet } from '@/components/RouteSheet';
+import { ErrorNote } from '@/components/states';
+import { Button } from '@/components/ui/button';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { formatAmount, formatDate } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
+import { useFormat } from '../i18n/useFormat.js';
 import { type Moulder, useMoulders } from '../moulders/useMoulders.js';
 import {
   PAYMENT_TYPE_KEY,
@@ -17,23 +21,20 @@ import {
 } from './paymentFields.js';
 import { type Payment, useCancelPayment, usePayment, useUpdatePayment } from './usePayments.js';
 
+/** A payment's correction, in a sheet over the list (reference document, section 10.12). */
 export function PaymentPage() {
   const { id = '' } = useParams();
   const { campaign } = useCurrentCampaign();
   const { t } = useTranslation();
 
-  return (
-    <main className="page">
-      <p>
-        <Link to="/versements">{t('payments.allPayments')}</Link>
-      </p>
-      {campaign ? (
-        <LoadedPayment campaignId={campaign.id} id={id} />
-      ) : (
-        <p>{t('common.noCampaignShort')}</p>
-      )}
-    </main>
-  );
+  if (!campaign) {
+    return (
+      <RouteSheet title={t('payments.title')} closeTo="/versements">
+        <p className="text-muted-foreground">{t('common.noCampaignShort')}</p>
+      </RouteSheet>
+    );
+  }
+  return <LoadedPayment campaignId={campaign.id} id={id} />;
 }
 
 /** The payment, the moulders it may name (its own even if retired) and the known contractor names. */
@@ -43,18 +44,24 @@ function LoadedPayment({ campaignId, id }: { campaignId: string; id: string }) {
   const contractors = useContractorBalances(campaignId);
   const { t } = useTranslation();
 
-  if (payment.isError) {
-    return <p role="alert">{loadErrorMessage(payment.error, t('payments.notFound'))}</p>;
-  }
   const failed = [moulders, contractors].find((query) => query.isError);
-  if (failed)
-    return (
-      <p role="alert">
-        {t('common.loadFailedPrefix')} {failed.error && apiErrorMessage(failed.error)}
-      </p>
-    );
   if (!payment.isSuccess || !moulders.isSuccess || !contractors.isSuccess) {
-    return <p role="status">{t('common.loading')}</p>;
+    return (
+      <RouteSheet title={t('payments.title')} closeTo="/versements">
+        {payment.isError ? (
+          <ErrorNote message={loadErrorMessage(payment.error, t('payments.notFound'), t)} />
+        ) : failed ? (
+          <ErrorNote
+            prefix={t('common.loadFailedPrefix')}
+            message={failed.error && apiErrorMessage(failed.error)}
+          />
+        ) : (
+          <p role="status" className="text-muted-foreground">
+            {t('common.loading')}
+          </p>
+        )}
+      </RouteSheet>
+    );
   }
 
   const choosable = moulders.data.filter((m) => m.active || m.id === payment.data.moulderId);
@@ -76,7 +83,7 @@ interface CorrectionFormProps {
 
 /**
  * A correction sends the whole payment back, beneficiary included: the API replaces one kind
- * of beneficiary with the other. Cancelling asks for a second click, then goes back to the
+ * of beneficiary with the other. Cancelling asks for a second step, then goes back to the
  * list; the row stays in the database (reference document, section 5).
  */
 function CorrectionForm({ payment, moulders, contractorNames }: CorrectionFormProps) {
@@ -103,22 +110,21 @@ function CorrectionForm({ payment, moulders, contractorNames }: CorrectionFormPr
     }),
   );
   const cancelPayment = () =>
-    cancel.mutate(undefined, { onSuccess: () => navigate('/versements') });
+    cancel.mutate(undefined, { onSuccess: () => void navigate('/versements') });
 
   const name =
     payment.contractorName ?? moulders.find((m) => m.id === payment.moulderId)?.name ?? '';
   const busy = update.isPending || cancel.isPending;
   const { t } = useTranslation();
+  const format = useFormat();
 
   return (
-    <>
-      <h1>
-        {name}, {formatDate(payment.date)}
-        <span className="title-sub">
-          {t(PAYMENT_TYPE_KEY[payment.type])} · {formatAmount(payment.amount)}
-        </span>
-      </h1>
-      <form onSubmit={save} noValidate>
+    <RouteSheet
+      title={`${name}, ${format.date(payment.date)}`}
+      description={`${t(PAYMENT_TYPE_KEY[payment.type])} · ${format.amount(payment.amount)}`}
+      closeTo="/versements"
+    >
+      <form onSubmit={save} noValidate className="flex flex-col gap-4">
         <PaymentFields
           register={form.register}
           watch={form.watch}
@@ -128,35 +134,38 @@ function CorrectionForm({ payment, moulders, contractorNames }: CorrectionFormPr
           contractorNames={contractorNames}
         />
         {updateRefusal.message && (
-          <p role="alert">
+          <p role="alert" className="text-sm text-destructive">
             {t('common.saveFailedPrefix')} {updateRefusal.message}
           </p>
         )}
         {cancel.isError && (
-          <p role="alert">
+          <p role="alert" className="text-sm text-destructive">
             {t('common.cancelFailedPrefix')} {apiErrorMessage(cancel.error)}
           </p>
         )}
-        <p className="actions">
-          <button type="submit" disabled={busy || !form.formState.isDirty}>
-            {t('common.save')}
-          </button>
-          {confirming ? (
-            <>
-              <button type="button" onClick={cancelPayment} disabled={busy}>
-                {t('common.confirmCancellation')}
-              </button>
-              <button type="button" onClick={() => setConfirming(false)} disabled={busy}>
-                {t('payments.keepPayment')}
-              </button>
-            </>
-          ) : (
-            <button type="button" onClick={() => setConfirming(true)} disabled={busy}>
-              {t('payments.cancelPayment')}
-            </button>
-          )}
-        </p>
+        <Button type="submit" disabled={busy || !form.formState.isDirty}>
+          {t('common.save')}
+        </Button>
+        {confirming ? (
+          <ConfirmStrip
+            confirmLabel={t('common.confirmCancellation')}
+            keepLabel={t('payments.keepPayment')}
+            onConfirm={cancelPayment}
+            onKeep={() => setConfirming(false)}
+            busy={busy}
+          />
+        ) : (
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            onClick={() => setConfirming(true)}
+            disabled={busy}
+          >
+            {t('payments.cancelPayment')}
+          </Button>
+        )}
       </form>
-    </>
+    </RouteSheet>
   );
 }

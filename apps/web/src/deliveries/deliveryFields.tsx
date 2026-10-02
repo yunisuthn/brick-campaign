@@ -1,6 +1,5 @@
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
-import { DateField } from '../form/DateField.js';
-import { Field } from '../form/Field.js';
+import { DateField, NumberField, TextField } from '@/components/fields';
 import { digitsOnly } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import type { NewDelivery } from './useDeliveries.js';
@@ -40,25 +39,29 @@ export function DeliveryFields({ register, control, errors }: DeliveryFieldsProp
         error={errors.date}
         required={t('common.dateRequired')}
       />
-      <Field
-        label={t('deliveries.quantityLabel')}
-        error={errors.quantity}
-        input={register('quantity', {
-          validate: (value) =>
-            (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
-            t('deliveries.quantityRequired'),
-        })}
-        inputMode="numeric"
+      <div className="grid grid-cols-2 gap-3">
+        <NumberField
+          label={t('deliveries.quantityLabel')}
+          error={errors.quantity}
+          registration={register('quantity', {
+            validate: (value) =>
+              (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
+              t('deliveries.quantityRequired'),
+          })}
+        />
+        <NumberField
+          label={t('deliveries.costLabel')}
+          error={errors.cost}
+          registration={register('cost', {
+            validate: (value) => /^\d+$/.test(digitsOnly(value)) || t('deliveries.costRequired'),
+          })}
+        />
+      </div>
+      <TextField
+        label={t('deliveries.plateLabel')}
+        error={errors.plate}
+        registration={register('plate')}
       />
-      <Field
-        label={t('deliveries.costLabel')}
-        error={errors.cost}
-        input={register('cost', {
-          validate: (value) => /^\d+$/.test(digitsOnly(value)) || t('deliveries.costRequired'),
-        })}
-        inputMode="numeric"
-      />
-      <Field label={t('deliveries.plateLabel')} error={errors.plate} input={register('plate')} />
     </>
   );
 }

@@ -1,5 +1,5 @@
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
-import { Field, SelectField } from '../form/Field.js';
+import { ChoiceField, NumberField, TextField } from '@/components/fields';
 import { digitsOnly } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import type { TranslationKey } from '../i18n/translations.js';
@@ -31,26 +31,26 @@ export function RiceFieldFields({ register, control, errors }: RiceFieldFieldsPr
   const { t } = useTranslation();
   return (
     <>
-      <Field
+      <TextField
         label={t('riceFields.nameLabel')}
         error={errors.name}
-        input={register('name', {
+        registration={register('name', {
           setValueAs: (value: string) => value.trim(),
           required: t('riceFields.nameRequired'),
         })}
       />
-      <Field
+      <TextField
         label={t('riceFields.locationLabel')}
         error={errors.location}
-        input={register('location', {
+        registration={register('location', {
           setValueAs: (value: string) => value.trim(),
           required: t('riceFields.locationRequired'),
         })}
       />
-      <Field
+      <NumberField
         label={t('riceFields.surfaceLabel')}
         error={errors.surfaceM2}
-        input={register('surfaceM2', {
+        registration={register('surfaceM2', {
           setValueAs: (value: unknown) =>
             value === '' || value === null ? null : Number(digitsOnly(value as string)),
           validate: (value) =>
@@ -58,13 +58,12 @@ export function RiceFieldFields({ register, control, errors }: RiceFieldFieldsPr
             (Number.isInteger(value) && value > 0) ||
             t('riceFields.surfaceInvalid'),
         })}
-        inputMode="numeric"
       />
-      <SelectField
+      <ChoiceField
         label={t('riceFields.contractTypeLabel')}
-        error={errors.contractType}
         name="contractType"
         control={control}
+        error={errors.contractType}
         options={(Object.keys(CONTRACT_TYPE_KEY) as ContractType[]).map((value) => ({
           value,
           label: t(CONTRACT_TYPE_KEY[value]),

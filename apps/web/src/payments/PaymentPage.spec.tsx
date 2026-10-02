@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CurrentCampaignProvider } from '../campaigns/currentCampaign.js';
 import { renderRoutes } from '../test/render.js';
-import { chooseOption } from '../test/select.js';
 import { server } from '../test/server.js';
 import { PaymentPage } from './PaymentPage.js';
 
@@ -75,9 +74,9 @@ describe('PaymentPage', () => {
     expect(screen.queryByRole('option', { name: 'Autre retiré' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('option', { name: 'Parti' }));
 
-    await chooseOption(user, 'Bénéficiaire', 'Prestataire');
+    await user.click(screen.getByRole('radio', { name: 'Prestataire' }));
     await user.type(screen.getByLabelText('Nom du prestataire'), 'Solo');
-    await chooseOption(user, 'Type', 'Solde');
+    await user.click(screen.getByRole('radio', { name: 'Solde' }));
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(await screen.findByRole('heading', { name: /Solo, 5 juin 2026/ })).toBeInTheDocument();

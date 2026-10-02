@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { BottomNav } from '@/components/BottomNav';
+import { LangSwitcher } from '@/components/LangSwitcher';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -19,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CurrentCampaignProvider, useCurrentCampaign } from '../campaigns/currentCampaign.js';
-import { type Lang, useTranslation } from '../i18n/I18nProvider.js';
+import { useTranslation } from '../i18n/I18nProvider.js';
 import type { TranslationKey } from '../i18n/translations.js';
 import { useLogout, useSession } from './useSession.js';
 
@@ -38,7 +39,7 @@ export function AppShell() {
 
   return (
     <CurrentCampaignProvider>
-      <header className="ui flex items-center justify-between gap-3 border-b bg-card px-4 py-2.5">
+      <header className="flex items-center justify-between gap-3 border-b bg-card px-4 py-2.5">
         <span className="flex min-w-0 items-center gap-2.5">
           <span
             aria-hidden="true"
@@ -65,30 +66,6 @@ export function AppShell() {
       <Outlet />
       <BottomNav />
     </CurrentCampaignProvider>
-  );
-}
-
-/**
- * French and Malagasy: two choices, so one button that flips between them, both codes shown
- * and the current one stressed. Its accessible name says what a press does.
- */
-function LangSwitcher() {
-  const { lang, setLang, t } = useTranslation();
-  const other: Lang = lang === 'fr' ? 'mg' : 'fr';
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      className="px-3 text-xs"
-      onClick={() => setLang(other)}
-      aria-label={t(other === 'mg' ? 'shell.switchToMg' : 'shell.switchToFr')}
-    >
-      <span className={lang === 'mg' ? 'font-bold' : 'text-muted-foreground'}>MG</span>
-      <span aria-hidden="true" className="text-muted-foreground">
-        /
-      </span>
-      <span className={lang === 'fr' ? 'font-bold' : 'text-muted-foreground'}>FR</span>
-    </Button>
   );
 }
 
@@ -146,17 +123,25 @@ const sections: ReadonlyArray<{ to: string; key: TranslationKey }> = [
 ];
 
 /**
- * One link per section; the stylesheet marks the current one, which react-router flags with
- * `aria-current`. The dashboard needs `end`: every path descends from the root, so without it
- * that link would always look like the current one. Hidden under 640 pixels (section 10.7),
+ * One link per section; the current one, which react-router flags with `aria-current`, gets
+ * the brick colour and a pale pill. The dashboard needs `end`: every path descends from the
+ * root, so without it that link would always look like the current one. Hidden under 640 pixels (section 10.7),
  * where eleven links wrapped to three lines above every screen; the bottom bar takes over.
  */
 function MainNav() {
   const { t } = useTranslation();
   return (
-    <nav aria-label={t('nav.sections')} className="shell-nav">
+    <nav
+      aria-label={t('nav.sections')}
+      className="hidden flex-wrap gap-x-1 gap-y-1 border-b bg-card px-3 py-1.5 sm:flex"
+    >
       {sections.map((section) => (
-        <NavLink key={section.to} to={section.to} end={section.to === '/'}>
+        <NavLink
+          key={section.to}
+          to={section.to}
+          end={section.to === '/'}
+          className="flex min-h-9 items-center rounded-md px-2.5 text-sm text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[current=page]:bg-primary/10 aria-[current=page]:font-semibold aria-[current=page]:text-primary"
+        >
           {t(section.key)}
         </NavLink>
       ))}
@@ -166,8 +151,8 @@ function MainNav() {
 
 /**
  * A closed campaign can still be chosen, to read past figures; it says so in the option. The
- * list is Radix's, positioned by its own code rather than the browser's native popup, which is
- * what the old hand-made dropdown was for (form/Select.tsx).
+ * list is Radix's, positioned by its own code rather than the browser's native popup, which
+ * opens off in a corner under device emulation and in some in-app webviews.
  */
 function CampaignPicker() {
   const { campaign, campaigns, choose } = useCurrentCampaign();
@@ -175,7 +160,7 @@ function CampaignPicker() {
   const id = useId();
 
   return (
-    <nav aria-label={t('shell.currentCampaign')} className="ui border-b bg-card px-4 pt-2 pb-3">
+    <nav aria-label={t('shell.currentCampaign')} className="border-b bg-card px-4 pt-2 pb-3">
       <div className="mx-auto flex max-w-md flex-col gap-1.5">
         <Label htmlFor={id} className="text-xs text-muted-foreground">
           {t('shell.currentCampaign')}

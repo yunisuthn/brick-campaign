@@ -1,6 +1,6 @@
 import type { Control, FieldErrors, UseFormRegister, UseFormWatch } from 'react-hook-form';
-import { DateField } from '../form/DateField.js';
-import { Field, SelectField } from '../form/Field.js';
+import { ChoiceField, DateField, NumberField, SelectField, TextField } from '@/components/fields';
+import type { Tone } from '@/components/marks';
 import { digitsOnly } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import type { TranslationKey } from '../i18n/translations.js';
@@ -12,6 +12,14 @@ export const PAYMENT_TYPE_KEY: Record<PaymentType, TranslationKey> = {
   advance: 'payments.type.advance',
   settlement: 'payments.type.settlement',
   fee: 'payments.type.fee',
+};
+
+/** How each type shows as a badge: the settlement closes the account, in green. */
+export const PAYMENT_TYPE_TONE: Record<PaymentType, Tone> = {
+  vatsy: 'neutral',
+  advance: 'warning',
+  settlement: 'success',
+  fee: 'brick',
 };
 
 /**
@@ -57,15 +65,6 @@ export function PaymentFields({
   const kind = watch('kind');
   const { t } = useTranslation();
 
-  const kindOptions = [
-    { value: 'moulder', label: t('common.moulderLabel') },
-    { value: 'contractor', label: t('payments.contractorLabel') },
-  ];
-  const typeOptions = paymentTypes.map((type) => ({
-    value: type,
-    label: t(PAYMENT_TYPE_KEY[type]),
-  }));
-
   return (
     <>
       <DateField
@@ -75,33 +74,34 @@ export function PaymentFields({
         error={errors.date}
         required={t('common.dateRequired')}
       />
-      <SelectField
+      <ChoiceField
         label={t('payments.beneficiaryLabel')}
-        error={errors.kind}
         name="kind"
         control={control}
-        options={kindOptions}
+        error={errors.kind}
+        options={[
+          { value: 'moulder', label: t('common.moulderLabel') },
+          { value: 'contractor', label: t('payments.contractorLabel') },
+        ]}
       />
       {kind === 'moulder' ? (
         <SelectField
           label={t('common.moulderLabel')}
-          error={errors.moulderId}
           name="moulderId"
           control={control}
+          error={errors.moulderId}
           rules={{
             validate: (value, form) =>
               form.kind !== 'moulder' || value !== '' || t('common.moulderRequired'),
           }}
-          options={[
-            { value: '', label: t('common.choose') },
-            ...moulders.map((m) => ({ value: m.id, label: m.name })),
-          ]}
+          placeholder={t('common.choose')}
+          options={moulders.map((m) => ({ value: m.id, label: m.name }))}
         />
       ) : (
-        <Field
+        <TextField
           label={t('payments.contractorNameLabel')}
           error={errors.contractorName}
-          input={register('contractorName', {
+          registration={register('contractorName', {
             validate: (value, form) =>
               form.kind !== 'contractor' ||
               value.trim() !== '' ||
@@ -110,22 +110,21 @@ export function PaymentFields({
           suggestions={contractorNames}
         />
       )}
-      <SelectField
+      <ChoiceField
         label={t('common.type')}
-        error={errors.type}
         name="type"
         control={control}
-        options={typeOptions}
+        error={errors.type}
+        options={paymentTypes.map((type) => ({ value: type, label: t(PAYMENT_TYPE_KEY[type]) }))}
       />
-      <Field
+      <NumberField
         label={t('payments.amountLabel')}
         error={errors.amount}
-        input={register('amount', {
+        registration={register('amount', {
           validate: (value) =>
             (/^\d+$/.test(digitsOnly(value)) && Number(digitsOnly(value)) > 0) ||
             t('common.amountRequiredInteger'),
         })}
-        inputMode="numeric"
       />
     </>
   );

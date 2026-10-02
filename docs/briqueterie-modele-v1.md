@@ -359,3 +359,56 @@ rien de nouveau côté API. La page Nouvelle vente reste en place.
 
 20. **Front** : Tailwind, shadcn/ui et Geist installés ; thème ; coquille et tableau de bord
     refaits ; tiroir Nouvelle vente ; textes nouveaux en français et en malgache.
+
+### 10.12 La refonte des autres écrans
+
+Décidé le 2 octobre 2026. Suite de la section 10.11 : les dix-sept écrans encore sur la feuille
+globale passent à Tailwind et shadcn/ui, d'après une maquette de chaque écran en français et en
+malgache. Rien ne change côté API ni en base : les écrans appellent les mêmes routes, seul
+l'affichage change.
+
+**Une saisie ou une correction s'ouvre dans un tiroir qui monte du bas**, par-dessus la liste
+d'où elle part, comme la vente du tableau de bord. Les adresses restent celles d'aujourd'hui
+(`/productions/nouvelle`, `/productions/:id`…) : la route ouvre le tiroir au-dessus de la liste,
+si bien qu'un lien garde son sens et que le bouton retour du téléphone le ferme. Fermer le
+tiroir ramène à la liste. Une fiche qui porte plus qu'un formulaire (une vente avec ses
+livraisons et ses encaissements, un lot avec ses prestations, une campagne, un mouleur, une
+rizière) reste une page ; ses propres saisies (voyage, encaissement, prestation) s'y ouvrent en
+tiroir de la même façon.
+
+**Les listes deviennent des cartes**, une ligne par saisie, le chiffre aligné à droite. Les
+productions se regroupent par jour, avec le total du jour ; « Aujourd'hui » et « Hier » nomment
+les deux premiers. Une vente montre son statut en badge et ses livraisons en barre de
+progression ; un lot, « Au four » ou « Cuite » en badge.
+
+**La suppression demande toujours un second geste**, dans un bandeau rouge qui remplace les
+liens « Confirmer · Garder ». Sur une ligne de versement, Éditer et Supprimer passent dans un
+menu, derrière un bouton à trois points.
+
+**Un choix entre deux à quatre valeurs se fait d'un geste** (bénéficiaire, type de versement,
+type de prestation, type de contrat) : des boutons côte à côte plutôt qu'une liste déroulante.
+
+**Les chiffres et les dates suivent la langue de l'interface.** En malgache, une quantité se lit
+« 1 800 biriky » et une date « 2 Oktobra 2026 » ; les montants restent « 1 250 000 Ar » dans les
+deux langues. Le format de saisie d'une date ne change pas (jj/mm/aaaa).
+
+**La feuille globale disparaît une fois le dernier écran refait**, et le reset de Tailwind
+(preflight) est alors chargé : la réserve de la section 10.11 n'a plus d'objet.
+
+21. **Front** : les briques communes (en-tête d'écran, liste en carte, tiroir lié à une route,
+    champs, bandeau de confirmation, badges, carte de stock, états vide, chargement et erreur).
+22. **Front** : les chiffres et les dates dans la langue de l'interface.
+23. **Front** : Productions.
+24. **Front** : Ventes, avec la fiche d'une vente, ses voyages et ses encaissements.
+25. **Front** : Lots, avec la fiche d'un lot et ses prestations.
+26. **Front** : Soldes et Versements.
+27. **Front** : Dépenses.
+28. **Front** : Plus et Campagnes, avec les tarifs.
+29. **Front** : Mouleurs, Clients et Rizières.
+30. **Front** : Connexion, et les états vide, chargement et erreur de chaque écran.
+31. **Front** : la feuille globale retirée, le reset de Tailwind chargé.
+
+Les onze chantiers 21 à 31 sont livrés le 2 octobre 2026. Les champs de l'ancienne feuille
+(`form/Field.tsx`, `form/Select.tsx`, `form/DateField.tsx`) sont retirés avec elle ; restent dans
+`form/` le masque des dates, le regroupement des chiffres à la saisie et la lecture des refus de
+l'API, que les champs de `components/fields.tsx` emploient.

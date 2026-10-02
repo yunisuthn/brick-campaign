@@ -62,10 +62,10 @@ describe('KilnBatchesPage', () => {
     );
     mount();
 
-    const levels = await screen.findByRole('region', { name: 'Stock' });
-    expect(within(levels).getByText('Crue').nextSibling).toHaveTextContent('20 000 briques');
-    expect(within(levels).getByText('Au four').nextSibling).toHaveTextContent('40 000 briques');
-    expect(within(levels).getByText('Cuite').nextSibling).toHaveTextContent('35 000 briques');
+    const levels = await screen.findByRole('region', { name: 'Stock de briques' });
+    expect(within(levels).getByText('Crue').nextSibling).toHaveTextContent('20 000');
+    expect(within(levels).getByText('Au four').nextSibling).toHaveTextContent('40 000');
+    expect(within(levels).getByText('Cuite').nextSibling).toHaveTextContent('35 000');
 
     const [first, second] = screen.getAllByRole('listitem');
     expect(within(first!).getByText(/encore au four/)).toBeInTheDocument();

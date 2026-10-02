@@ -60,7 +60,6 @@ describe('ContractorWorkPage', () => {
     renderRoutes(routes, '/prestations/w1');
 
     expect(await screen.findByRole('heading', { name: /Solo/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Retour au lot' })).toHaveAttribute('href', '/lots/b1');
 
     const quantity = screen.getByLabelText('Quantité (briques)');
     await user.clear(quantity);

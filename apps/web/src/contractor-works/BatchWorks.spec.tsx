@@ -25,9 +25,9 @@ describe('BatchWorks', () => {
     );
     renderWithProviders(<BatchWorks campaignId="c1" batchId="b1" />);
 
-    expect(await screen.findByRole('link', { name: 'Solo' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: /^Solo/ })).toHaveAttribute(
       'href',
-      '/prestations/w1',
+      '/lots/b1/prestations/w1',
     );
     expect(
       screen.getByText('Transport vers le four · 2 juin 2026 · 40 000 briques'),

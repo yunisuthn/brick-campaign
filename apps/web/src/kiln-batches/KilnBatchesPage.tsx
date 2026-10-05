@@ -57,7 +57,7 @@ function Batches({ campaignId }: { campaignId: string }) {
   return (
     <>
       <StockCard stock={stock.data} />
-      <Button asChild>
+      <Button asChild className="sm:self-start">
         <Link to="/lots/nouveau">
           <Flame aria-hidden="true" />
           {t('kilnBatches.newLink')}

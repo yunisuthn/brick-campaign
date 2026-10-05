@@ -412,3 +412,29 @@ Les onze chantiers 21 à 31 sont livrés le 2 octobre 2026. Les champs de l'anci
 (`form/Field.tsx`, `form/Select.tsx`, `form/DateField.tsx`) sont retirés avec elle ; restent dans
 `form/` le masque des dates, le regroupement des chiffres à la saisie et la lecture des refus de
 l'API, que les champs de `components/fields.tsx` emploient.
+
+### 10.13 L'interface sur tablette et sur ordinateur
+
+Décidé le 5 octobre 2026. La refonte de la section 10.12 a été dessinée pour le téléphone : sur
+un écran plus large, chaque page restait une colonne de téléphone au milieu de la fenêtre, les
+tiroirs montaient du bas sur toute la largeur et le sélecteur de campagne prenait une ligne
+entière. Rien ne change sous 640 pixels, ni côté API ni en base.
+
+**Trois largeurs.** Sous 640 pixels, le téléphone tel qu'il est (section 10.7). De 640 à 1024,
+une tablette : l'en-tête, la campagne sur une ligne compacte, et la barre des onze sections sur
+une seule ligne qui défile de côté si elle ne tient pas. Au-delà de 1024, un ordinateur : une
+barre latérale fixe porte la marque, la campagne courante, les onze sections avec leur icône,
+la langue et le compte ; l'en-tête et la barre du haut disparaissent. Une seule des deux
+dispositions est rendue à la fois, si bien qu'aucune commande n'existe en double.
+
+**Les pages s'élargissent sans s'étaler.** À partir de 640 pixels, la colonne passe de la
+largeur d'un téléphone à celle d'une liste lisible ; le bouton de saisie d'une liste reprend sa
+taille au lieu de couvrir la largeur. Le tableau de bord et les soldes, faits de cartes, passent
+sur deux colonnes au-delà de 1024 : le résultat à côté du stock, les ventes et les dépenses à
+côté de la main-d'œuvre ; un mouleur ou un prestataire par demi-largeur.
+
+**Un tiroir de saisie s'ouvre à droite** à partir de 640 pixels, sur toute la hauteur, et laisse
+la liste visible à côté ; sous 640 il monte toujours du bas, sous le pouce. Ses adresses et sa
+fermeture ne changent pas.
+
+32. **Front** : l'interface sur tablette et sur ordinateur.

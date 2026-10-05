@@ -3,10 +3,28 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { cn } from '@/lib/utils';
 
-/** The column every redesigned screen sits in: phone width, centred above it. */
-export function Screen({ children, className }: { children: ReactNode; className?: string }) {
+/**
+ * The column every screen sits in: the phone's width, then wider from 640 pixels so a list or a
+ * form uses the room a tablet or a computer gives it, still centred and short enough to read.
+ * `wide` is for a screen of side-by-side cards, the dashboard, that lays them out itself.
+ */
+export function Screen({
+  children,
+  className,
+  wide = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  wide?: boolean;
+}) {
   return (
-    <main className={cn('mx-auto flex w-full max-w-md flex-col gap-4 px-4 pt-5 pb-8', className)}>
+    <main
+      className={cn(
+        'mx-auto flex w-full max-w-md flex-col gap-4 px-4 pt-5 pb-8 sm:max-w-2xl sm:px-6 sm:pt-6 lg:px-8 lg:pt-8',
+        wide && 'lg:max-w-5xl',
+        className,
+      )}
+    >
       {children}
     </main>
   );

@@ -38,7 +38,7 @@ export function ExpensesPage() {
       />
       {campaign ? (
         <>
-          <Button asChild>
+          <Button asChild className="sm:self-start">
             <Link to="/depenses/nouvelle">
               <Plus aria-hidden="true" />
               {t('expenses.newLink')}

@@ -15,7 +15,7 @@ export function CampaignsPage() {
   return (
     <Screen>
       <PageHeader title={t('campaigns.title')} />
-      <Button asChild>
+      <Button asChild className="sm:self-start">
         <Link to="/campagnes/nouvelle">
           <Plus aria-hidden="true" />
           {t('campaigns.newLink')}

@@ -28,7 +28,7 @@ export function SalesPage() {
       />
       {campaign ? (
         <>
-          <Button asChild>
+          <Button asChild className="sm:self-start">
             <Link to="/ventes/nouvelle">
               <Plus aria-hidden="true" />
               {t('sales.newLink')}

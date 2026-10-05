@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,6 +10,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { useTranslation } from '@/i18n/I18nProvider';
+import { useMediaQuery } from '@/lib/useMediaQuery';
 import { cn } from '@/lib/utils';
 
 interface RouteSheetProps {
@@ -28,7 +29,6 @@ interface RouteSheetProps {
  */
 export function RouteSheet({ title, description, closeTo, children }: RouteSheetProps) {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   return (
     <Sheet
       open
@@ -36,12 +36,7 @@ export function RouteSheet({ title, description, closeTo, children }: RouteSheet
         if (!open) void navigate(closeTo);
       }}
     >
-      <SheetContent
-        side="bottom"
-        closeLabel={t('common.close')}
-        className="mx-auto max-h-[92dvh] max-w-md gap-0 overflow-y-auto rounded-t-xl"
-        {...(description === undefined ? { 'aria-describedby': undefined } : {})}
-      >
+      <FormSheetContent {...(description === undefined ? { 'aria-describedby': undefined } : {})}>
         <SheetHeader className="pr-14">
           <SheetTitle className="text-lg">{title}</SheetTitle>
           {description !== undefined && <SheetDescription>{description}</SheetDescription>}
@@ -49,8 +44,32 @@ export function RouteSheet({ title, description, closeTo, children }: RouteSheet
         <div className="flex flex-col gap-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {children}
         </div>
-      </SheetContent>
+      </FormSheetContent>
     </Sheet>
+  );
+}
+
+/**
+ * Where a form sheet comes from: from the bottom on a phone, under the thumb; from 640 pixels a
+ * panel on the right, full height, so the list it was opened over stays in view beside it.
+ */
+export function FormSheetContent({
+  className,
+  ...props
+}: Omit<ComponentProps<typeof SheetContent>, 'side' | 'closeLabel'>) {
+  const wide = useMediaQuery('(min-width: 40rem)');
+  const { t } = useTranslation();
+  return (
+    <SheetContent
+      side={wide ? 'right' : 'bottom'}
+      closeLabel={t('common.close')}
+      className={cn(
+        'gap-0 overflow-y-auto',
+        wide ? 'w-full sm:max-w-md' : 'mx-auto max-h-[92dvh] max-w-md rounded-t-xl',
+        className,
+      )}
+      {...props}
+    />
   );
 }
 

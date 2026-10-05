@@ -6,10 +6,10 @@ import { DateField } from '@/components/fields';
 import { PageHeader, Screen } from '@/components/Screen';
 import { SectionCard } from '@/components/SectionCard';
 import { ErrorNote } from '@/components/states';
+import { FormSheetContent } from '@/components/RouteSheet';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
-  SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
@@ -144,11 +144,7 @@ function EditRates({ campaign }: { campaign: Campaign }) {
           {t('campaigns.editRates')}
         </Button>
       </SheetTrigger>
-      <SheetContent
-        side="bottom"
-        closeLabel={t('common.close')}
-        className="mx-auto max-h-[92dvh] max-w-md gap-0 overflow-y-auto rounded-t-xl"
-      >
+      <FormSheetContent>
         <SheetHeader className="pr-14">
           <SheetTitle className="text-lg">{t('campaigns.ratesFormLabel')}</SheetTitle>
           <SheetDescription>
@@ -156,7 +152,7 @@ function EditRates({ campaign }: { campaign: Campaign }) {
           </SheetDescription>
         </SheetHeader>
         <RatesForm campaign={campaign} onDone={() => setOpen(false)} />
-      </SheetContent>
+      </FormSheetContent>
     </Sheet>
   );
 }

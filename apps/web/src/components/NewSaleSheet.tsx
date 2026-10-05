@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { DateInput, FormField, NumberInput } from '@/components/fields';
+import { FormSheetContent } from '@/components/RouteSheet';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -15,7 +16,6 @@ import {
 import {
   Sheet,
   SheetClose,
-  SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
@@ -58,11 +58,7 @@ export function NewSaleSheet({ campaign }: { campaign: Campaign }) {
           {t('dashboard.newSale')}
         </Button>
       </SheetTrigger>
-      <SheetContent
-        side="bottom"
-        closeLabel={t('common.close')}
-        className="mx-auto max-h-[92dvh] max-w-md gap-0 overflow-y-auto rounded-t-xl"
-      >
+      <FormSheetContent>
         <SheetHeader className="pr-14">
           <SheetTitle className="text-lg">{t('sales.newTitle')}</SheetTitle>
           <SheetDescription>
@@ -70,7 +66,7 @@ export function NewSaleSheet({ campaign }: { campaign: Campaign }) {
           </SheetDescription>
         </SheetHeader>
         <SaleForm campaignId={campaign.id} onDone={() => setOpen(false)} />
-      </SheetContent>
+      </FormSheetContent>
     </Sheet>
   );
 }

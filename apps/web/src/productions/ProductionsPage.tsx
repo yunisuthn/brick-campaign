@@ -33,7 +33,7 @@ export function ProductionsPage() {
       />
       {campaign ? (
         <>
-          <Button asChild>
+          <Button asChild className="sm:self-start">
             <Link to="/productions/nouvelle">
               <Plus aria-hidden="true" />
               {t('productions.newLink')}

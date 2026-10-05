@@ -20,7 +20,7 @@ export function DashboardPage() {
   const { t } = useTranslation();
 
   return (
-    <Screen>
+    <Screen wide>
       <PageHeader
         title={t('dashboard.title')}
         subtitle={
@@ -62,8 +62,10 @@ function Overview({ campaign }: { campaign: Campaign }) {
   }
   const data = dashboard.data;
 
+  // One column on a phone, in reading order; two from 1024 pixels: the result beside the stock,
+  // then the sales and the expenses beside the labour, the longest card.
   return (
-    <>
+    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2">
       <ResultCard result={data.result} received={data.received} />
       <StockCard stock={data.stock} />
       <SectionCard title={t('dashboard.salesLabel')} action={<NewSaleSheet campaign={campaign} />}>
@@ -73,9 +75,9 @@ function Overview({ campaign }: { campaign: Campaign }) {
           <AmountRow label={t('dashboard.outstandingReceivable')} value={data.outstanding} strong />
         </dl>
       </SectionCard>
-      <LabourCard labour={data.labour} />
+      <LabourCard labour={data.labour} className="lg:row-span-2" />
       <ExpensesCard total={data.expenses.total} deliveryCosts={data.deliveryCosts} />
-    </>
+    </div>
   );
 }
 
@@ -126,14 +128,14 @@ function ResultCard({ result, received }: { result: number | null; received: num
  * negative balance to show but money handed out ahead: it reads as an advance to the workers
  * (section 10.11), paid less owed.
  */
-function LabourCard({ labour }: { labour: Dashboard['labour'] }) {
+function LabourCard({ labour, className }: { labour: Dashboard['labour']; className?: string }) {
   const { t } = useTranslation();
   const rateToFix = t('dashboard.rateToFix');
   const advance =
     labour.total !== null && labour.paid > labour.total ? labour.paid - labour.total : null;
 
   return (
-    <SectionCard title={t('dashboard.labourLabel')}>
+    <SectionCard title={t('dashboard.labourLabel')} className={className}>
       <dl>
         <AmountRow
           label={t('dashboard.moulding')}
@@ -196,6 +198,7 @@ function ExpensesCard({ total, deliveryCosts }: { total: number; deliveryCosts: 
     >
       <SectionCard
         title={t('dashboard.expensesLabel')}
+        className="h-full"
         action={
           <ChevronRight
             aria-hidden="true"

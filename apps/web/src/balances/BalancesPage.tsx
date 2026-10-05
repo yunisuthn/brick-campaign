@@ -26,7 +26,7 @@ export function BalancesPage() {
   const { t } = useTranslation();
 
   return (
-    <Screen>
+    <Screen wide>
       <PageHeader
         title={t('balances.title')}
         subtitle={
@@ -66,9 +66,9 @@ function Balances({ campaignId }: { campaignId: string }) {
         ) : (
           <>
             <TotalDue balances={moulders.data} />
-            <ul className="flex flex-col gap-3">
+            <ul className="grid gap-3 lg:grid-cols-2">
               {moulders.data.map((line) => (
-                <li key={line.moulderId}>
+                <li key={line.moulderId} className="grid">
                   <MoulderCard campaignId={campaignId} line={line} />
                 </li>
               ))}
@@ -80,9 +80,9 @@ function Balances({ campaignId }: { campaignId: string }) {
         {contractors.data.length === 0 ? (
           <EmptyState icon={HandCoins} title={t('balances.contractorsNone')} />
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="grid gap-3 lg:grid-cols-2">
             {contractors.data.map((line) => (
-              <li key={line.contractorName}>
+              <li key={line.contractorName} className="grid">
                 <BalanceCard
                   name={line.contractorName}
                   work={contractorWork(line, t, format.bricks)}

@@ -1,6 +1,6 @@
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 import { DateField, NumberField, SelectField } from '@/components/fields';
-import { digitsOnly } from '../format.js';
+import { digitsOnly } from '../form/numeric.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import type { Moulder } from '../moulders/useMoulders.js';
 import type { RiceField } from '../rice-fields/useRiceFields.js';

@@ -23,8 +23,8 @@ const pwa = VitePWA({
     lang: 'fr',
     start_url: '/',
     display: 'standalone',
-    background_color: '#fbf7f2',
-    theme_color: '#8a3b12',
+    background_color: '#faf8f5',
+    theme_color: '#9a3412',
     icons: [
       { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
       { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },

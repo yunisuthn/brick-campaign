@@ -11,7 +11,7 @@ import { useContractorBalances } from '../balances/useBalances.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import type { Campaign } from '../campaigns/useCampaigns.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { digitsOnly } from '../format.js';
+import { digitsOnly } from '../form/numeric.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useFormat } from '../i18n/useFormat.js';
 import {

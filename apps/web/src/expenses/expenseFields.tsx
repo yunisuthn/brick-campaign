@@ -1,6 +1,6 @@
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 import { DateField, NumberField, SelectField, TextField } from '@/components/fields';
-import { digitsOnly } from '../format.js';
+import { digitsOnly } from '../form/numeric.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useFormat } from '../i18n/useFormat.js';
 import type { KilnBatch } from '../kiln-batches/useKilnBatches.js';

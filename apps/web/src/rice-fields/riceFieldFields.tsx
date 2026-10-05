@@ -1,6 +1,6 @@
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 import { ChoiceField, NumberField, TextField } from '@/components/fields';
-import { digitsOnly } from '../format.js';
+import { digitsOnly } from '../form/numeric.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import type { TranslationKey } from '../i18n/translations.js';
 import type { ContractType, NewRiceField } from './useRiceFields.js';

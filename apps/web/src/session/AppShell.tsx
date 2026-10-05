@@ -125,8 +125,9 @@ const sections: ReadonlyArray<{ to: string; key: TranslationKey }> = [
 /**
  * One link per section; the current one, which react-router flags with `aria-current`, gets
  * the brick colour and a pale pill. The dashboard needs `end`: every path descends from the
- * root, so without it that link would always look like the current one. Hidden under 640 pixels (section 10.7),
- * where eleven links wrapped to three lines above every screen; the bottom bar takes over.
+ * root, so without it that link would always look like the current one. Hidden under 640
+ * pixels (section 10.7), where eleven links wrapped to three lines above every screen; the
+ * bottom bar takes over.
  */
 function MainNav() {
   const { t } = useTranslation();

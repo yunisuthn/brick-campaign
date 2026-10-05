@@ -7,9 +7,18 @@ function groupDigits(digits: string): string {
 }
 
 /**
- * As the person types, non-digits are dropped and the stored value stays a plain digit string
- * (what validation and `Number(...)` downstream expect); only the input's own display gets the
- * grouping spaces, with the caret kept at the same digit rather than jumping to the end.
+ * The inverse of the grouping below: a numeric field holds "50 000", strip it back to "50000"
+ * before validating or calling `Number(...)`. react-hook-form can hand a `setValueAs` its default
+ * value unchanged (a number, not yet typed into the field), so this also accepts that.
+ */
+export function digitsOnly(value: string | number): string {
+  return String(value).replace(/\s/g, '');
+}
+
+/**
+ * As the person types, non-digits are dropped and the rest is grouped by 3, with the caret kept
+ * at the same digit rather than jumping to the end. The stored value is that spaced string, not
+ * a plain digit string: read it through `digitsOnly` before any `Number(...)`.
  */
 export function handleNumericChange(
   event: ChangeEvent<HTMLInputElement>,

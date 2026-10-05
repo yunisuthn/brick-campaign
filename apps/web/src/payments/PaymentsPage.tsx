@@ -42,7 +42,7 @@ export function PaymentsPage() {
       />
       {campaign ? (
         <>
-          <Button asChild>
+          <Button asChild className="sm:self-start">
             <Link to="/versements/nouveau">
               <Plus aria-hidden="true" />
               {t('payments.newLink')}

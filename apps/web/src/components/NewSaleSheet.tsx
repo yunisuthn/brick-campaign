@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { DateInput, FormField, NumberInput } from '@/components/fields';
+import { FormSheetContent } from '@/components/RouteSheet';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -15,7 +16,6 @@ import {
 import {
   Sheet,
   SheetClose,
-  SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
@@ -27,7 +27,8 @@ import type { Campaign } from '../campaigns/useCampaigns.js';
 import { useClients } from '../clients/useClients.js';
 import { dashboardKey } from '../dashboard/useDashboard.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { digitsOnly, formatAmount, today } from '../format.js';
+import { digitsOnly } from '../form/numeric.js';
+import { formatAmount, today } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useCreateSalePaymentOnSale } from '../sale-payments/useSalePayments.js';
 import { useCreateSale } from '../sales/useSales.js';
@@ -57,11 +58,7 @@ export function NewSaleSheet({ campaign }: { campaign: Campaign }) {
           {t('dashboard.newSale')}
         </Button>
       </SheetTrigger>
-      <SheetContent
-        side="bottom"
-        closeLabel={t('common.close')}
-        className="mx-auto max-h-[92dvh] max-w-md gap-0 overflow-y-auto rounded-t-xl"
-      >
+      <FormSheetContent>
         <SheetHeader className="pr-14">
           <SheetTitle className="text-lg">{t('sales.newTitle')}</SheetTitle>
           <SheetDescription>
@@ -69,7 +66,7 @@ export function NewSaleSheet({ campaign }: { campaign: Campaign }) {
           </SheetDescription>
         </SheetHeader>
         <SaleForm campaignId={campaign.id} onDone={() => setOpen(false)} />
-      </SheetContent>
+      </FormSheetContent>
     </Sheet>
   );
 }

@@ -17,7 +17,7 @@ export function ClientsPage() {
   return (
     <Screen>
       <PageHeader title={t('clients.title')} />
-      <Button asChild>
+      <Button asChild className="sm:self-start">
         <Link to="/clients/nouveau">
           <Plus aria-hidden="true" />
           {t('clients.newLink')}

@@ -7,7 +7,8 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useClients } from '../clients/useClients.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { digitsOnly, formatAmount, today } from '../format.js';
+import { digitsOnly } from '../form/numeric.js';
+import { formatAmount, today } from '../format.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useCreateSale } from './useSales.js';
 

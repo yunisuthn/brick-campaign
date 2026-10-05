@@ -15,7 +15,7 @@ import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { type Client, useClients } from '../clients/useClients.js';
 import { SaleDeliveries } from '../deliveries/SaleDeliveries.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { digitsOnly } from '../format.js';
+import { digitsOnly } from '../form/numeric.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useFormat } from '../i18n/useFormat.js';
 import { SalePayments } from '../sale-payments/SalePayments.js';

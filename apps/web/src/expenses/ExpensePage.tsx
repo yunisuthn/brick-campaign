@@ -9,7 +9,7 @@ import { apiErrorMessage } from '../api/errorMessages.js';
 import { loadErrorMessage } from '../api/loadError.js';
 import { useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { digitsOnly } from '../format.js';
+import { digitsOnly } from '../form/numeric.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useFormat } from '../i18n/useFormat.js';
 import { type KilnBatch, useKilnBatches } from '../kiln-batches/useKilnBatches.js';

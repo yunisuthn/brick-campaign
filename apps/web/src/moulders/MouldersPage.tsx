@@ -23,7 +23,7 @@ export function MouldersPage() {
   return (
     <Screen>
       <PageHeader title={t('moulders.title')} />
-      <Button asChild>
+      <Button asChild className="sm:self-start">
         <Link to="/mouleurs/nouveau">
           <Plus aria-hidden="true" />
           {t('moulders.newLink')}

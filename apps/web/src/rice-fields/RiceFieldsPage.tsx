@@ -18,7 +18,7 @@ export function RiceFieldsPage() {
   return (
     <Screen>
       <PageHeader title={t('riceFields.title')} />
-      <Button asChild>
+      <Button asChild className="sm:self-start">
         <Link to="/rizieres/nouvelle">
           <Plus aria-hidden="true" />
           {t('riceFields.newLink')}

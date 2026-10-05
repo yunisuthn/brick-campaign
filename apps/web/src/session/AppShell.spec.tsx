@@ -120,4 +120,46 @@ describe('AppShell', () => {
     expect(picker).toBeDisabled();
     expect(picker).toHaveTextContent('Aucune');
   });
+
+  describe('from 1024 pixels', () => {
+    // jsdom has no layout: a matchMedia that matches every query stands for a wide window.
+    beforeEach(() => {
+      vi.stubGlobal('matchMedia', (query: string) => ({
+        matches: true,
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      }));
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('puts the campaign, every section and the account in a sidebar, no bottom bar', async () => {
+      server.use(
+        http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
+        http.get('/api/campaigns', () => HttpResponse.json([open2026])),
+      );
+      const { router } = renderRoutes(routes, '/');
+      await screen.findByText('Contenu de la page d’accueil');
+
+      const sidebar = screen.getByRole('complementary');
+      expect(await within(sidebar).findByText('a@b.c')).toBeInTheDocument();
+      expect(
+        within(sidebar).getByRole('combobox', { name: 'Campagne courante' }),
+      ).toBeInTheDocument();
+      expect(within(sidebar).getByRole('button', { name: 'Menu du compte' })).toBeInTheDocument();
+
+      const sections = within(sidebar).getByRole('navigation', { name: 'Sections' });
+      expect(within(sections).getAllByRole('link')).toHaveLength(11);
+      expect(within(sections).getByRole('link', { name: 'Tableau de bord' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+      expect(screen.queryByRole('navigation', { name: 'Navigation' })).not.toBeInTheDocument();
+      expect(screen.getAllByRole('combobox', { name: 'Campagne courante' })).toHaveLength(1);
+
+      await userEvent.click(within(sections).getByRole('link', { name: 'Ventes' }));
+      expect(await screen.findByText('Contenu des ventes')).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/ventes');
+    });
+  });
 });

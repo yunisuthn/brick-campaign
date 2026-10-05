@@ -91,20 +91,12 @@
     background: var(--background);
   }
 
-  /*
-   * Below 640 pixels the bottom bar takes over from the top one (section 10.7): the page keeps
-   * clear of it, safe area of the phone included.
-   */
-  @media (width < 40rem) {
-    body {
-      padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
-    }
-  }
-
   /* Preflight leaves borders without a colour of their own: the theme's, everywhere. */
   *,
+  ::after,
   ::before,
-  ::after {
+  ::backdrop,
+  ::file-selector-button {
     border-color: var(--border);
   }
 }

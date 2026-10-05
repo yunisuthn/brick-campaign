@@ -6,7 +6,7 @@ import { SectionCard } from '@/components/SectionCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { apiFormErrors } from '../form/apiFormErrors.js';
-import { digitsOnly } from '../format.js';
+import { digitsOnly } from '../form/numeric.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { RateFields } from './rateFields.js';
 import { type NewCampaign, useCreateCampaign } from './useCampaigns.js';

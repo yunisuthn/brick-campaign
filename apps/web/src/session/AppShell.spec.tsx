@@ -121,17 +121,52 @@ describe('AppShell', () => {
     expect(picker).toHaveTextContent('Aucune');
   });
 
-  describe('from 1024 pixels', () => {
-    // jsdom has no layout: a matchMedia that matches every query stands for a wide window.
-    beforeEach(() => {
-      vi.stubGlobal('matchMedia', (query: string) => ({
-        matches: true,
-        media: query,
-        addEventListener: () => undefined,
-        removeEventListener: () => undefined,
-      }));
+  // jsdom has no layout: a matchMedia that matches the queries up to a width stands for a window
+  // that wide.
+  function stubWidth(rem: number) {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: Number(/min-width: ([\d.]+)rem/.exec(query)?.[1] ?? Infinity) <= rem,
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    }));
+  }
+  afterEach(() => vi.unstubAllGlobals());
+
+  describe('from 640 to 1023 pixels', () => {
+    beforeEach(() => stubWidth(48));
+
+    it('keeps the header, the campaign under it and a bar of every section, no sidebar', async () => {
+      server.use(
+        http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', email: 'a@b.c' })),
+        http.get('/api/campaigns', () => HttpResponse.json([open2026])),
+      );
+      const { router } = renderRoutes(routes, '/');
+      await screen.findByText('Contenu de la page d’accueil');
+
+      expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+      expect(await within(screen.getByRole('banner')).findByText('a@b.c')).toBeInTheDocument();
+      expect(screen.getAllByRole('combobox', { name: 'Campagne courante' })).toHaveLength(1);
+
+      const sections = screen.getByRole('navigation', { name: 'Sections' });
+      expect(within(sections).getAllByRole('link')).toHaveLength(11);
+      expect(within(sections).getByRole('link', { name: 'Tableau de bord' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+
+      await userEvent.click(within(sections).getByRole('link', { name: 'Ventes' }));
+      expect(await screen.findByText('Contenu des ventes')).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/ventes');
+      expect(within(sections).getByRole('link', { name: 'Ventes' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
     });
-    afterEach(() => vi.unstubAllGlobals());
+  });
+
+  describe('from 1024 pixels', () => {
+    beforeEach(() => stubWidth(64));
 
     it('puts the campaign, every section and the account in a sidebar, no bottom bar', async () => {
       server.use(

@@ -10,7 +10,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { useTranslation } from '@/i18n/I18nProvider';
-import { useMediaQuery } from '@/lib/useMediaQuery';
 import { cn } from '@/lib/utils';
 
 interface RouteSheetProps {
@@ -51,21 +50,23 @@ export function RouteSheet({ title, description, closeTo, children }: RouteSheet
 
 /**
  * Where a form sheet comes from: from the bottom on a phone, under the thumb; from 640 pixels a
- * panel on the right, full height, so the list it was opened over stays in view beside it.
+ * panel on the right, full height, so the list it was opened over stays in view beside it. The
+ * bottom sheet is turned into the panel by the `sm:` classes alone: no script follows the
+ * window's width, and an open sheet does not replay its entrance when the window crosses 640.
  */
 export function FormSheetContent({
   className,
   ...props
 }: Omit<ComponentProps<typeof SheetContent>, 'side' | 'closeLabel'>) {
-  const wide = useMediaQuery('(min-width: 40rem)');
   const { t } = useTranslation();
   return (
     <SheetContent
-      side={wide ? 'right' : 'bottom'}
+      side="bottom"
       closeLabel={t('common.close')}
       className={cn(
-        'gap-0 overflow-y-auto',
-        wide ? 'w-full sm:max-w-md' : 'mx-auto max-h-[92dvh] max-w-md rounded-t-xl',
+        'mx-auto max-h-[92dvh] max-w-md gap-0 overflow-y-auto rounded-t-xl',
+        'sm:top-0 sm:left-auto sm:h-full sm:max-h-none sm:w-full sm:rounded-none sm:border-t-0 sm:border-l',
+        'sm:data-[state=closed]:slide-out-to-bottom-0 sm:data-[state=closed]:slide-out-to-right sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:slide-in-from-right',
         className,
       )}
       {...props}

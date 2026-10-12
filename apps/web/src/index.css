@@ -79,6 +79,21 @@
   --radius-xl: 12px;
 }
 
+/*
+ * A row that scrolls sideways casts a soft shadow at an edge only while more lies past it: the
+ * card-coloured covers scroll with the content and hide each shadow once its end is reached.
+ */
+@utility scroll-shadow-x {
+  background:
+    linear-gradient(to right, var(--card) 30%, transparent) left / 2.5rem 100% no-repeat local,
+    linear-gradient(to left, var(--card) 30%, transparent) right / 2.5rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.14), transparent) left / 0.75rem 100%
+      no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.14), transparent) right / 0.75rem 100%
+      no-repeat scroll,
+    var(--card);
+}
+
 @layer base {
   /* Geist everywhere: one type across the application. */
   :root {

@@ -1,21 +1,8 @@
-import {
-  BrickWall,
-  CalendarDays,
-  Flame,
-  Home,
-  type LucideIcon,
-  Receipt,
-  Scale,
-  ShoppingCart,
-  Sprout,
-  UserRound,
-  Users,
-  Wallet,
-} from 'lucide-react';
-import { type ReactNode, useId } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import { type ReactNode, useEffect, useId, useRef } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { BottomNav } from '@/components/BottomNav';
 import { LangSwitcher } from '@/components/LangSwitcher';
+import { sections } from '@/components/sections';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -37,7 +24,6 @@ import { useMediaQuery } from '@/lib/useMediaQuery';
 import { cn } from '@/lib/utils';
 import { CurrentCampaignProvider, useCurrentCampaign } from '../campaigns/currentCampaign.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
-import type { TranslationKey } from '../i18n/translations.js';
 import { useLogout, useSession } from './useSession.js';
 
 /**
@@ -179,34 +165,34 @@ function AccountMenu({
   );
 }
 
-const sections: ReadonlyArray<{ to: string; key: TranslationKey; icon: LucideIcon }> = [
-  { to: '/', key: 'nav.dashboard', icon: Home },
-  { to: '/campagnes', key: 'nav.campaigns', icon: CalendarDays },
-  { to: '/mouleurs', key: 'nav.moulders', icon: Users },
-  { to: '/rizieres', key: 'nav.riceFields', icon: Sprout },
-  { to: '/clients', key: 'nav.clients', icon: UserRound },
-  { to: '/productions', key: 'nav.productions', icon: BrickWall },
-  { to: '/versements', key: 'nav.payments', icon: Wallet },
-  { to: '/lots', key: 'nav.kilnBatches', icon: Flame },
-  { to: '/ventes', key: 'nav.sales', icon: ShoppingCart },
-  { to: '/depenses', key: 'nav.expenses', icon: Receipt },
-  { to: '/soldes', key: 'nav.balances', icon: Scale },
-];
-
 /**
  * One link per section; the current one, which react-router flags with `aria-current`, gets
  * the brick colour and a pale pill. The dashboard needs `end`: every path descends from the
  * root, so without it that link would always look like the current one. Hidden under 640
  * pixels (section 10.7), where eleven links wrapped to three lines above every screen; the
  * bottom bar takes over. On one line that scrolls sideways when a tablet is too narrow for all
- * eleven. From 1024 pixels the sidebar lists the same sections instead.
+ * eleven: a shadow at an edge says more lies past it, and the current link is brought to the
+ * middle on every navigation, so it is never left out of view. From 1024 pixels the sidebar
+ * lists the same sections instead.
  */
 function MainNav() {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const nav = ref.current;
+    const current = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!nav || !current) return;
+    // Sideways only: scrollIntoView would also scroll the page up to the bar.
+    nav.scrollLeft = current.offsetLeft - (nav.clientWidth - current.offsetWidth) / 2;
+  }, [pathname]);
+
   return (
     <nav
+      ref={ref}
       aria-label={t('nav.sections')}
-      className="hidden gap-1 overflow-x-auto border-b bg-card px-3 py-1.5 sm:flex"
+      className="scroll-shadow-x relative hidden gap-1 overflow-x-auto border-b px-3 py-1.5 sm:flex"
     >
       {sections.map((section) => (
         <NavLink
@@ -235,13 +221,15 @@ function CampaignPicker({ inSidebar = false }: { inSidebar?: boolean }) {
   return (
     <nav
       aria-label={t('shell.currentCampaign')}
-      className={cn('border-b bg-card', inSidebar ? 'px-4 py-3' : 'px-4 pt-2 pb-3 sm:py-2')}
+      className={cn('border-b bg-card', inSidebar ? 'px-4 py-3' : 'pt-2 pb-3 sm:py-2')}
     >
+      {/* Under the header, the same column as the screen's, padding included, so the picker
+          lines up with the screen's content at every width. */}
       <div
         className={cn(
           'flex flex-col gap-1.5',
           !inSidebar &&
-            'mx-auto max-w-md sm:max-w-2xl sm:flex-row sm:items-center sm:gap-3 sm:px-2',
+            'mx-auto max-w-md px-4 sm:max-w-2xl sm:flex-row sm:items-center sm:gap-3 sm:px-6',
         )}
       >
         <Label htmlFor={id} className="shrink-0 text-xs text-muted-foreground">

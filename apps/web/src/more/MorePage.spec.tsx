@@ -17,6 +17,7 @@ describe('MorePage', () => {
       ['Lots', '/lots'],
       ['Dépenses', '/depenses'],
       ['Soldes', '/soldes'],
+      ['Guide', '/guide'],
     ]);
   });
 });

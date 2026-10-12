@@ -76,7 +76,13 @@ describe('Productions (e2e)', () => {
     await request(server)
       .post(path())
       .set('Cookie', cookie)
-      .send({ startedOn: '2097-06-01', endedOn: '2097-05-31', moulderId, riceFieldId, quantity: 1000 })
+      .send({
+        startedOn: '2097-06-01',
+        endedOn: '2097-05-31',
+        moulderId,
+        riceFieldId,
+        quantity: 1000,
+      })
       .expect(400)
       .expect(hasCode('production_dates_out_of_order'));
     await request(server)

@@ -1,14 +1,12 @@
-import { BrickWall, Home, MoreHorizontal, ShoppingCart, type LucideIcon } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { NavLink } from 'react-router';
+import { bottomBarSections, type Section } from '@/components/sections';
 import { useTranslation } from '@/i18n/I18nProvider';
-import type { TranslationKey } from '@/i18n/translations';
 import { cn } from '@/lib/utils';
 
-const destinations: ReadonlyArray<{ to: string; key: TranslationKey; Icon: LucideIcon }> = [
-  { to: '/', key: 'nav.home', Icon: Home },
-  { to: '/productions', key: 'nav.productions', Icon: BrickWall },
-  { to: '/ventes', key: 'nav.sales', Icon: ShoppingCart },
-  { to: '/plus', key: 'nav.more', Icon: MoreHorizontal },
+const destinations: ReadonlyArray<Section> = [
+  ...bottomBarSections,
+  { to: '/plus', key: 'nav.more', icon: MoreHorizontal },
 ];
 
 /** The bar's box and row height, shared with the spacer so the two cannot drift apart. */
@@ -37,7 +35,7 @@ export function BottomNav() {
         )}
       >
         <ul className="mx-auto flex max-w-md">
-          {destinations.map(({ to, key, Icon }) => (
+          {destinations.map(({ to, key, shortKey, icon: Icon }) => (
             <li key={to} className="flex-1">
               <NavLink
                 to={to}
@@ -52,7 +50,7 @@ export function BottomNav() {
                 <span className="flex h-7 w-12 items-center justify-center rounded-full transition-colors group-aria-[current=page]:bg-primary/10">
                   <Icon className="size-5" aria-hidden="true" />
                 </span>
-                {t(key)}
+                {t(shortKey ?? key)}
               </NavLink>
             </li>
           ))}

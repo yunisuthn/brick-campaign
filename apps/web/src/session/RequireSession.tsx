@@ -1,9 +1,16 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { Screen } from '@/components/Screen';
 import { ErrorNote } from '@/components/states';
+import { cn } from '@/lib/utils';
 import { apiErrorMessage } from '../api/errorMessages.js';
 import { useTranslation } from '../i18n/I18nProvider.js';
 import { useSession } from './useSession.js';
+
+/**
+ * Lower than a screen's own top padding. That padding grows at 640 and at 1024 pixels, so each
+ * step is overridden, or the wider windows would get the screen's instead.
+ */
+const clearOfTop = 'pt-16 sm:pt-16 lg:pt-16';
 
 /**
  * Wraps every route but the login one. While the session loads, only the title shows: a
@@ -17,14 +24,14 @@ export function RequireSession() {
 
   if (session.isPending) {
     return (
-      <Screen className="items-center pt-16">
+      <Screen className={cn(clearOfTop, 'items-center')}>
         <h1 className="text-2xl font-semibold tracking-tight">{t('shell.appName')}</h1>
       </Screen>
     );
   }
   if (session.isError) {
     return (
-      <Screen className="pt-16">
+      <Screen className={clearOfTop}>
         <h1 className="text-center text-2xl font-semibold tracking-tight">{t('shell.appName')}</h1>
         <ErrorNote
           prefix={t('session.apiUnavailablePrefix')}

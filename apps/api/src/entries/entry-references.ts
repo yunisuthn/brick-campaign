@@ -57,7 +57,10 @@ export class EntryReferences {
       select: { mouldingRates: true },
     });
     if (!campaign?.mouldingRates.includes(rate)) {
-      throw apiError('unknown_moulding_rate', `${rate} is not one of this campaign's moulding rates`);
+      throw apiError(
+        'unknown_moulding_rate',
+        `${rate} is not one of this campaign's moulding rates`,
+      );
     }
   }
 
@@ -69,7 +72,10 @@ export class EntryReferences {
       select: { transportRates: true },
     });
     if (!campaign?.transportRates.includes(rate)) {
-      throw apiError('unknown_transport_rate', `${rate} is not one of this campaign's transport rates`);
+      throw apiError(
+        'unknown_transport_rate',
+        `${rate} is not one of this campaign's transport rates`,
+      );
     }
   }
 

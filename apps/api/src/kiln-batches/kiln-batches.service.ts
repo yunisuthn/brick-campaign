@@ -127,7 +127,10 @@ export class KilnBatchesService {
         select: { kilnBatchId: true, type: true, quantity: true, rate: true },
       }),
     ]);
-    const ids = new Set([...expenses.flatMap((g) => g.kilnBatchId ?? []), ...works.map((w) => w.kilnBatchId)]);
+    const ids = new Set([
+      ...expenses.flatMap((g) => g.kilnBatchId ?? []),
+      ...works.map((w) => w.kilnBatchId),
+    ]);
     return new Map(
       [...ids].map((id) => [
         id,

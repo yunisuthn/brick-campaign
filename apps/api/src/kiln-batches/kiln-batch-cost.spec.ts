@@ -38,7 +38,11 @@ describe('kilnBatchCost with a rate not fixed', () => {
 
   it('ignores a missing kiln loading rate for a batch with no kiln loading work', () => {
     expect(
-      kilnBatchCost({ kilnLoadingRate: null }, [], [{ type: 'transport', quantity: 40000, rate: 5 }]),
+      kilnBatchCost(
+        { kilnLoadingRate: null },
+        [],
+        [{ type: 'transport', quantity: 40000, rate: 5 }],
+      ),
     ).toEqual({ expenses: 0, labour: 200000, total: 200000 });
   });
 });

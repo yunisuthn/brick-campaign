@@ -149,7 +149,7 @@ describe('AppShell', () => {
       expect(screen.getAllByRole('combobox', { name: 'Campagne courante' })).toHaveLength(1);
 
       const sections = screen.getByRole('navigation', { name: 'Sections' });
-      expect(within(sections).getAllByRole('link')).toHaveLength(11);
+      expect(within(sections).getAllByRole('link')).toHaveLength(12);
       expect(within(sections).getByRole('link', { name: 'Tableau de bord' })).toHaveAttribute(
         'aria-current',
         'page',
@@ -184,7 +184,7 @@ describe('AppShell', () => {
       expect(within(sidebar).getByRole('button', { name: 'Menu du compte' })).toBeInTheDocument();
 
       const sections = within(sidebar).getByRole('navigation', { name: 'Sections' });
-      expect(within(sections).getAllByRole('link')).toHaveLength(11);
+      expect(within(sections).getAllByRole('link')).toHaveLength(12);
       expect(within(sections).getByRole('link', { name: 'Tableau de bord' })).toHaveAttribute(
         'aria-current',
         'page',

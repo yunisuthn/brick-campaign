@@ -438,3 +438,25 @@ la liste visible à côté ; sous 640 il monte toujours du bas, sous le pouce. S
 fermeture ne changent pas.
 
 32. **Front** : l'interface sur tablette et sur ordinateur.
+
+### 10.14 Un guide dans l'application
+
+Décidé le 12 octobre 2026. Les saisies reviennent par saison : une manipulation faite en mai
+(créer la campagne, fixer les tarifs) ne se refait qu'à la suivante, et une seconde personne
+peut avoir à saisir sans avoir appris. Le mode d'emploi doit se trouver là où l'on saisit, sur
+le téléphone, pas dans un fichier du dépôt.
+
+**Un écran Guide, douzième section.** Il s'ajoute à la fin de la liste des sections : dans
+Plus sur téléphone, dans la barre du haut sur tablette, dans la barre latérale sur ordinateur.
+Il ne lit rien de l'API et ne dépend d'aucune campagne.
+
+**Une manipulation par rubrique, dans l'ordre de la saison** : démarrer une campagne ; les
+mouleurs, rizières et clients ; la production d'un mouleur ; les versements ; la cuisson ; la
+vente, ses voyages et ses encaissements ; les dépenses ; la fin de campagne ; corriger ou
+annuler une saisie. Chaque rubrique se déplie, donne ses étapes numérotées, une remarque sur
+ce que l'application refuse ou calcule, et un lien vers l'écran concerné.
+
+**Les boutons y sont nommés par leurs propres libellés**, insérés depuis les dictionnaires et
+non recopiés : renommer un bouton renomme sa mention dans le guide, dans les deux langues.
+
+33. **Front** : l'écran Guide et son entrée dans les sections.

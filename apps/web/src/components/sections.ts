@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   BrickWall,
   CalendarDays,
   Flame,
@@ -23,9 +24,9 @@ export interface Section {
 }
 
 /**
- * Every section, in the order the sidebar and the top bar list them. The one list the sidebar,
- * the top bar, the bottom bar and the Plus page all draw from, so a route, a label or an icon
- * changes in one place.
+ * Every section, in the order the sidebar and the top bar list them, the guide last (reference
+ * document, section 10.14). The one list the sidebar, the top bar, the bottom bar and the Plus
+ * page all draw from, so a route, a label or an icon changes in one place.
  */
 export const sections: ReadonlyArray<Section> = [
   { to: '/', key: 'nav.dashboard', shortKey: 'nav.home', icon: Home },
@@ -39,6 +40,7 @@ export const sections: ReadonlyArray<Section> = [
   { to: '/ventes', key: 'nav.sales', icon: ShoppingCart },
   { to: '/depenses', key: 'nav.expenses', icon: Receipt },
   { to: '/soldes', key: 'nav.balances', icon: Scale },
+  { to: '/guide', key: 'nav.guide', icon: BookOpen },
 ];
 
 /** The sections with a tab of their own in the bottom bar, under 640 pixels (section 10.7). */

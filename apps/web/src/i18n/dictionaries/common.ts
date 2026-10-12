@@ -31,6 +31,7 @@ export const fr = {
   'nav.expenses': 'Dépenses',
   'nav.balances': 'Soldes',
   'nav.more': 'Plus',
+  'nav.guide': 'Guide',
 
   'common.loading': 'Chargement…',
   'common.save': 'Enregistrer',
@@ -97,6 +98,7 @@ export const mg: Record<keyof typeof fr, string> = {
   'nav.expenses': 'Fandaniana',
   'nav.balances': 'Sisa tavela',
   'nav.more': 'Hafa',
+  'nav.guide': 'Torolalana',
 
   'common.loading': 'Eo am-piandrasana…',
   'common.save': 'Tehirizo',

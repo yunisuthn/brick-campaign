@@ -6,6 +6,7 @@ import * as contractorWorks from './dictionaries/contractorWorks.js';
 import * as dashboard from './dictionaries/dashboard.js';
 import * as deliveries from './dictionaries/deliveries.js';
 import * as expenses from './dictionaries/expenses.js';
+import * as guide from './dictionaries/guide.js';
 import * as kilnBatches from './dictionaries/kilnBatches.js';
 import * as more from './dictionaries/more.js';
 import * as moulders from './dictionaries/moulders.js';
@@ -41,6 +42,7 @@ export const dictionary = {
     ...balances.fr,
     ...dashboard.fr,
     ...more.fr,
+    ...guide.fr,
     ...session.fr,
   },
   mg: {
@@ -60,6 +62,7 @@ export const dictionary = {
     ...balances.mg,
     ...dashboard.mg,
     ...more.mg,
+    ...guide.mg,
     ...session.mg,
   },
 };
